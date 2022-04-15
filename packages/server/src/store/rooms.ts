@@ -1,5 +1,4 @@
-import { ClientId } from '../types/clientId';
-import { Room } from '../types/room';
+import type { Room, ClientId } from 'syncboii-contracts';
 import { nanoid } from 'nanoid';
 
 const rooms: Room[] = [];

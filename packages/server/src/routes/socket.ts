@@ -1,6 +1,5 @@
-import { FastifyPluginCallback } from 'fastify';
-import { WebSocket } from 'ws';
-import { SocketRequest, SocketResponse } from '../types/socket';
+import type { FastifyPluginCallback } from 'fastify';
+import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
 import { saveSocket, getSocket } from '../store/clientSocket';
 import { findRoomByClientId } from '../store/rooms';
 

@@ -1,0 +1,12 @@
+{
+  "name": "syncboii-contracts",
+  "version": "1.0.0",
+  "description": "",
+  "typings": "dist/index.d.ts",
+  "devDependencies": {},
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "Andrey Kiselev",
+  "license": "ISC"
+}

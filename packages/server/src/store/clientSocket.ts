@@ -1,5 +1,5 @@
-import { WebSocket } from 'ws';
-import { ClientId } from '../types/clientId';
+import type { WebSocket } from 'ws';
+import type { ClientId } from 'syncboii-contracts';
 
 const clientSockets: Record<ClientId, WebSocket> = {};
 

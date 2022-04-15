@@ -10,7 +10,8 @@
   "license": "ISC",
   "workspaces": [
     "packages\\server",
-    "packages\\extension"
+    "packages\\extension",
+    "packages\\contracts"
   ],
   "devDependencies": {
     "esbuild": "^0.14.36",

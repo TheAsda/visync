@@ -1,9 +1,5 @@
-import {
-  FastifyInstance,
-  FastifyPluginCallback,
-  FastifyRegister,
-} from 'fastify';
-import { CreateRoomRequest, JoinRoomRequest } from '../types/requests';
+import type { FastifyPluginCallback } from 'fastify';
+import type { CreateRoomRequest, JoinRoomRequest } from 'syncboii-contracts';
 import { createRoom, joinRoom } from '../store/rooms';
 
 export const roomRoutes: FastifyPluginCallback = (fastify) => {
