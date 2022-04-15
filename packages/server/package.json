@@ -1,0 +1,19 @@
+{
+  "name": "syncboii-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "author": "Andrey Kiselev",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^3.28.0",
+    "fastify-websocket": "^4.2.2",
+    "nanoid": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.3"
+  }
+}
