@@ -6,6 +6,7 @@ import { fetcher } from './fetcher';
 import {
   CreateRoomRequest,
   JoinRoomRequest,
+  LeaveRoomRequest,
   Room,
   SocketRequest,
 } from 'syncboii-contracts';
@@ -51,6 +52,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         );
 
         sendResponse(JSON.stringify(room));
+        break;
+      }
+      case 'leave-room': {
+        const leaveRoomRequest: LeaveRoomRequest = {
+          clientId,
+        };
+
+        await fetcher<void, LeaveRoomRequest>('/room/create', leaveRoomRequest);
+
+        sendResponse();
         break;
       }
       case 'get-room': {

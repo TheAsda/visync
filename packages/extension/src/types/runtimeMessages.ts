@@ -5,6 +5,7 @@ type RuntimeMessage<T, P = void> = {
 export type RuntimeRequest =
   | RuntimeMessage<'create-room', { link: string }>
   | RuntimeMessage<'join-room', { roomId: string }>
+  | RuntimeMessage<'leave-room'>
   | RuntimeMessage<'get-room'>
   | RuntimeMessage<'start-sync'>
   | RuntimeMessage<'play'>

@@ -1,7 +1,7 @@
 import type { FastifyPluginCallback } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
 import { saveSocket, getSocket } from '../store/clientSocket';
-import { findRoomByClientId } from '../store/rooms';
+import { getRoomByClientId } from '../store/rooms';
 
 export const socketRoutes: FastifyPluginCallback = (fastify) => {
   fastify.get('/*', { websocket: true }, (connection, req) => {
@@ -17,7 +17,7 @@ export const socketRoutes: FastifyPluginCallback = (fastify) => {
         }
         case 'pause':
         case 'play': {
-          const room = findRoomByClientId(payload.clientId);
+          const room = getRoomByClientId(payload.clientId);
           const otherClientIds = room.clientIds.filter(
             (clientId) => clientId !== payload.clientId
           );
@@ -31,7 +31,7 @@ export const socketRoutes: FastifyPluginCallback = (fastify) => {
           break;
         }
         case 'rewind': {
-          const room = findRoomByClientId(payload.clientId);
+          const room = getRoomByClientId(payload.clientId);
           const otherClientIds = room.clientIds.filter(
             (clientId) => clientId !== payload.clientId
           );

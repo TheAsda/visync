@@ -29,7 +29,7 @@ export const joinRoom = (roomId: string, clientId: ClientId): Room => {
   return room;
 };
 
-export const findRoomByClientId = (clientId: ClientId): Room => {
+export const getRoomByClientId = (clientId: ClientId): Room => {
   const room = rooms.find((room) => room.clientIds.includes(clientId));
   if (!room) {
     throw new Error('Room does not exit');
@@ -37,11 +37,8 @@ export const findRoomByClientId = (clientId: ClientId): Room => {
   return room;
 };
 
-export const leaveRoom = (roomId: string, clientId: ClientId): Room => {
-  const room = findRoom(roomId);
-  if (!room) {
-    throw new Error('Room does not exit');
-  }
+export const leaveRoom = (clientId: ClientId): Room => {
+  const room = getRoomByClientId(clientId);
   room.clientIds = room.clientIds.filter((id) => id !== clientId);
   return room;
 };
