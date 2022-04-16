@@ -14,6 +14,7 @@ export const createRoom = (clientId: ClientId, link: string): Room => {
     link,
     clientIds: [clientId],
   };
+  rooms.push(room);
   return room;
 };
 

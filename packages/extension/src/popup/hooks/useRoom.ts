@@ -8,7 +8,8 @@ const fetchRoom = () => {
     type: 'get-room',
   };
   return new Promise<Room>((resolve, reject) => {
-    chrome.runtime.sendMessage(JSON.stringify(request), (room: Room | null) => {
+    chrome.runtime.sendMessage(JSON.stringify(request), (message: string) => {
+      const room = JSON.parse(message) as Room | null;
       if (!room) {
         reject();
       } else {
@@ -43,7 +44,8 @@ export const useRoom = () => {
         link,
       },
     };
-    chrome.runtime.sendMessage(JSON.stringify(request), (room: Room) => {
+    chrome.runtime.sendMessage(JSON.stringify(request), (message: string) => {
+      const room = JSON.parse(message) as Room | null;
       setRoom(room);
       setIsLoading(false);
     });
@@ -57,7 +59,8 @@ export const useRoom = () => {
         roomId,
       },
     };
-    chrome.runtime.sendMessage(JSON.stringify(request), (room: Room) => {
+    chrome.runtime.sendMessage(JSON.stringify(request), (message: string) => {
+      const room = JSON.parse(message) as Room | null;
       setRoom(room);
       setIsLoading(false);
     });

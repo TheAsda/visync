@@ -1,6 +1,6 @@
 import { logger } from '../logger';
 import { RuntimeRequest } from '../types/runtimeMessages';
-import { ensureClientId, getClientId } from './clientId';
+import { getClientId } from './clientId';
 import { fetcher } from './fetcher';
 import {
   CreateRoomRequest,
@@ -14,10 +14,6 @@ import {
   initializeTabSocket,
   terminateTabSocket,
 } from './socket';
-
-chrome.runtime.onInstalled.addListener(() => {
-  ensureClientId();
-});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const request = JSON.parse(message) as RuntimeRequest;
@@ -66,7 +62,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'get-room': {
         try {
           const room = await fetcher<Room>(`/client/${clientId}`);
-          sendResponse(room);
+          sendResponse(JSON.stringify(room));
         } catch (err) {
           sendResponse(null);
         }

@@ -6,11 +6,12 @@ import { socketRoutes } from './routes/socket';
 
 const fastify = Fastify({
   logger: true,
+  requestTimeout: 2000,
 });
 
-fastify.register(FastifyWebSocket);
 fastify.register(roomRoutes);
-fastify.register(socketRoutes);
 fastify.register(clientRoutes);
+fastify.register(FastifyWebSocket);
+fastify.register(socketRoutes);
 
 fastify.listen(7000);
