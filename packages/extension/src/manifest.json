@@ -1,0 +1,22 @@
+{
+  "name": "Syncboii",
+  "description": "Sync videos on any site",
+  "version": "1.0",
+  "manifest_version": 3,
+  "action": {
+    "default_popup": "index.html"
+  },
+  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "tabs",
+    "storage",
+    "scripting",
+    "contentSettings",
+    "webNavigation",
+    "background"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}
