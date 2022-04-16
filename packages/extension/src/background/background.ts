@@ -92,6 +92,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         socket.send(JSON.stringify(socketMessage));
         break;
       }
+      case 'rewind': {
+        const tabId = ensureTabId(sender);
+        let socket: WebSocket;
+        try {
+          socket = getTabSocket(tabId);
+        } catch (err) {
+          socket = initializeTabSocket(tabId);
+        }
+        const socketMessage: SocketRequest = {
+          type: 'rewind',
+          payload: {
+            clientId,
+            time: request.payload.time,
+          },
+        };
+        socket.send(JSON.stringify(socketMessage));
+        break;
+      }
       case 'stop-sync': {
         const tabId = ensureTabId(sender);
         terminateTabSocket(tabId);

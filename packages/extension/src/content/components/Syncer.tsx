@@ -5,6 +5,8 @@ import { usePing } from '../hooks/usePing';
 import { StopSyncingButton } from './StopSyncingButton';
 import { SyncButton } from './SyncButton';
 
+const minRewindDelta = 3;
+
 export interface SyncerProps {
   video: HTMLVideoElement;
 }
@@ -12,6 +14,8 @@ export interface SyncerProps {
 export const Syncer = (props: SyncerProps) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const ignoreNextEventRef = useRef(false);
+  const ignoreRewindEventRef = useRef(false);
+  const previousTimeRef = useRef<number>();
 
   usePing(isSyncing);
 
@@ -37,6 +41,27 @@ export const Syncer = (props: SyncerProps) => {
     chrome.runtime.sendMessage(JSON.stringify(request));
   }, []);
 
+  const rewindCallback = useCallback(() => {
+    if (ignoreRewindEventRef.current) {
+      ignoreRewindEventRef.current = false;
+      return;
+    }
+    const time = props.video.currentTime;
+    if (previousTimeRef.current === undefined) {
+      previousTimeRef.current = time;
+    }
+    if (Math.abs(time - previousTimeRef.current) < minRewindDelta) {
+      previousTimeRef.current = time;
+      return;
+    }
+    previousTimeRef.current = time;
+    const request: RuntimeRequest = {
+      type: 'rewind',
+      payload: { time },
+    };
+    chrome.runtime.sendMessage(JSON.stringify(request));
+  }, [props.video]);
+
   const runtimeListener = useCallback(
     (data: string) => {
       const message = JSON.parse(data) as ContentMessage;
@@ -60,7 +85,9 @@ export const Syncer = (props: SyncerProps) => {
           break;
         }
         case 'rewind': {
-          console.log('Not yet implemented');
+          ignoreRewindEventRef.current = true;
+          props.video.currentTime = message.payload.time;
+          break;
         }
       }
     },
@@ -75,6 +102,7 @@ export const Syncer = (props: SyncerProps) => {
     chrome.runtime.sendMessage(JSON.stringify(request), () => {
       props.video.addEventListener('play', playCallback);
       props.video.addEventListener('pause', pauseCallback);
+      props.video.addEventListener('timeupdate', rewindCallback);
     });
     chrome.runtime.onMessage.addListener(runtimeListener);
   };
@@ -84,6 +112,7 @@ export const Syncer = (props: SyncerProps) => {
     chrome.runtime.onMessage.removeListener(runtimeListener);
     props.video.removeEventListener('play', playCallback);
     props.video.removeEventListener('pause', pauseCallback);
+    props.video.removeEventListener('timeupdate', rewindCallback);
     const request: RuntimeRequest = {
       type: 'stop-sync',
     };
