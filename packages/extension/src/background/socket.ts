@@ -1,4 +1,5 @@
-import { SocketRequest } from 'syncboii-contracts';
+import { SocketRequest, SocketResponse } from 'syncboii-contracts';
+import { ContentMessage } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
 
@@ -19,11 +20,34 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
     });
   };
 
+  socket.onmessage = (e) => {
+    const response = JSON.parse(e.data) as SocketResponse;
+
+    const tabIds = Object.keys(tabSockets).map(Number);
+
+    let message: ContentMessage;
+
+    switch (response.type) {
+      case 'play':
+      case 'pause':
+        message = { type: response.type };
+        break;
+      case 'rewind':
+        message = { type: 'rewind', payload: { time: response.payload.time } };
+        break;
+    }
+
+    for (const tabId of tabIds) {
+      chrome.tabs.sendMessage(tabId, JSON.stringify(message));
+    }
+  };
+
   if (tabSockets[tabId]) {
     tabSockets[tabId].close();
   }
 
   tabSockets[tabId] = socket;
+
   return socket;
 };
 

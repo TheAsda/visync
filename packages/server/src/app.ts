@@ -14,4 +14,4 @@ fastify.register(clientRoutes);
 fastify.register(FastifyWebSocket);
 fastify.register(socketRoutes);
 
-fastify.listen(7000);
+fastify.listen(7000, '0.0.0.0');

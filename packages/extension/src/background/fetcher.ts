@@ -1,4 +1,4 @@
-export const serverHostname = 'localhost';
+export const serverHostname = '95.165.104.170';
 export const serverPort = 7000;
 export const serverUrl = `http://${serverHostname}:${serverPort}`;
 

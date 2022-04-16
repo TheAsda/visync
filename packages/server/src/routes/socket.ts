@@ -9,6 +9,9 @@ export const socketRoutes: FastifyPluginCallback = async (fastify) => {
       const { type, payload } = JSON.parse(
         data.toString('utf8')
       ) as SocketRequest;
+      req.log.info(
+        `Got socket message with type ${type} from ${payload.clientId}`
+      );
 
       switch (type) {
         case 'register': {

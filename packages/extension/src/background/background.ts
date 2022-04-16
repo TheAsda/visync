@@ -71,6 +71,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'start-sync': {
         const tabId = ensureTabId(sender);
         initializeTabSocket(tabId);
+        sendResponse();
         break;
       }
       case 'play':
@@ -94,6 +95,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'stop-sync': {
         const tabId = ensureTabId(sender);
         terminateTabSocket(tabId);
+        sendResponse();
         break;
       }
       case 'ping': {
