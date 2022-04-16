@@ -16,5 +16,11 @@ export const fetcher = <R = void, B = void>(
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-  }).then((res) => res.json());
+  }).then(async (res) => {
+    try {
+      return await res.json();
+    } catch (err) {
+      return;
+    }
+  });
 };

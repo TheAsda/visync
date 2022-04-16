@@ -5,7 +5,7 @@ import { roomRoutes } from './routes/room';
 import { socketRoutes } from './routes/socket';
 
 const fastify = Fastify({
-  logger: true,
+  logger: { prettyPrint: true },
   requestTimeout: 2000,
 });
 

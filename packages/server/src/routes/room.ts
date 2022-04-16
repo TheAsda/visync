@@ -4,7 +4,13 @@ import type {
   JoinRoomRequest,
   LeaveRoomRequest,
 } from 'syncboii-contracts';
-import { createRoom, joinRoom, leaveRoom } from '../store/rooms';
+import {
+  createRoom,
+  deleteRoom,
+  getRooms,
+  joinRoom,
+  leaveRoom,
+} from '../store/rooms';
 
 export const roomRoutes: FastifyPluginCallback = async (fastify) => {
   fastify.post('/room/create', (request, reply) => {
@@ -27,7 +33,7 @@ export const roomRoutes: FastifyPluginCallback = async (fastify) => {
       } else {
         request.log.error(err);
       }
-      reply.status(400);
+      reply.code(400).send();
     }
   });
 
@@ -36,14 +42,17 @@ export const roomRoutes: FastifyPluginCallback = async (fastify) => {
 
     try {
       const room = leaveRoom(body.clientId);
-      reply.send(room);
+      if (room.clientIds.length === 0) {
+        deleteRoom(room.roomId);
+      }
+      reply.send();
     } catch (err) {
       if (err instanceof Error) {
         request.log.error(err?.message);
       } else {
         request.log.error(err);
       }
-      reply.status(400);
+      reply.status(400).send();
     }
   });
 };

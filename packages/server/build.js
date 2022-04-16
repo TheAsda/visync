@@ -10,5 +10,6 @@ rollup
     return bundle.write({
       dir: 'dist',
       format: 'cjs',
+      sourcemap: true,
     });
   });

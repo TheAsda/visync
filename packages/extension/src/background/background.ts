@@ -42,7 +42,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
 
         const room = await fetcher<Room, JoinRoomRequest>(
-          '/room/create',
+          '/room/join',
           joinRoomRequest
         );
 
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           clientId,
         };
 
-        await fetcher<void, LeaveRoomRequest>('/room/create', leaveRoomRequest);
+        await fetcher<void, LeaveRoomRequest>('/room/leave', leaveRoomRequest);
 
         sendResponse();
         break;

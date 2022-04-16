@@ -71,7 +71,7 @@ export const useRoom = () => {
     const request: RuntimeRequest = {
       type: 'leave-room',
     };
-    chrome.runtime.sendMessage(JSON.stringify(request), (room: Room) => {
+    chrome.runtime.sendMessage(JSON.stringify(request), () => {
       setRoom(null);
       setIsLoading(false);
     });

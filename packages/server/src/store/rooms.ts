@@ -46,8 +46,12 @@ export const leaveRoom = (clientId: ClientId): Room => {
 
 export const deleteRoom = (roomId: string): void => {
   const roomIndex = rooms.findIndex((room) => room.roomId === roomId);
-  if (roomIndex !== -1) {
+  if (roomIndex === -1) {
     throw new Error('Room does not exit');
   }
   rooms.splice(roomIndex, 1);
+};
+
+export const getRooms = () => {
+  return rooms;
 };
