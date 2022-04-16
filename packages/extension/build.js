@@ -6,7 +6,6 @@ import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import { readFile, writeFile } from 'fs/promises';
 import { rollup } from 'rollup';
-import analyze from 'rollup-plugin-analyzer';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -30,7 +29,6 @@ const popupBuild = rollup({
     html({
       title: 'Syncboii',
     }),
-    // analyze({ hideDeps: true, summaryOnly: true }),
   ],
 }).then((bundle) => {
   return bundle.write({
@@ -83,7 +81,7 @@ Promise.all([popupBuild, backgroundBuild, contentBuild]).then(
     const manifest = JSON.parse(
       await readFile('./src/manifest.json', { encoding: 'utf8' })
     );
-    delete manifest['$schema']
+    delete manifest['$schema'];
     manifest.action.default_popup = popupOutput.output[1].fileName;
     manifest.background.service_worker = backgroundOutput.output[0].fileName;
     manifest.content_scripts[0].js[0] = contentOutput.output[0].fileName;

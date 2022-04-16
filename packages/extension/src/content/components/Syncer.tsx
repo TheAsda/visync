@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { logger } from '../../logger';
 import { ContentMessage, RuntimeRequest } from '../../types/runtimeMessages';
+import { usePing } from '../hooks/usePing';
 import { StopSyncingButton } from './StopSyncingButton';
 import { SyncButton } from './SyncButton';
 
@@ -11,6 +12,8 @@ export interface SyncerProps {
 export const Syncer = (props: SyncerProps) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const ignoreNextEventRef = useRef(false);
+
+  usePing(isSyncing);
 
   const playCallback = useCallback(() => {
     if (ignoreNextEventRef.current) {

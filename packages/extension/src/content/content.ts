@@ -10,7 +10,6 @@ watchMutation(() => {
       continue;
     }
     save(video);
-    console.log('Attaching');
 
     attachSyncer(video);
   }
