@@ -1,4 +1,3 @@
-import { WebSocket } from 'ws';
 import { logger } from '../logger';
 import { RuntimeRequest } from '../types/runtimeMessages';
 import { ensureClientId, getClientId } from './clientId';

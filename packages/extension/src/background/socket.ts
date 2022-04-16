@@ -1,5 +1,4 @@
 import { SocketRequest } from 'syncboii-contracts';
-import { WebSocket } from 'ws';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
 
@@ -21,7 +20,7 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
   };
 
   if (tabSockets[tabId]) {
-    tabSockets[tabId].terminate();
+    tabSockets[tabId].close();
   }
 
   tabSockets[tabId] = socket;
@@ -41,6 +40,6 @@ export const terminateTabSocket = (tabId: number) => {
   if (!socket) {
     throw new Error('Cannot find socket');
   }
-  socket.terminate();
+  socket.close();
   delete tabSockets[tabId];
 };

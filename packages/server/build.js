@@ -5,5 +5,4 @@ esbuild.build({
   outdir: 'dist',
   bundle: true,
   platform: 'node',
-  external: ['../../node_modules/*'],
 });

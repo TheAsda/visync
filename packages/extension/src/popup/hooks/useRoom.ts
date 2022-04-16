@@ -18,7 +18,7 @@ const fetchRoom = () => {
   });
 };
 
-const useRoom = () => {
+export const useRoom = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
