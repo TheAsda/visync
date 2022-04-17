@@ -16,7 +16,7 @@ export const roomRoutes: FastifyPluginCallback = async (fastify) => {
   fastify.post('/room/create', (request, reply) => {
     const body = request.body as CreateRoomRequest;
 
-    const room = createRoom(body.clientId, body.link);
+    const room = createRoom(body.clientId);
 
     reply.send(room);
   });

@@ -22,38 +22,38 @@ export const LogoBase = (props: LogoBaseProps) => {
         fill={color}
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M21.878 44.007h11.26l-17.307 17.77-9.448-9.169 5.34-5.346h8.632l1.523-3.255Z"
         fill="#fff"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M20.4 45.042s-1.146-12.677 8.123-21.78c0 0-6.792 7.189-6.646 21.78H20.4Z"
         fill="#fff"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M.832 45.306 15.7 60.176 30.832 45.04l-30 .265Z"
         fill={color}
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M88.153 51.12h-11.26L94.2 33.35l9.447 9.169-5.34 5.346h-8.631l-1.523 3.255Z"
         fill="#fff"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M89.63 50.084s1.147 12.678-8.122 21.781c0 0 6.792-7.189 6.646-21.78h1.477Z"
         fill="#fff"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M109.199 49.821 94.33 34.951 79.2 50.086l30-.265Z"
         fill={color}
       />

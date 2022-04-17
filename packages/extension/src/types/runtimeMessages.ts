@@ -3,7 +3,8 @@ type RuntimeMessage<T, P = void> = {
 } & (P extends void ? {} : { payload: P });
 
 export type RuntimeRequest =
-  | RuntimeMessage<'create-room', { link: string }>
+  | RuntimeMessage<'get-client'>
+  | RuntimeMessage<'create-room'>
   | RuntimeMessage<'join-room', { roomId: string }>
   | RuntimeMessage<'leave-room'>
   | RuntimeMessage<'get-room'>
@@ -15,6 +16,7 @@ export type RuntimeRequest =
   | RuntimeMessage<'ping'>;
 
 export type ContentMessage =
+  | RuntimeMessage<'client', { clientId: string }>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>;

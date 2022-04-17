@@ -1,5 +1,4 @@
 export type CreateRoomRequest = {
-  link: string;
   clientId: string;
 };
 
@@ -9,6 +8,5 @@ export type JoinRoomRequest = {
 };
 
 export type LeaveRoomRequest = {
-  roomId: string;
   clientId: string;
 };

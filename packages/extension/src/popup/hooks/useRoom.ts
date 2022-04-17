@@ -36,13 +36,10 @@ export const useRoom = () => {
       });
   }, []);
 
-  const createRoom = (link: string) => {
+  const createRoom = () => {
     setIsLoading(true);
     const request: RuntimeRequest = {
       type: 'create-room',
-      payload: {
-        link,
-      },
     };
     chrome.runtime.sendMessage(JSON.stringify(request), (message: string) => {
       const room = JSON.parse(message) as Room | null;

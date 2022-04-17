@@ -1,5 +1,5 @@
 import { logger } from '../logger';
-import { RuntimeRequest } from '../types/runtimeMessages';
+import { ContentMessage, RuntimeRequest } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { fetcher } from './fetcher';
 import {
@@ -21,10 +21,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   getClientId().then(async (clientId) => {
     switch (request.type) {
+      case 'get-client': {
+        const message: ContentMessage = {
+          type: 'client',
+          payload: {
+            clientId,
+          },
+        };
+        sendResponse(JSON.stringify(message));
+        break;
+      }
       case 'create-room': {
         const createRoomRequest: CreateRoomRequest = {
           clientId,
-          link: request.payload.link,
         };
 
         const room = await fetcher<Room, CreateRoomRequest>(

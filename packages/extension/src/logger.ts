@@ -1,5 +1,5 @@
 import log from 'loglevel';
 
-log.setDefaultLevel('INFO');
+log.setDefaultLevel('debug');
 
 export const logger = log;

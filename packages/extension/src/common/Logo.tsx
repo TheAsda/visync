@@ -25,8 +25,8 @@ export const Logo = (props: LogoProps) => {
     case 'triangle':
       children = (
         <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
+          fillRule="evenodd"
+          clipRule="evenodd"
           d="M70.689 47.261 41.742 65.907V28.615l28.947 18.646Z"
           fill="#fff"
         />

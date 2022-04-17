@@ -1,27 +1,23 @@
-import { Logo } from '../common/Logo';
 import { Container } from './components/Container';
-import { CreateRoomForm } from './components/CreateRoomForm';
-import { JoinRoomForm } from './components/JoinRoomForm';
+import { Content } from './components/Content';
+import { Header } from './components/Header';
 import { Loader } from './components/Loader';
-import { RoomInfo } from './components/RoomInfo';
 import { GlobalStyles } from './globalStyles';
-import { useRoom } from './hooks/useRoom';
+import { useClient } from './hooks/useClient';
 
 export const App = () => {
-  const { room, isLoading, createRoom, joinRoom, leaveRoom } = useRoom();
+  const { clientId, isLoading } = useClient();
 
   return (
     <Container>
       <GlobalStyles />
       {isLoading ? (
         <Loader />
-      ) : room === null ? (
-        <section>
-          <CreateRoomForm onCreate={createRoom} />
-          <JoinRoomForm onJoin={joinRoom} />
-        </section>
       ) : (
-        <RoomInfo room={room} onLeave={leaveRoom} />
+        <>
+          <Header clientId={clientId} />
+          <Content />
+        </>
       )}
     </Container>
   );

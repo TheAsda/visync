@@ -13,8 +13,7 @@
     "storage",
     "scripting",
     "contentSettings",
-    "webNavigation",
-    "background"
+    "webNavigation"
   ],
   "background": {
     "service_worker": "background.js",

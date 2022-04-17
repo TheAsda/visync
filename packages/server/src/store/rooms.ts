@@ -7,11 +7,10 @@ const findRoom = (roomId: string): Room | undefined => {
   return rooms.find((room) => room.roomId === roomId);
 };
 
-export const createRoom = (clientId: ClientId, link: string): Room => {
+export const createRoom = (clientId: ClientId): Room => {
   const roomId = nanoid(6);
   const room: Room = {
     roomId,
-    link,
     clientIds: [clientId],
   };
   rooms.push(room);
