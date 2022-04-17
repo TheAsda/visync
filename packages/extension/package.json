@@ -9,6 +9,7 @@
   "author": "Andrey Kiselev",
   "license": "ISC",
   "dependencies": {
+    "goober": "^2.1.8",
     "loglevel": "^1.8.0",
     "nanoid": "^3.3.2",
     "react": "^18.0.0",
