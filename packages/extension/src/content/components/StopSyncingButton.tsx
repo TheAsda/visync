@@ -1,3 +1,5 @@
+import { Logo } from '../../common/Logo';
+
 export interface StopSyncingButtonProps {
   onStop: () => void;
 }
@@ -10,8 +12,12 @@ export const StopSyncingButton = (props: StopSyncingButtonProps) => {
         props.onStop();
       }}
       type="button"
+      style={{
+        appearance: 'none',
+        border: 'none',
+      }}
     >
-      Stop syncing
+      <Logo variant="stop" shape="square" />
     </button>
   );
 };

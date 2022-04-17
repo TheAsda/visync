@@ -10,7 +10,9 @@ import {
   SocketRequest,
 } from 'syncboii-contracts';
 import {
+  getTabIds,
   getTabSocket,
+  initializeTab,
   initializeTabSocket,
   terminateTabSocket,
 } from './socket';
@@ -22,10 +24,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   getClientId().then(async (clientId) => {
     switch (request.type) {
       case 'get-client': {
+        let isInRoom = false;
+        try {
+          await fetcher<Room>(`/client/${clientId}`);
+          isInRoom = true;
+        } catch (err) {
+          isInRoom = false;
+        }
+
         const message: ContentMessage = {
           type: 'client',
           payload: {
             clientId,
+            isInRoom,
           },
         };
         sendResponse(JSON.stringify(message));
@@ -41,6 +52,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           createRoomRequest
         );
 
+        const tabIds = getTabIds();
+
+        const message: ContentMessage = {
+          type: 'client',
+          payload: {
+            clientId,
+            isInRoom: true,
+          },
+        };
+        tabIds.forEach((tabId) => {
+          chrome.tabs.sendMessage(tabId, JSON.stringify(message));
+        });
+
         sendResponse(JSON.stringify(room));
         break;
       }
@@ -55,6 +79,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           joinRoomRequest
         );
 
+        const tabIds = getTabIds();
+
+        const message: ContentMessage = {
+          type: 'client',
+          payload: {
+            clientId,
+            isInRoom: true,
+          },
+        };
+        tabIds.forEach((tabId) => {
+          chrome.tabs.sendMessage(tabId, JSON.stringify(message));
+        });
+
         sendResponse(JSON.stringify(room));
         break;
       }
@@ -64,6 +101,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
 
         await fetcher<void, LeaveRoomRequest>('/room/leave', leaveRoomRequest);
+
+        const tabIds = getTabIds();
+
+        const message: ContentMessage = {
+          type: 'client',
+          payload: {
+            clientId,
+            isInRoom: false,
+          },
+        };
+        tabIds.forEach((tabId) => {
+          chrome.tabs.sendMessage(tabId, JSON.stringify(message));
+        });
 
         sendResponse();
         break;
@@ -132,6 +182,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         } catch (err) {
           initializeTabSocket(tabId);
         }
+        break;
+      }
+      case 'initialize': {
+        const tabId = ensureTabId(sender);
+        initializeTab(tabId);
+        sendResponse();
         break;
       }
     }

@@ -1,6 +1,4 @@
-import { nanoid } from 'nanoid';
 import { createRoot } from 'react-dom/client';
-import { logger } from '../logger';
 import { Syncer } from './components/Syncer';
 
 export const attachSyncer = (video: HTMLVideoElement) => {

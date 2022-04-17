@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { logger } from '../../logger';
 import { ContentMessage, RuntimeRequest } from '../../types/runtimeMessages';
 import { usePing } from '../hooks/usePing';
@@ -6,18 +6,44 @@ import { StopSyncingButton } from './StopSyncingButton';
 import { SyncButton } from './SyncButton';
 
 const minRewindDelta = 3;
+const hideDelay = 2000;
 
 export interface SyncerProps {
   video: HTMLVideoElement;
 }
 
 export const Syncer = (props: SyncerProps) => {
+  const [canSync, setCanSync] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const ignoreNextEventRef = useRef(false);
   const ignoreRewindEventRef = useRef(false);
   const previousTimeRef = useRef<number>();
+  const [isVisible, setIsVisible] = useState(true);
+  const visibleTimeoutRef = useRef<number>();
 
   usePing(isSyncing);
+
+  useEffect(() => {
+    const initializeRequest: RuntimeRequest = {
+      type: 'initialize',
+    };
+    chrome.runtime.sendMessage(JSON.stringify(initializeRequest));
+    const request: RuntimeRequest = {
+      type: 'get-client',
+    };
+    chrome.runtime.sendMessage(JSON.stringify(request), (data) => {
+      const message = JSON.parse(data) as ContentMessage;
+      if (message.type === 'client') {
+        setCanSync(message.payload.isInRoom);
+      }
+    });
+    chrome.runtime.onMessage.addListener((data) => {
+      const message = JSON.parse(data) as ContentMessage;
+      if (message.type === 'client') {
+        setCanSync(message.payload.isInRoom);
+      }
+    });
+  });
 
   const playCallback = useCallback(() => {
     if (ignoreNextEventRef.current) {
@@ -119,8 +145,54 @@ export const Syncer = (props: SyncerProps) => {
     chrome.runtime.sendMessage(JSON.stringify(request));
   };
 
+  useEffect(() => {
+    if (canSync === false) {
+      stopSyncing();
+    } else {
+      setIsVisible(true);
+    }
+  }, [canSync]);
+
+  const startVisibleTimeout = useCallback(() => {
+    if (visibleTimeoutRef.current) {
+      clearTimeout(visibleTimeoutRef.current);
+    }
+    visibleTimeoutRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, hideDelay) as unknown as number;
+  }, []);
+
+  const stopVisibleTimeout = useCallback(() => {
+    clearTimeout(visibleTimeoutRef.current);
+    visibleTimeoutRef.current = undefined;
+  }, []);
+
+  useEffect(() => {
+    if (isVisible) {
+      startVisibleTimeout();
+    }
+  }, [isVisible]);
+
+  if (!canSync) {
+    return null;
+  }
+
   return (
-    <div style={{ padding: '1rem', background: 'blue' }}>
+    <div
+      style={{
+        width: '100px',
+        height: '100px',
+        opacity: isVisible ? 1 : 0,
+        transition: 'opacity 0.7s ease-out',
+      }}
+      onMouseEnter={() => {
+        stopVisibleTimeout();
+        setIsVisible(true);
+      }}
+      onMouseLeave={() => {
+        startVisibleTimeout();
+      }}
+    >
       {!isSyncing ? (
         <SyncButton onSync={startSyncing} />
       ) : (

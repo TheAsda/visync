@@ -1,3 +1,5 @@
+import { Logo } from '../../common/Logo';
+
 export interface SyncButtonProps {
   onSync: () => void;
 }
@@ -10,8 +12,12 @@ export const SyncButton = (props: SyncButtonProps) => {
         props.onSync();
       }}
       type="button"
+      style={{
+        appearance: 'none',
+        border: 'none',
+      }}
     >
-      Sync
+      <Logo variant="start" shape="triangle" />
     </button>
   );
 };

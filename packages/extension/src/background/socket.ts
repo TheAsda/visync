@@ -5,7 +5,14 @@ import { serverUrl } from './fetcher';
 
 export const address = serverUrl.replace('http', 'ws');
 
-const tabSockets: Record<number, WebSocket> = {};
+const tabSockets: Record<number, WebSocket | undefined> = {};
+
+export const initializeTab = (tabId: number) => {
+  if (Object.keys(tabSockets).includes(tabId.toString())) {
+    return;
+  }
+  tabSockets[tabId] = undefined;
+};
 
 export const initializeTabSocket = (tabId: number): WebSocket => {
   const socket = new WebSocket(address);
@@ -23,7 +30,7 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
   socket.onmessage = (e) => {
     const response = JSON.parse(e.data) as SocketResponse;
 
-    const tabIds = Object.keys(tabSockets).map(Number);
+    const tabIds = getTabIds();
 
     let message: ContentMessage;
 
@@ -43,7 +50,7 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
   };
 
   if (tabSockets[tabId]) {
-    tabSockets[tabId].close();
+    tabSockets[tabId]!.close();
   }
 
   tabSockets[tabId] = socket;
@@ -67,3 +74,5 @@ export const terminateTabSocket = (tabId: number) => {
   socket.close();
   delete tabSockets[tabId];
 };
+
+export const getTabIds = (): number[] => Object.keys(tabSockets).map(Number);

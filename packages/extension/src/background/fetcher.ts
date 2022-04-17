@@ -17,6 +17,9 @@ export const fetcher = <R = void, B = void>(
     headers,
     body: body ? JSON.stringify(body) : undefined,
   }).then(async (res) => {
+    if (!res.ok) {
+      throw new Error('Request was not successful');
+    }
     try {
       return await res.json();
     } catch (err) {

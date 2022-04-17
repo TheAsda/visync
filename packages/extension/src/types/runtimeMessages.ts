@@ -7,6 +7,7 @@ export type RuntimeRequest =
   | RuntimeMessage<'create-room'>
   | RuntimeMessage<'join-room', { roomId: string }>
   | RuntimeMessage<'leave-room'>
+  | RuntimeMessage<'initialize'>
   | RuntimeMessage<'get-room'>
   | RuntimeMessage<'start-sync'>
   | RuntimeMessage<'play'>
@@ -16,7 +17,7 @@ export type RuntimeRequest =
   | RuntimeMessage<'ping'>;
 
 export type ContentMessage =
-  | RuntimeMessage<'client', { clientId: string }>
+  | RuntimeMessage<'client', { clientId: string; isInRoom: boolean }>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>;
