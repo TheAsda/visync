@@ -34,6 +34,7 @@ export const RoomActions = (props: RoomActionsProps) => {
     if (roomId.length === 0) {
       return;
     }
+    props.onJoin(roomId);
   };
 
   return (
@@ -45,7 +46,7 @@ export const RoomActions = (props: RoomActionsProps) => {
         <Input
           value={roomId}
           onChange={(e) => setRoomId(e.target.value)}
-          placeholder="Room ID"
+          placeholder="Room"
         />
         <Button type="submit">Join Room</Button>
       </JoinForm>

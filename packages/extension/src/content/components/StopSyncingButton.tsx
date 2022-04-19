@@ -15,6 +15,8 @@ export const StopSyncingButton = (props: StopSyncingButtonProps) => {
       style={{
         appearance: 'none',
         border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
       }}
     >
       <Logo variant="stop" shape="square" />

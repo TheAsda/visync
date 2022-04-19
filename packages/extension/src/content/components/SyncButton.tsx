@@ -15,6 +15,8 @@ export const SyncButton = (props: SyncButtonProps) => {
       style={{
         appearance: 'none',
         border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
       }}
     >
       <Logo variant="start" shape="triangle" />
