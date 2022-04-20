@@ -1,9 +1,9 @@
-import type { FastifyPluginCallback } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
-import { saveSocket, getSocket } from '../store/clientSocket';
+import { getSocket, saveSocket } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
 
-export const socketRoutes: FastifyPluginCallback = async (fastify) => {
+export const socketRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/*', { websocket: true }, (connection, req) => {
     connection.socket.on('message', (data) => {
       const { type, payload } = JSON.parse(

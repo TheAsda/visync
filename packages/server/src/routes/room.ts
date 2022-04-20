@@ -1,18 +1,12 @@
-import type { FastifyPluginCallback } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
 } from 'syncboii-contracts';
-import {
-  createRoom,
-  deleteRoom,
-  getRooms,
-  joinRoom,
-  leaveRoom,
-} from '../store/rooms';
+import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';
 
-export const roomRoutes: FastifyPluginCallback = async (fastify) => {
+export const roomRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/room/create', (request, reply) => {
     const body = request.body as CreateRoomRequest;
 
