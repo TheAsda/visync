@@ -1,4 +1,4 @@
-import type { Room, ClientId } from 'syncboii-contracts';
+import type { Room } from 'syncboii-contracts';
 import { nanoid } from 'nanoid';
 import { logger } from '../logger';
 
@@ -12,7 +12,7 @@ const findRoom = (roomId: string): Room | undefined => {
   return rooms.find((room) => room.roomId === roomId);
 };
 
-export const createRoom = (clientId: ClientId): Room => {
+export const createRoom = (clientId: string): Room => {
   logger.debug(`Creating room for ${clientId}`, { meta });
   const roomId = nanoid(6);
   const room: Room = {
@@ -24,7 +24,7 @@ export const createRoom = (clientId: ClientId): Room => {
   return room;
 };
 
-export const joinRoom = (roomId: string, clientId: ClientId): Room => {
+export const joinRoom = (roomId: string, clientId: string): Room => {
   logger.debug(`${clientId} joining ${roomId}`, { meta });
   const room = findRoom(roomId);
   if (!room) {
@@ -38,7 +38,7 @@ export const joinRoom = (roomId: string, clientId: ClientId): Room => {
   return room;
 };
 
-export const getRoomByClientId = (clientId: ClientId): Room => {
+export const getRoomByClientId = (clientId: string): Room => {
   const room = rooms.find((room) => room.clientIds.includes(clientId));
   if (!room) {
     throw new Error('Room does not exit');
@@ -46,7 +46,7 @@ export const getRoomByClientId = (clientId: ClientId): Room => {
   return room;
 };
 
-export const leaveRoom = (clientId: ClientId): Room => {
+export const leaveRoom = (clientId: string): Room => {
   logger.debug(`${clientId} leaving room`, { meta });
   const room = getRoomByClientId(clientId);
   room.clientIds = room.clientIds.filter((id) => id !== clientId);

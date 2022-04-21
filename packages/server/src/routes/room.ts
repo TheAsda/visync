@@ -4,6 +4,7 @@ import type {
   JoinRoomRequest,
   LeaveRoomRequest,
 } from 'syncboii-contracts';
+import { logger } from '../logger';
 import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';
 
 export const roomRoutes: FastifyPluginAsync = async (fastify) => {
@@ -12,7 +13,7 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
 
     const room = createRoom(body.clientId);
 
-    reply.send(room);
+    reply.status(201).send(room);
   });
 
   fastify.post('/room/join', (request, reply) => {
@@ -23,11 +24,12 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
       reply.send(room);
     } catch (err) {
       if (err instanceof Error) {
-        request.log.error(err?.message);
+        logger.error(err?.message);
+        reply.code(400).send();
       } else {
-        request.log.error(err);
+        logger.error(`Unknown error occurred: ${err}`);
+        reply.code(500).send();
       }
-      reply.code(400).send();
     }
   });
 
@@ -39,14 +41,15 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
       if (room.clientIds.length === 0) {
         deleteRoom(room.roomId);
       }
-      reply.send();
+      reply.status(204).send();
     } catch (err) {
       if (err instanceof Error) {
-        request.log.error(err?.message);
+        logger.error(err?.message);
+        reply.code(400).send();
       } else {
-        request.log.error(err);
+        logger.error(`Unknown error occurred: ${err}`);
+        reply.code(500).send();
       }
-      reply.status(400).send();
     }
   });
 };

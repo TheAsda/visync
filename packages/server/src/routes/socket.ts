@@ -1,54 +1,77 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
+import { logger } from '../logger';
 import { getSocket, saveSocket } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
+import { retry } from '../utils/retry';
 
 export const socketRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/*', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', (data) => {
+    connection.socket.on('message', async (data) => {
       const { type, payload } = JSON.parse(
         data.toString('utf8')
       ) as SocketRequest;
-      req.log.info(
-        `Got socket message with type ${type} from ${payload.clientId}`
-      );
+      logger.info(`Websocket request starting ${type}`);
 
-      switch (type) {
-        case 'register': {
-          saveSocket(payload.clientId, connection.socket);
-          break;
-        }
-        case 'pause':
-        case 'play': {
-          const room = getRoomByClientId(payload.clientId);
-          const otherClientIds = room.clientIds.filter(
-            (clientId) => clientId !== payload.clientId
-          );
-          const sockets = otherClientIds.map((clientId) => getSocket(clientId));
-          const response: SocketResponse = {
-            type: type,
-          };
-          for (const socket of sockets) {
-            socket.send(JSON.stringify(response));
+      try {
+        switch (type) {
+          case 'register': {
+            saveSocket(payload.clientId, connection.socket);
+            break;
           }
-          break;
-        }
-        case 'rewind': {
-          const room = getRoomByClientId(payload.clientId);
-          const otherClientIds = room.clientIds.filter(
-            (clientId) => clientId !== payload.clientId
-          );
-          const sockets = otherClientIds.map((clientId) => getSocket(clientId));
-          const response: SocketResponse = {
-            type: 'rewind',
-            payload: { time: payload.time },
-          };
-          for (const socket of sockets) {
-            socket.send(JSON.stringify(response));
+          case 'pause':
+          case 'play': {
+            const response: SocketResponse = {
+              type: type,
+            };
+            await translateToOthers(payload.clientId, response);
+            break;
           }
-          break;
+          case 'rewind': {
+            const response: SocketResponse = {
+              type: 'rewind',
+              payload: { time: payload.time },
+            };
+            await translateToOthers(payload.clientId, response);
+            break;
+          }
+          case 'play-speed': {
+            const response: SocketResponse = {
+              type: 'play-speed',
+              payload: { speed: payload.speed },
+            };
+            await translateToOthers(payload.clientId, response);
+            break;
+          }
+          default:
+            throw new Error(`Unknown request type ${type}`);
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          logger.error(err?.message);
+        } else {
+          logger.error(`Unknown error occurred: ${err}`);
         }
       }
+      logger.info(`Websocket request finished ${type}`);
     });
   });
+};
+
+const translateToOthers = async (
+  clientId: string,
+  response: SocketResponse
+): Promise<void> => {
+  logger.debug(`Translating message from ${clientId} to others in room`);
+  const room = getRoomByClientId(clientId);
+  const otherClientIds = room.clientIds.filter((id) => id !== clientId);
+  const message = JSON.stringify(response);
+  const promises = [];
+  for (const clientId of otherClientIds) {
+    const sendResponse = () => {
+      getSocket(clientId).send(message);
+    };
+    promises.push(retry(sendResponse));
+  }
+  return Promise.all(promises).then();
 };

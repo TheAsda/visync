@@ -10,3 +10,9 @@ export type JoinRoomRequest = {
 export type LeaveRoomRequest = {
   clientId: string;
 };
+
+export type ClientStatus = {
+  isInRoom: boolean;
+  roomId?: string;
+  isSynced: boolean;
+};
