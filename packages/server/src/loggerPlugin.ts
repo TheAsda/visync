@@ -12,8 +12,15 @@ export const loggerPlugin: FastifyPluginAsync = fp(async (fastify) => {
   });
 
   fastify.addHook('onResponse', async (response, reply) => {
-    logger.info?.(
-      `Request finished ${response.method} ${response.url}: ${reply.statusCode}`
-    );
+    const message = `Request finished ${response.method} ${response.url}: ${reply.statusCode}`;
+    if (reply.statusCode >= 500) {
+      logger.error?.(message);
+      return;
+    }
+    if (reply.statusCode >= 400) {
+      logger.warn?.(message);
+      return;
+    }
+    logger.info?.(message);
   });
 });
