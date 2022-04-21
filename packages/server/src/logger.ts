@@ -1,9 +1,9 @@
-import logdna from '@logdna/logger';
+import logdna, { Logger } from '@logdna/logger';
 
 const logger = logdna.createLogger(process.env['LOGDNA_INGESTION_KEY']!, {
   app: 'syncboii-server',
   level: 'debug',
-});
+}) as Required<Logger>;
 
 const disableLogDna = Boolean(process.env['DISABLE_LOGDNA']);
 if (disableLogDna) {
