@@ -11,7 +11,26 @@ if (disableLogDna) {
 }
 
 logger.log = (statement, options) => {
-  console.log(statement);
+  let consoleOut: typeof console.log;
+  switch (options?.level) {
+    case 'fatal':
+    case 'error':
+      consoleOut = console.error;
+      break;
+    case 'warn':
+      consoleOut = console.warn;
+      break;
+    case 'debug':
+      consoleOut = console.debug;
+      break;
+    case 'trace':
+      consoleOut = console.trace;
+      break;
+
+    default:
+      consoleOut = console.log;
+  }
+  consoleOut(statement);
   if (disableLogDna) {
     return;
   }
