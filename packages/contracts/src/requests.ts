@@ -1,3 +1,5 @@
+import { Room } from './room';
+
 export type CreateRoomRequest = {
   clientId: string;
 };
@@ -12,7 +14,6 @@ export type LeaveRoomRequest = {
 };
 
 export type ClientStatus = {
-  isInRoom: boolean;
-  roomId?: string;
+  room?: Room;
   isSynced: boolean;
 };

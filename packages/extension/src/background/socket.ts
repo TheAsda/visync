@@ -1,24 +1,26 @@
 import { SocketRequest, SocketResponse } from 'syncboii-contracts';
-import { ContentMessage } from '../types/runtimeMessages';
+import { logger } from '../logger';
+import { RuntimeResponse } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
+import { sendResponseToTabs } from './utils/tabs';
 
 export const address = serverUrl.replace('http', 'ws');
 
-const tabSockets: Record<number, WebSocket | undefined> = {};
-
-export const initializeTab = (tabId: number) => {
-  if (Object.keys(tabSockets).includes(tabId.toString())) {
-    return;
-  }
-  tabSockets[tabId] = undefined;
+type TabSocket = {
+  tabId: number;
+  socket: WebSocket;
 };
 
+let tabSocket: TabSocket | undefined = undefined;
+
 export const initializeTabSocket = (tabId: number): WebSocket => {
+  logger.debug('Initializing tab socket');
   const socket = new WebSocket(address);
 
   socket.onopen = () => {
     getClientId().then((clientId) => {
+      logger.debug('Sending register request');
       const socketRequest: SocketRequest = {
         type: 'register',
         payload: { clientId },
@@ -28,51 +30,66 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
   };
 
   socket.onmessage = (e) => {
-    const response = JSON.parse(e.data) as SocketResponse;
+    const socketResponse = JSON.parse(e.data) as SocketResponse;
+    logger.debug(`Websocket response starting ${socketResponse.type}`);
 
-    const tabIds = getTabIds();
+    let response: RuntimeResponse;
 
-    let message: ContentMessage;
-
-    switch (response.type) {
+    switch (socketResponse.type) {
       case 'play':
       case 'pause':
-        message = { type: response.type };
+        response = { type: socketResponse.type };
         break;
       case 'rewind':
-        message = { type: 'rewind', payload: { time: response.payload.time } };
+        response = {
+          type: 'rewind',
+          payload: { time: socketResponse.payload.time },
+        };
+        break;
+      case 'play-speed':
+        response = {
+          type: 'play-speed',
+          payload: { speed: socketResponse.payload.speed },
+        };
         break;
     }
 
-    for (const tabId of tabIds) {
-      chrome.tabs.sendMessage(tabId, JSON.stringify(message));
-    }
+    sendResponseToTabs(response);
+    logger.debug(`Websocket response finished ${socketResponse.type}`);
   };
 
-  if (tabSockets[tabId]) {
-    tabSockets[tabId]!.close();
-  }
-
-  tabSockets[tabId] = socket;
+  tabSocket = {
+    tabId,
+    socket,
+  };
 
   return socket;
 };
 
 export const getTabSocket = (tabId: number): WebSocket => {
-  const socket = tabSockets[tabId];
-  if (!socket) {
-    throw new Error('Cannot find socket');
+  if (!tabSocket) {
+    throw new Error('Socket not initialized');
   }
-  return socket;
+  if (tabId !== tabSocket.tabId) {
+    throw new Error('Socket is already opened for other tab');
+  }
+  return tabSocket.socket;
 };
 
 export const terminateTabSocket = (tabId: number) => {
-  const socket = tabSockets[tabId];
-  if (!socket) {
-    throw new Error('Cannot find socket');
+  if (!tabSocket) {
+    throw new Error('Socket not initialized');
   }
-  socket.close();
-  delete tabSockets[tabId];
+  if (tabId !== tabSocket.tabId) {
+    throw new Error('Socket is already opened for other tab');
+  }
+  tabSocket.socket.close();
+  tabSocket = undefined;
 };
 
-export const getTabIds = (): number[] => Object.keys(tabSockets).map(Number);
+export const getTabId = () => {
+  if (!tabSocket) {
+    throw new Error('Socket not initialized');
+  }
+  return tabSocket.tabId;
+};

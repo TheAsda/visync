@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ContentMessage, RuntimeRequest } from '../../types/runtimeMessages';
+import { RuntimeResponse, RuntimeRequest } from '../../types/runtimeMessages';
 
 export const useClient = () => {
   const [clientId, setClientId] = useState('');
@@ -10,7 +10,7 @@ export const useClient = () => {
       type: 'get-client',
     };
     chrome.runtime.sendMessage(JSON.stringify(request), (data) => {
-      const message = JSON.parse(data) as ContentMessage;
+      const message = JSON.parse(data) as RuntimeResponse;
 
       if (message.type === 'client') {
         setClientId(message.payload.clientId);

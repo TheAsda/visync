@@ -1,6 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { ClientStatus } from 'syncboii-contracts';
-import { socketExistsAndAlive } from '../store/clientSocket';
+import { ClientStatus, Room } from 'syncboii-contracts';
+import { socketExists } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
 
 export const clientRoutes: FastifyPluginAsync = async (fastify) => {
@@ -8,20 +8,17 @@ export const clientRoutes: FastifyPluginAsync = async (fastify) => {
     const { id: clientId } = request.params as { id: string };
 
     let isInRoom: boolean;
-    let roomId: string | undefined = undefined;
+    let room: Room | undefined = undefined;
     try {
-      const room = getRoomByClientId(clientId);
-      roomId = room.roomId;
-      isInRoom = true;
+      let room = getRoomByClientId(clientId);
     } catch {
-      isInRoom = false;
+      // Do nothing
     }
 
-    const exists = await socketExistsAndAlive(clientId);
+    const exists = await socketExists(clientId);
 
     const status: ClientStatus = {
-      isInRoom,
-      roomId,
+      room: room,
       isSynced: exists,
     };
 

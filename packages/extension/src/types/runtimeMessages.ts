@@ -3,12 +3,11 @@ type RuntimeMessage<T, P = void> = {
 } & (P extends void ? {} : { payload: P });
 
 export type RuntimeRequest =
-  | RuntimeMessage<'get-client'>
+  | RuntimeMessage<'status'>
   | RuntimeMessage<'create-room'>
   | RuntimeMessage<'join-room', { roomId: string }>
   | RuntimeMessage<'leave-room'>
   | RuntimeMessage<'initialize'>
-  | RuntimeMessage<'get-room'>
   | RuntimeMessage<'start-sync'>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
@@ -16,8 +15,19 @@ export type RuntimeRequest =
   | RuntimeMessage<'stop-sync'>
   | RuntimeMessage<'ping'>;
 
-export type ContentMessage =
-  | RuntimeMessage<'client', { clientId: string; isInRoom: boolean }>
+export type RuntimeResponse =
+  | RuntimeMessage<
+      'status',
+      {
+        clientId: string;
+        room?: {
+          roomId: string;
+          clientsCount: number;
+        };
+        isSynced: boolean;
+      }
+    >
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
-  | RuntimeMessage<'rewind', { time: number }>;
+  | RuntimeMessage<'rewind', { time: number }>
+  | RuntimeMessage<'play-speed', { speed: number }>;

@@ -20,17 +20,15 @@ export const getSocket = (clientId: string): WebSocket => {
   return clientSockets[clientId];
 };
 
-export const socketExistsAndAlive = async (
-  clientId: string
-): Promise<boolean> => {
+export const socketExists = async (clientId: string): Promise<boolean> => {
   logger.debug(`Checking for ${clientId} socket`, { meta });
   const socket = clientSockets[clientId];
   if (!socket) {
     logger.debug(`No socket for ${clientId}`, { meta });
-    return Promise.resolve(false);
+    return false;
   }
 
-  logger.debug('Pinging socket ');
+  logger.debug('Pinging socket');
   const result = await Promise.race([
     new Promise<boolean>((res) => {
       socket.once('pong', () => {
@@ -47,7 +45,7 @@ export const socketExistsAndAlive = async (
     socket.terminate();
     removeSocket(clientId);
   }
-  return result;
+  return true;
 };
 
 export const removeSocket = (clientId: string): void => {

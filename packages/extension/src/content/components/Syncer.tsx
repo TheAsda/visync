@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { logger } from '../../logger';
-import { ContentMessage, RuntimeRequest } from '../../types/runtimeMessages';
+import { RuntimeResponse, RuntimeRequest } from '../../types/runtimeMessages';
 import { usePing } from '../hooks/usePing';
 import { StopSyncingButton } from './StopSyncingButton';
 import { SyncButton } from './SyncButton';
@@ -32,13 +32,13 @@ export const Syncer = (props: SyncerProps) => {
       type: 'get-client',
     };
     chrome.runtime.sendMessage(JSON.stringify(request), (data) => {
-      const message = JSON.parse(data) as ContentMessage;
+      const message = JSON.parse(data) as RuntimeResponse;
       if (message.type === 'client') {
         setCanSync(message.payload.isInRoom);
       }
     });
     chrome.runtime.onMessage.addListener((data) => {
-      const message = JSON.parse(data) as ContentMessage;
+      const message = JSON.parse(data) as RuntimeResponse;
       if (message.type === 'client') {
         setCanSync(message.payload.isInRoom);
       }
@@ -90,7 +90,7 @@ export const Syncer = (props: SyncerProps) => {
 
   const runtimeListener = useCallback(
     (data: string) => {
-      const message = JSON.parse(data) as ContentMessage;
+      const message = JSON.parse(data) as RuntimeResponse;
       switch (message.type) {
         case 'play': {
           if (!props.video.paused) {
