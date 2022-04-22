@@ -9,7 +9,7 @@ import { getClientStatus } from '../utils/status';
 import { sendResponseToTabs } from '../utils/tabs';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
-export const handleSyncRuntimeRequest: RuntimeRequestHandler = async (
+export const syncRequestHandler: RuntimeRequestHandler = async (
   clientId,
   request,
   sender,

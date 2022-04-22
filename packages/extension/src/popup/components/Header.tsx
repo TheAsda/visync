@@ -1,5 +1,5 @@
 import { styled } from 'goober';
-import { Logo } from '../../common/Logo';
+import { useData } from '../hooks/useData';
 
 const HeaderContainer = styled('header')({
   display: 'flex',
@@ -20,19 +20,15 @@ const ClientInfo = styled('p')({
   fontSize: '1.5rem',
 });
 
-export interface HeaderProps {
-  clientId: string;
-}
-
-export const Header = (props: HeaderProps) => {
-  const { clientId } = props;
+export const Header = () => {
+  const { clientId } = useData();
 
   return (
     <HeaderContainer>
       <LogoContainer>
-        <Logo variant="default" shape="triangle" />
+        {/* <Logo variant="default" shape="triangle" /> */}
       </LogoContainer>
-      <ClientInfo>{clientId}</ClientInfo>
+      <ClientInfo>{clientId ?? 'Loading...'}</ClientInfo>
     </HeaderContainer>
   );
 };

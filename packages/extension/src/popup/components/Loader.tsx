@@ -1,24 +1,20 @@
 import { keyframes, styled } from 'goober';
-import { LogoBase } from '../../common/LogoBase';
-import { theme } from '../../common/theme';
+import logoLoader from '../assets/LogoLoader.svg';
 
 const spin = keyframes`
 0% {
-  transform: rotate(0deg);
+  transform: rotate(0deg) scale(1);
 }
 50% {
-  transform: rotate(360deg);
+  transform: rotate(180deg) scale(0.8);
 }
 100% {
-  transform: rotate(720deg);
+  transform: rotate(360deg) scale(1);
 }
 `;
 
-const SpinContainer = styled('div')({
-  animation: `${spin} 2s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse`,
-  display: 'grid',
-  placeItems: 'center',
-  aspectRatio: '1 / 1',
+const Image = styled('img')({
+  animation: `${spin} 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse`,
   width: '70px',
 });
 
@@ -32,9 +28,7 @@ const Center = styled('div')({
 export const Loader = () => {
   return (
     <Center>
-      <SpinContainer>
-        <LogoBase color={theme.colors.primary} />
-      </SpinContainer>
+      <Image src={logoLoader} />
     </Center>
   );
 };

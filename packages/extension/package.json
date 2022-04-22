@@ -10,6 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "@logdna/browser": "^1.1.4",
+    "@logdna/logger": "^2.6.4",
+    "@rollup/plugin-image": "^2.1.1",
     "goober": "^2.1.8",
     "loglevel": "^1.8.0",
     "nanoid": "^3.3.2",

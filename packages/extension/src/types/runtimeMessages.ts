@@ -7,7 +7,6 @@ export type RuntimeRequest =
   | RuntimeMessage<'create-room'>
   | RuntimeMessage<'join-room', { roomId: string }>
   | RuntimeMessage<'leave-room'>
-  | RuntimeMessage<'initialize'>
   | RuntimeMessage<'start-sync'>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>

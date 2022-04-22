@@ -29,7 +29,7 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
     });
   };
 
-  socket.onmessage = (e) => {
+  socket.onmessage = async (e) => {
     const socketResponse = JSON.parse(e.data) as SocketResponse;
     logger.debug(`Websocket response starting ${socketResponse.type}`);
 
@@ -52,8 +52,22 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
           payload: { speed: socketResponse.payload.speed },
         };
         break;
+      case 'room':
+        response = {
+          type: 'status',
+          payload: {
+            clientId: await getClientId(),
+            isSynced: true,
+            room: {
+              roomId: socketResponse.payload.roomId,
+              clientsCount: socketResponse.payload.clientIds.length,
+            },
+          },
+        };
+        break;
     }
 
+    chrome.runtime.sendMessage(JSON.stringify(response));
     sendResponseToTabs(response);
     logger.debug(`Websocket response finished ${socketResponse.type}`);
   };

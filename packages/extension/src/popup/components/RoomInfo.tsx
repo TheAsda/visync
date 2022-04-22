@@ -1,8 +1,8 @@
 import { styled } from 'goober';
-import { Room } from 'syncboii-contracts';
+import { useData } from '../hooks/useData';
 import { Button } from './Button';
-import { CopyIcon } from './CopyIcon';
-import { RoomIcon } from './RoomIcon';
+import copyIcon from '../assets/CopyIcon.svg';
+import roomIcon from '../assets/RoomIcon.svg';
 
 const Container = styled('div')({
   display: 'flex',
@@ -14,7 +14,7 @@ const Container = styled('div')({
   margin: '0 3rem',
 });
 
-const Room = styled('p')({
+const Text = styled('p')({
   fontSize: '1.2rem',
 });
 
@@ -46,29 +46,30 @@ const CopyButton = styled(Button)({
   padding: '0.2rem',
 });
 
-export interface RoomInfoProps {
-  room: Room;
-  onLeave: () => void;
-}
+export const RoomInfo = () => {
+  const { room, leaveRoom, isSynced } = useData();
 
-export const RoomInfo = (props: RoomInfoProps) => {
   const copyRoomId = () => {
-    navigator.clipboard.writeText(props.room.roomId);
+    if (!room) {
+      return;
+    }
+    navigator.clipboard.writeText(room.roomId);
   };
 
   return (
     <Container>
       <Row>
-        <Room>Room: {props.room.roomId}</Room>
+        <Text>Room: {room?.roomId}</Text>
         <RoomCountBox>
-          <RoomIcon />
-          <RoomCount>{props.room.clientIds.length}</RoomCount>
+          <img src={roomIcon} />
+          <RoomCount>{room?.clientsCount}</RoomCount>
         </RoomCountBox>
         <CopyButton aria-label="Copy to clipboard" onClick={copyRoomId}>
-          <CopyIcon />
+          <img src={copyIcon} />
         </CopyButton>
       </Row>
-      <Button type="button" onClick={props.onLeave}>
+      <Text>{isSynced ? 'Synced' : 'Not Synced'}</Text>
+      <Button type="button" onClick={leaveRoom}>
         Leave Room
       </Button>
     </Container>

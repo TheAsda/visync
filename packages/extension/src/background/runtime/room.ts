@@ -9,7 +9,7 @@ import { fetcher } from '../fetcher';
 import { sendResponseToTabs } from '../utils/tabs';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
-export const handleRoomRuntimeRequest: RuntimeRequestHandler = async (
+export const roomRequestHandler: RuntimeRequestHandler = async (
   clientId,
   request,
   sender,
@@ -36,7 +36,9 @@ export const handleRoomRuntimeRequest: RuntimeRequestHandler = async (
         },
       };
       sendResponseToTabs(response);
-      sendResponse(JSON.stringify(response));
+      const message = JSON.stringify(response);
+      sendResponse(message);
+      chrome.runtime.sendMessage(message);
       break;
     }
     case 'join-room': {
@@ -62,6 +64,7 @@ export const handleRoomRuntimeRequest: RuntimeRequestHandler = async (
       sendResponseToTabs(response);
       const message = JSON.stringify(response);
       sendResponse(message);
+      chrome.runtime.sendMessage(message);
       break;
     }
     case 'leave-room': {
@@ -77,7 +80,9 @@ export const handleRoomRuntimeRequest: RuntimeRequestHandler = async (
         },
       };
       sendResponseToTabs(response);
-      sendResponse(JSON.stringify(response));
+      const message = JSON.stringify(response);
+      sendResponse(message);
+      chrome.runtime.sendMessage(message);
       break;
     }
   }

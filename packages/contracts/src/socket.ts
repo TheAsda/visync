@@ -1,3 +1,5 @@
+import { Room } from './room';
+
 type SocketMessage<T, P = void> = {
   type: T;
 } & (P extends void ? {} : { payload: P });
@@ -13,4 +15,5 @@ export type SocketResponse =
   | SocketMessage<'play'>
   | SocketMessage<'pause'>
   | SocketMessage<'rewind', { time: number }>
-  | SocketMessage<'play-speed', { speed: number }>;
+  | SocketMessage<'play-speed', { speed: number }>
+  | SocketMessage<'room', Room>;

@@ -1,6 +1,6 @@
 import { styled } from 'goober';
 import { FormEventHandler, useState } from 'react';
-import { theme } from '../../common/theme';
+import { useData } from '../hooks/useData';
 import { Button } from './Button';
 import { Input } from './Input';
 
@@ -14,19 +14,16 @@ const Container = styled('div')({
   margin: '0 3rem',
 });
 
-const JoinForm = styled('form')({
+const JoinForm = styled('form')(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'stretch',
   gap: theme.spacing.md,
-});
+}));
 
-export interface RoomActionsProps {
-  onCreate: () => void;
-  onJoin: (roomId: string) => void;
-}
+export const RoomActions = () => {
+  const { createRoom, joinRoom } = useData();
 
-export const RoomActions = (props: RoomActionsProps) => {
   const [roomId, setRoomId] = useState('');
 
   const handleJoinForm: FormEventHandler<HTMLFormElement> = (e) => {
@@ -34,12 +31,12 @@ export const RoomActions = (props: RoomActionsProps) => {
     if (roomId.length === 0) {
       return;
     }
-    props.onJoin(roomId);
+    joinRoom(roomId);
   };
 
   return (
     <Container>
-      <Button onClick={props.onCreate} type="button">
+      <Button onClick={createRoom} type="button">
         Create Room
       </Button>
       <JoinForm onSubmit={handleJoinForm}>

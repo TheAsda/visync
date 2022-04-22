@@ -1,5 +1,5 @@
 import { styled } from 'goober';
-import { useRoom } from '../hooks/useRoom';
+import { useData } from '../hooks/useData';
 import { Loader } from './Loader';
 import { RoomActions } from './RoomActions';
 import { RoomInfo } from './RoomInfo';
@@ -7,19 +7,11 @@ import { RoomInfo } from './RoomInfo';
 const Container = styled('section')({});
 
 export const Content = () => {
-  const { isLoading, room, leaveRoom, createRoom, joinRoom } = useRoom();
+  const { isLoading, room } = useData();
 
   if (isLoading) {
     return <Loader />;
   }
 
-  return (
-    <Container>
-      {room === null ? (
-        <RoomActions onCreate={createRoom} onJoin={joinRoom} />
-      ) : (
-        <RoomInfo room={room} onLeave={leaveRoom} />
-      )}
-    </Container>
-  );
+  return <Container>{!room ? <RoomActions /> : <RoomInfo />}</Container>;
 };

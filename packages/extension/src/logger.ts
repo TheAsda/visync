@@ -1,36 +1,47 @@
-import logdna from '@logdna/browser';
+// import logdna, { Logger } from '@logdna/logger';
 
-const logger = logdna.init(process.env['LOGDNA_INGESTION_KEY']!, {
-  app: 'syncboii-extension',
-  debug: true,
-});
+// const logger = logdna.createLogger(process.env['LOGDNA_INGESTION_KEY']!, {
+//   app: 'syncboii-extension',
+//   level: 'debug',
+// }) as Required<Logger>;
 
-const disableLogDna = Boolean(process.env['DISABLE_LOGDNA']);
-if (disableLogDna) {
-  console.warn('LogDNA is disabled');
-}
+// const disableLogDna = Boolean(process.env['DISABLE_LOGDNA']);
+// if (disableLogDna) {
+//   console.warn('LogDNA is disabled');
+// }
 
-// @ts-ignore
-logger.log = (statement, options, level) => {
-  let consoleOut: typeof console.log;
-  switch (level) {
-    case 'error':
-      consoleOut = console.error;
-      break;
-    case 'warn':
-      consoleOut = console.warn;
-      break;
-    case 'debug':
-      consoleOut = console.debug;
-      break;
-    default:
-      consoleOut = console.log;
-  }
-  consoleOut(statement);
-  if (disableLogDna) {
-    return;
-  }
-  logger.log.bind(logger)(statement, options);
+// logger.log = (statement, options) => {
+//   let consoleOut: typeof console.log;
+//   switch (options?.level) {
+//     case 'fatal':
+//     case 'error':
+//       consoleOut = console.error;
+//       break;
+//     case 'warn':
+//       consoleOut = console.warn;
+//       break;
+//     case 'debug':
+//       consoleOut = console.debug;
+//       break;
+//     case 'trace':
+//       consoleOut = console.trace;
+//       break;
+
+//     default:
+//       consoleOut = console.log;
+//   }
+//   consoleOut(statement);
+//   if (disableLogDna) {
+//     return;
+//   }
+//   logger.log.bind(logger)(statement, options);
+// };
+
+const logger = {
+  info: console.log,
+  debug: console.debug,
+  warn: console.warn,
+  error: console.error,
 };
 
 export { logger };

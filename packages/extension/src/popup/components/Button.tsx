@@ -1,7 +1,6 @@
 import { styled } from 'goober';
-import { theme } from '../../common/theme';
 
-export const Button = styled('button')({
+export const Button = styled('button')(({ theme }) => ({
   background: theme.colors.primary,
   borderRadius: theme.spacing.sm,
   boxShadow: '1px 1px 4px 1px rgba(217, 240, 255, 0.25)',
@@ -18,4 +17,4 @@ export const Button = styled('button')({
   '&:active': {
     filter: 'brightness(60%)',
   },
-});
+}));

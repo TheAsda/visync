@@ -3,9 +3,13 @@ import type {
   CreateRoomRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
+  Room,
+  SocketResponse,
 } from 'syncboii-contracts';
 import { logger } from '../logger';
+import { getSocket } from '../store/clientSocket';
 import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';
+import { retry } from '../utils/retry';
 
 export const roomRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/room/create', (request, reply) => {
@@ -16,12 +20,17 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
     reply.status(201).send(room);
   });
 
-  fastify.post('/room/join', (request, reply) => {
+  fastify.post('/room/join', async (request, reply) => {
     const body = request.body as JoinRoomRequest;
 
     try {
       const room = joinRoom(body.roomId, body.clientId);
       reply.send(room);
+      const response: SocketResponse = {
+        type: 'room',
+        payload: room,
+      };
+      await translateToOthersInRoom(room, body.clientId, response);
     } catch (err) {
       if (err instanceof Error) {
         logger.error(err?.message);
@@ -33,7 +42,7 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  fastify.post('/room/leave', (request, reply) => {
+  fastify.post('/room/leave', async (request, reply) => {
     const body = request.body as LeaveRoomRequest;
 
     try {
@@ -42,6 +51,11 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
         deleteRoom(room.roomId);
       }
       reply.status(204).send();
+      const response: SocketResponse = {
+        type: 'room',
+        payload: room,
+      };
+      await translateToOthersInRoom(room, body.clientId, response);
     } catch (err) {
       if (err instanceof Error) {
         logger.error(err?.message);
@@ -52,4 +66,22 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
       }
     }
   });
+};
+
+const translateToOthersInRoom = async (
+  room: Room,
+  clientId: string,
+  response: SocketResponse
+) => {
+  logger.debug(`Translating response from ${clientId} to others in room`);
+  const otherClientIds = room.clientIds.filter((id) => id !== clientId);
+  const message = JSON.stringify(response);
+  const promises = [];
+  for (const clientId of otherClientIds) {
+    const sendResponse = () => {
+      getSocket(clientId).send(message);
+    };
+    promises.push(retry(sendResponse));
+  }
+  return Promise.all(promises);
 };

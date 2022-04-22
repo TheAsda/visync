@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { Children, createContext, ReactNode, useContext } from 'react';
 
 const colors = {
   background: '#0F102F',
@@ -34,5 +34,7 @@ declare module 'goober' {
 
 const ThemeContext = createContext(theme);
 
-export const ThemeProvider = ThemeContext.Provider;
+export const ThemeProvider = (props: { children?: ReactNode }) => (
+  <ThemeContext.Provider value={theme}>{props.children}</ThemeContext.Provider>
+);
 export const useTheme = () => useContext(ThemeContext);

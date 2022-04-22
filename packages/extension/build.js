@@ -4,6 +4,7 @@ import html from '@rollup/plugin-html';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
+import image from '@rollup/plugin-image';
 import { readFile, writeFile } from 'fs/promises';
 import { rollup } from 'rollup';
 
@@ -24,6 +25,7 @@ const popupBuild = rollup({
       babelHelpers: 'bundled',
       compact: true,
     }),
+    image(),
     commonjs(),
     nodeResolve(),
     html({
@@ -47,32 +49,32 @@ const backgroundBuild = rollup({
   });
 });
 
-const contentBuild = rollup({
-  input: 'src/content/content.ts',
-  plugins: [
-    replace({
-      preventAssignment: true,
-      'process.env.NODE_ENV': JSON.stringify(
-        isProduction ? 'production' : 'development'
-      ),
-    }),
-    typescript(),
-    babel({
-      presets: ['@babel/preset-react'],
-      babelHelpers: 'bundled',
-      compact: true,
-    }),
-    commonjs(),
-    nodeResolve({ browser: true }),
-  ],
-}).then((bundle) => {
-  return bundle.write({
-    dir: 'dist',
-    sourcemap: !isProduction,
-  });
-});
+// const contentBuild = rollup({
+//   input: 'src/content/content.ts',
+//   plugins: [
+//     replace({
+//       preventAssignment: true,
+//       'process.env.NODE_ENV': JSON.stringify(
+//         isProduction ? 'production' : 'development'
+//       ),
+//     }),
+//     typescript(),
+//     babel({
+//       presets: ['@babel/preset-react'],
+//       babelHelpers: 'bundled',
+//       compact: true,
+//     }),
+//     commonjs(),
+//     nodeResolve({ browser: true }),
+//   ],
+// }).then((bundle) => {
+//   return bundle.write({
+//     dir: 'dist',
+//     sourcemap: !isProduction,
+//   });
+// });
 
-Promise.all([popupBuild, backgroundBuild, contentBuild]).then(
+Promise.all([popupBuild, backgroundBuild]).then(
   async (outputs) => {
     const popupOutput = outputs[0];
     const backgroundOutput = outputs[1];

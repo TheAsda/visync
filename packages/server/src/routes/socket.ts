@@ -65,8 +65,8 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
 const translateToOthers = async (
   clientId: string,
   response: SocketResponse
-): Promise<void> => {
-  logger.debug(`Translating message from ${clientId} to others in room`);
+) => {
+  logger.debug(`Translating response from ${clientId} to others in room`);
   const room = getRoomByClientId(clientId);
   const otherClientIds = room.clientIds.filter((id) => id !== clientId);
   const message = JSON.stringify(response);
@@ -77,5 +77,5 @@ const translateToOthers = async (
     };
     promises.push(retry(sendResponse));
   }
-  return Promise.all(promises).then();
+  return Promise.all(promises);
 };

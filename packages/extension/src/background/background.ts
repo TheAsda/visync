@@ -1,10 +1,16 @@
 import { logger } from '../logger';
 import { RuntimeRequest } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
-import { handleRoomRuntimeRequest } from './runtime/room';
-import { handleSyncRuntimeRequest } from './runtime/sync';
+import { roomRequestHandler } from './runtime/room';
+import { statusRequestHandler } from './runtime/status';
+import { syncRequestHandler } from './runtime/sync';
 
-const handlers = [handleRoomRuntimeRequest, handleSyncRuntimeRequest];
+const handlers = [
+  roomRequestHandler,
+  syncRequestHandler,
+  syncRequestHandler,
+  statusRequestHandler,
+];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const request = JSON.parse(message) as RuntimeRequest;
