@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
 import { logger } from '../logger';
-import { getSocket, saveSocket } from '../store/clientSocket';
+import { getSocket, removeSocket, saveSocket } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
 import { retry } from '../utils/retry';
 
@@ -54,6 +54,10 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
         }
       }
       logger.info(`Websocket request finished ${type}`);
+    });
+
+    connection.socket.on('close', () => {
+      removeSocket(connection.socket);
     });
   });
 };

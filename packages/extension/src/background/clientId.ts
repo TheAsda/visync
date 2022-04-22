@@ -1,9 +1,6 @@
 import { nanoid } from 'nanoid';
-import { ClientId } from 'syncboii-contracts';
 
-const clientIdKey = 'clientId';
-
-export const getClientId = async (): Promise<ClientId> => {
+export const getClientId = async (): Promise<string> => {
   let clientId = (await chrome.storage.local.get('clientId')).clientId;
   if (clientId) {
     return clientId;
