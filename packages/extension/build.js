@@ -49,42 +49,44 @@ const backgroundBuild = rollup({
   });
 });
 
-// const contentBuild = rollup({
-//   input: 'src/content/content.ts',
-//   plugins: [
-//     replace({
-//       preventAssignment: true,
-//       'process.env.NODE_ENV': JSON.stringify(
-//         isProduction ? 'production' : 'development'
-//       ),
-//     }),
-//     typescript(),
-//     babel({
-//       presets: ['@babel/preset-react'],
-//       babelHelpers: 'bundled',
-//       compact: true,
-//     }),
-//     commonjs(),
-//     nodeResolve({ browser: true }),
-//   ],
-// }).then((bundle) => {
-//   return bundle.write({
-//     dir: 'dist',
-//     sourcemap: !isProduction,
-//   });
-// });
-
-Promise.all([popupBuild, backgroundBuild]).then(async (outputs) => {
-  const popupOutput = outputs[0];
-  const backgroundOutput = outputs[1];
-  const contentOutput = outputs[2];
-
-  const manifest = JSON.parse(
-    await readFile('./src/manifest.json', { encoding: 'utf8' })
-  );
-  delete manifest['$schema'];
-  manifest.action.default_popup = popupOutput.output[1].fileName;
-  manifest.background.service_worker = backgroundOutput.output[0].fileName;
-  manifest.content_scripts[0].js[0] = contentOutput.output[0].fileName;
-  return writeFile('dist/manifest.json', JSON.stringify(manifest));
+const contentBuild = rollup({
+  input: 'src/content/content.tsx',
+  plugins: [
+    replace({
+      preventAssignment: true,
+      'process.env.NODE_ENV': JSON.stringify(
+        isProduction ? 'production' : 'development'
+      ),
+    }),
+    typescript(),
+    babel({
+      presets: ['@babel/preset-react'],
+      babelHelpers: 'bundled',
+      compact: true,
+    }),
+    commonjs(),
+    nodeResolve({ browser: true }),
+  ],
+}).then((bundle) => {
+  return bundle.write({
+    dir: 'dist',
+    sourcemap: !isProduction,
+  });
 });
+
+Promise.all([popupBuild, backgroundBuild, contentBuild]).then(
+  async (outputs) => {
+    const popupOutput = outputs[0];
+    const backgroundOutput = outputs[1];
+    const contentOutput = outputs[2];
+
+    const manifest = JSON.parse(
+      await readFile('./src/manifest.json', { encoding: 'utf8' })
+    );
+    delete manifest['$schema'];
+    manifest.action.default_popup = popupOutput.output[1].fileName;
+    manifest.background.service_worker = backgroundOutput.output[0].fileName;
+    manifest.content_scripts[0].js[0] = contentOutput.output[0].fileName;
+    return writeFile('dist/manifest.json', JSON.stringify(manifest));
+  }
+);

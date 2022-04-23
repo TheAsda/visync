@@ -13,6 +13,8 @@ export const attachSyncer = (video: HTMLVideoElement) => {
   root.render(<Syncer video={video} />);
 };
 
+// ADD RESIZE objesrver
+
 function getCoords(elem: HTMLElement) {
   var box = elem.getBoundingClientRect();
 
