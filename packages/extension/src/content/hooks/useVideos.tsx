@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 
 export const useVideos = () => {
-  const [videos, setVideos] = useState<HTMLVideoElement[]>([]);
+  const [videos, setVideos] = useState<(HTMLVideoElement | null)[]>([]);
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((e) => {
       const videos = Array.from(document.getElementsByTagName('video'));
       console.log(`Found ${videos.length} videos`);
 
       setVideos((s) => {
-        let newVideos: HTMLVideoElement[] = [];
+        const newVideos: HTMLVideoElement[] = [];
 
         videos.forEach((v) => {
           if (!s.includes(v)) {
@@ -22,6 +22,23 @@ export const useVideos = () => {
           return s;
         }
         return [...s, ...newVideos];
+      });
+
+      const removedNodes = Array.from(e[0].removedNodes);
+
+      setVideos((s) => {
+        const removedVideoIndexes: number[] = [];
+
+        s.forEach((v, i) => {
+          if (removedNodes.find((node) => node.contains(v)) !== undefined) {
+            removedVideoIndexes.push(i);
+          }
+        });
+
+        if (removedVideoIndexes.length === 0) {
+          return s;
+        }
+        return s.map((v, i) => (removedVideoIndexes.includes(i) ? null : v));
       });
     });
     observer.observe(document.body, { subtree: true, childList: true });

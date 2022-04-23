@@ -11,9 +11,16 @@ export const Syncer = () => {
 
   return (
     <>
-      {videos.map((v, i) =>
-        createPortal(<SyncButton video={v} />, v.parentElement!, i.toString())
-      )}
+      {videos.map((v, i) => {
+        if (v === null) {
+          return null;
+        }
+        return createPortal(
+          <SyncButton video={v} />,
+          v.parentElement!,
+          i.toString()
+        );
+      })}
     </>
   );
 

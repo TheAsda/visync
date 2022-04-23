@@ -33,6 +33,8 @@ export const SyncButton = (props: SyncButtonProps) => {
     window.addEventListener('resize', updatePosition);
 
     return () => {
+      console.log('Unmount!!!');
+      
       resizeObserver.disconnect();
       window.removeEventListener('scroll', updatePosition);
       window.removeEventListener('resize', updatePosition);
