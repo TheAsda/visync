@@ -12,11 +12,13 @@
     "@logdna/browser": "^1.1.4",
     "@logdna/logger": "^2.6.4",
     "@rollup/plugin-image": "^2.1.1",
+    "@svgr/rollup": "^6.2.1",
     "goober": "^2.1.8",
     "loglevel": "^1.8.0",
     "nanoid": "^3.3.2",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
+    "rollup-plugin-svg-import": "^1.6.0",
     "syncboii-contracts": "^1.0.0",
     "ws": "^8.5.0"
   },

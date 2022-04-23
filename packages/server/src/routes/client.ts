@@ -7,10 +7,9 @@ export const clientRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/client/:id/status', async (request, reply) => {
     const { id: clientId } = request.params as { id: string };
 
-    let isInRoom: boolean;
     let room: Room | undefined = undefined;
     try {
-      let room = getRoomByClientId(clientId);
+      room = getRoomByClientId(clientId);
     } catch {
       // Do nothing
     }

@@ -36,7 +36,7 @@ export const DataProvider = (props: { children?: ReactNode }) => {
           setClientId(response.payload.clientId);
           setIsSynced(response.payload.isSynced);
           setRoom(response.payload.room);
-          // setIsLoading(false);
+          setIsLoading(false);
           break;
       }
     });

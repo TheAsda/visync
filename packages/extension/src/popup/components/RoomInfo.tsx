@@ -1,8 +1,10 @@
 import { styled } from 'goober';
 import { useData } from '../hooks/useData';
 import { Button } from './Button';
-import copyIcon from '../assets/CopyIcon.svg';
-import roomIcon from '../assets/RoomIcon.svg';
+import CopyIcon from '../assets/CopyIcon.svg';
+import RoomIcon from '../assets/RoomIcon.svg';
+import CheckIcon from '../assets/CheckIcon.svg';
+import { useEffect, useRef, useState } from 'react';
 
 const Container = styled('div')({
   display: 'flex',
@@ -16,6 +18,7 @@ const Container = styled('div')({
 
 const Text = styled('p')({
   fontSize: '1.2rem',
+  textAlign: 'center',
 });
 
 const Row = styled('div')({
@@ -38,6 +41,7 @@ const RoomCount = styled('p')({
   bottom: 0,
   left: 0,
   right: 0,
+  fontSize: '0.9rem',
 });
 
 const CopyButton = styled(Button)({
@@ -48,24 +52,40 @@ const CopyButton = styled(Button)({
 
 export const RoomInfo = () => {
   const { room, leaveRoom, isSynced } = useData();
+  const [showCheck, setShowCheck] = useState(false);
+  const timeoutRef = useRef<number>();
 
   const copyRoomId = () => {
     if (!room) {
       return;
     }
     navigator.clipboard.writeText(room.roomId);
+    setShowCheck(true);
   };
+
+  useEffect(() => {
+    if (showCheck) {
+      timeoutRef.current = setTimeout(
+        () => setShowCheck(false),
+        2000
+      ) as unknown as number;
+    }
+
+    return () => {
+      clearTimeout(timeoutRef.current);
+    };
+  }, [showCheck]);
 
   return (
     <Container>
       <Row>
         <Text>Room: {room?.roomId}</Text>
         <RoomCountBox>
-          <img src={roomIcon} />
+          <RoomIcon />
           <RoomCount>{room?.clientsCount}</RoomCount>
         </RoomCountBox>
         <CopyButton aria-label="Copy to clipboard" onClick={copyRoomId}>
-          <img src={copyIcon} />
+          {showCheck ? <CheckIcon /> : <CopyIcon />}
         </CopyButton>
       </Row>
       <Text>{isSynced ? 'Synced' : 'Not Synced'}</Text>

@@ -1,5 +1,6 @@
 import { styled } from 'goober';
 import { useData } from '../hooks/useData';
+import LogoSvg from '../assets/Logo.svg';
 
 const HeaderContainer = styled('header')({
   display: 'flex',
@@ -8,16 +9,15 @@ const HeaderContainer = styled('header')({
   alignItems: 'center',
 });
 
-const logoSize = '2.5rem';
-
-const LogoContainer = styled('div')({
-  width: logoSize,
-  height: logoSize,
-  aspectRatio: '1/1',
-});
-
 const ClientInfo = styled('p')({
   fontSize: '1.5rem',
+});
+
+const logoSize = '2.5rem';
+
+const Logo = styled(LogoSvg)({
+  width: logoSize,
+  height: logoSize,
 });
 
 export const Header = () => {
@@ -25,9 +25,7 @@ export const Header = () => {
 
   return (
     <HeaderContainer>
-      <LogoContainer>
-        {/* <Logo variant="default" shape="triangle" /> */}
-      </LogoContainer>
+      <Logo />
       <ClientInfo>{clientId ?? 'Loading...'}</ClientInfo>
     </HeaderContainer>
   );

@@ -1,5 +1,5 @@
 import { keyframes, styled } from 'goober';
-import logoLoader from '../assets/LogoLoader.svg';
+import LogoLoader from '../assets/LogoLoader.svg';
 
 const spin = keyframes`
 0% {
@@ -13,7 +13,7 @@ const spin = keyframes`
 }
 `;
 
-const Image = styled('img')({
+const Image = styled(LogoLoader)({
   animation: `${spin} 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse`,
   width: '70px',
 });
@@ -28,7 +28,7 @@ const Center = styled('div')({
 export const Loader = () => {
   return (
     <Center>
-      <Image src={logoLoader} />
+      <Image />
     </Center>
   );
 };

@@ -12,6 +12,7 @@ export const statusRequestHandler: RuntimeRequestHandler = async (
     return;
   }
   const status = await getClientStatus(clientId);
+    
   const response: RuntimeResponse = {
     type: 'status',
     payload: {
