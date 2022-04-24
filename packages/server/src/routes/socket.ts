@@ -7,6 +7,7 @@ import { retry } from '../utils/retry';
 
 export const socketRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/*', { websocket: true }, (connection, req) => {
+    logger.debug('Got socket connection');
     connection.socket.on('message', async (data) => {
       const { type, payload } = JSON.parse(
         data.toString('utf8')
@@ -57,6 +58,7 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
     });
 
     connection.socket.on('close', () => {
+      logger.debug('Socket connection closed');
       removeSocket(connection.socket);
     });
   });

@@ -146,10 +146,18 @@ const handleTabClose = async (tabId: number) => {
   stopListeningForTabClose();
 };
 
+const handleTabRefresh = (tabId: number, info: chrome.tabs.TabChangeInfo) => {
+  if (info.status === 'loading') {
+    handleTabClose(tabId);
+  }
+};
+
 const startListeningForTabClose = () => {
   chrome.tabs.onRemoved.addListener(handleTabClose);
+  chrome.tabs.onUpdated.addListener(handleTabRefresh);
 };
 
 const stopListeningForTabClose = () => {
-  chrome.tabs.onRemoved.addListener(handleTabClose);
+  chrome.tabs.onRemoved.removeListener(handleTabClose);
+  chrome.tabs.onUpdated.removeListener(handleTabRefresh);
 };
