@@ -5,7 +5,9 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import svgr from '@svgr/rollup';
+import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
+import { join } from 'path';
 import { rollup } from 'rollup';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -75,8 +77,8 @@ const contentBuild = rollup({
   });
 });
 
-Promise.all([popupBuild, backgroundBuild, contentBuild]).then(
-  async (outputs) => {
+Promise.all([popupBuild, backgroundBuild, contentBuild])
+  .then(async (outputs) => {
     const popupOutput = outputs[0];
     const backgroundOutput = outputs[1];
     const contentOutput = outputs[2];
@@ -89,5 +91,13 @@ Promise.all([popupBuild, backgroundBuild, contentBuild]).then(
     manifest.background.service_worker = backgroundOutput.output[0].fileName;
     manifest.content_scripts[0].js[0] = contentOutput.output[0].fileName;
     return writeFile('dist/manifest.json', JSON.stringify(manifest));
-  }
-);
+  })
+  .then(() => {
+    const icons = readdirSync('src/icons');
+    if (!existsSync('dist/icons')) {
+      mkdirSync('dist/icons');
+    }
+    icons.forEach((icon) => {
+      copyFileSync(join('src/icons', icon), join('dist/icons', icon));
+    });
+  });
