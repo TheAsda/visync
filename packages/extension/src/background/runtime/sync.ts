@@ -1,6 +1,8 @@
 import { SocketRequest } from 'syncboii-contracts';
 import { RuntimeResponse } from '../../types/runtimeMessages';
+import { getClientId } from '../clientId';
 import {
+  getTabId,
   getTabSocket,
   initializeTabSocket,
   terminateTabSocket,
@@ -26,6 +28,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
         throw new Error('Client is not in room');
       }
       initializeTabSocket(tabId);
+      startListeningForTabClose();
       const response: RuntimeResponse = {
         type: 'status',
         payload: {
@@ -69,6 +72,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
     case 'stop-sync': {
       const tabId = ensureTabId(sender);
       terminateTabSocket(tabId);
+      stopListeningForTabClose();
       const status = await getClientStatus(clientId);
       if (!status.room) {
         throw new Error('Client is not in room');
@@ -96,4 +100,38 @@ const ensureTabId = (sender: chrome.runtime.MessageSender): number => {
     throw new Error('Sender is not tab');
   }
   return sender.tab.id;
+};
+
+const handleTabClose = async (tabId: number) => {
+  if (tabId !== getTabId()) {
+    return;
+  }
+
+  terminateTabSocket(tabId);
+  const clientId = await getClientId();
+  const status = await getClientStatus(clientId);
+  if (!status.room) {
+    throw new Error('Client is not in room');
+  }
+  const response: RuntimeResponse = {
+    type: 'status',
+    payload: {
+      clientId,
+      isSynced: false,
+      room: {
+        roomId: status.room.roomId,
+        clientsCount: status.room?.clientIds.length,
+      },
+    },
+  };
+  sendResponseToTabs(response);
+  stopListeningForTabClose();
+};
+
+const startListeningForTabClose = () => {
+  chrome.tabs.onRemoved.addListener(handleTabClose);
+};
+
+const stopListeningForTabClose = () => {
+  chrome.tabs.onRemoved.addListener(handleTabClose);
 };

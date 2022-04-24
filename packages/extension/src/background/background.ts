@@ -1,6 +1,7 @@
 import { logger } from '../logger';
 import { RuntimeRequest } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
+import { pingRequestHandler } from './runtime/ping';
 import { roomRequestHandler } from './runtime/room';
 import { statusRequestHandler } from './runtime/status';
 import { syncRequestHandler } from './runtime/sync';
@@ -8,7 +9,7 @@ import { syncRequestHandler } from './runtime/sync';
 const handlers = [
   roomRequestHandler,
   syncRequestHandler,
-  syncRequestHandler,
+  pingRequestHandler,
   statusRequestHandler,
 ];
 
