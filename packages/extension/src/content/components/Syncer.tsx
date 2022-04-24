@@ -1,9 +1,14 @@
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useCanSync } from '../hooks/useCanSync';
+import { usePing } from '../hooks/usePing';
 import { useVideos } from '../hooks/useVideos';
 import { SyncButton } from './SyncButton';
 
 export const Syncer = () => {
   const videos = useVideos();
+  const [syncingIndex, setSyncingIndex] = useState<number>();
+  const canSync = useCanSync();
 
   if (videos.length === 0) {
     return null;
@@ -16,7 +21,14 @@ export const Syncer = () => {
           return null;
         }
         return createPortal(
-          <SyncButton video={v} />,
+          <SyncButton
+            video={v}
+            disabled={
+              !canSync || (syncingIndex !== undefined && syncingIndex !== i)
+            }
+            onStartSync={() => setSyncingIndex(i)}
+            onStopSync={() => setSyncingIndex(undefined)}
+          />,
           v.parentElement!,
           i.toString()
         );

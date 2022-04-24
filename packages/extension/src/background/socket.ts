@@ -102,8 +102,5 @@ export const terminateTabSocket = (tabId: number) => {
 };
 
 export const getTabId = () => {
-  if (!tabSocket) {
-    throw new Error('Socket not initialized');
-  }
-  return tabSocket.tabId;
+  return tabSocket?.tabId;
 };

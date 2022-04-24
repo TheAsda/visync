@@ -64,6 +64,7 @@ const contentBuild = rollup({
       babelHelpers: 'bundled',
       compact: true,
     }),
+    svgr({ dimensions: false }),
     commonjs(),
     nodeResolve({ browser: true }),
   ],

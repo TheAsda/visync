@@ -34,12 +34,14 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
         payload: {
           clientId,
           isSynced: true,
+          tabIsSynced: true,
           room: {
             roomId: status.room.roomId,
             clientsCount: status.room?.clientIds.length,
           },
         },
       };
+      sendResponseToTabs(response);
       sendResponse(JSON.stringify(response));
       break;
     }
@@ -54,6 +56,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
         },
       };
       socket.send(JSON.stringify(socketRequest));
+      sendResponse();
       break;
     }
     case 'rewind': {
@@ -67,6 +70,21 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
         },
       };
       socket.send(JSON.stringify(socketRequest));
+      sendResponse();
+      break;
+    }
+    case 'play-speed': {
+      const tabId = ensureTabId(sender);
+      const socket = getTabSocket(tabId);
+      const socketRequest: SocketRequest = {
+        type: 'play-speed',
+        payload: {
+          clientId,
+          speed: request.payload.speed,
+        },
+      };
+      socket.send(JSON.stringify(socketRequest));
+      sendResponse();
       break;
     }
     case 'stop-sync': {

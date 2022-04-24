@@ -8,7 +8,7 @@ const pingBackgroundScript = () => {
   chrome.runtime.sendMessage(JSON.stringify(request));
 };
 
-const interval = 1000;
+const interval = 500;
 
 export const usePing = (enabled: boolean) => {
   const intervalRef = useRef<number>();

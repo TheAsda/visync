@@ -11,6 +11,7 @@ export type RuntimeRequest =
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>
+  | RuntimeMessage<'play-speed', { speed: number }>
   | RuntimeMessage<'stop-sync'>
   | RuntimeMessage<'ping'>;
 
@@ -24,6 +25,7 @@ export type RuntimeResponse =
           clientsCount: number;
         };
         isSynced: boolean;
+        tabIsSynced?: boolean;
       }
     >
   | RuntimeMessage<'play'>
