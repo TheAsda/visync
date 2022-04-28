@@ -93,6 +93,7 @@ export const SyncButton = (props: SyncButtonProps) => {
         right: position.right + 'px',
         cursor: disabled ? 'not-allowed' : undefined,
         opacity: isVisible ? 1 : 0,
+        zIndex: 10000,
       }}
       onClick={clickHandler}
       onMouseEnter={makeVisible}

@@ -10,7 +10,7 @@ export const Syncer = () => {
   const [syncingIndex, setSyncingIndex] = useState<number>();
   const canSync = useCanSync();
 
-  if (videos.length === 0) {
+  if (videos.length === 0 || !canSync) {
     return null;
   }
 
@@ -20,18 +20,27 @@ export const Syncer = () => {
         if (v === null) {
           return null;
         }
-        return createPortal(
+        return (
           <SyncButton
+            key={i}
             video={v}
-            disabled={
-              !canSync || (syncingIndex !== undefined && syncingIndex !== i)
-            }
+            disabled={syncingIndex !== undefined && syncingIndex !== i}
             onStartSync={() => setSyncingIndex(i)}
             onStopSync={() => setSyncingIndex(undefined)}
-          />,
-          v.parentElement!,
-          i.toString()
+          />
         );
+        // return createPortal(
+        //   <SyncButton
+        //     video={v}
+        //     disabled={
+        //       !canSync || (syncingIndex !== undefined && syncingIndex !== i)
+        //     }
+        //     onStartSync={() => setSyncingIndex(i)}
+        //     onStopSync={() => setSyncingIndex(undefined)}
+        //   />,
+        //   v.parentElement!,
+        //   i.toString()
+        // );
       })}
     </>
   );
