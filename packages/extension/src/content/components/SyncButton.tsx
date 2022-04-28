@@ -1,5 +1,11 @@
 import { styled } from 'goober';
-import { MouseEventHandler, useCallback, useEffect, useState } from 'react';
+import {
+  ComponentPropsWithoutRef,
+  MouseEventHandler,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import DisabledLogoSvg from '../assets/DisabledLogo.svg';
 import PlayLogoSvg from '../assets/PlayLogo.svg';
 import StopLogoSvg from '../assets/StopLogo.svg';
@@ -26,7 +32,7 @@ const Button = styled('div')({
   },
 });
 
-export interface SyncButtonProps {
+export interface SyncButtonProps extends ComponentPropsWithoutRef<'div'> {
   video: HTMLVideoElement;
   disabled: boolean;
   onStartSync: () => void;
@@ -34,7 +40,7 @@ export interface SyncButtonProps {
 }
 
 export const SyncButton = (props: SyncButtonProps) => {
-  const { video, disabled, onStartSync, onStopSync } = props;
+  const { video, disabled, onStartSync, onStopSync, ...buttonProps } = props;
   const [position, setPosition] = useState<Position | null>(null);
   const { isSyncing, startSyncing, stopSyncing } = useSync({ disabled, video });
   const { isVisible, makeVisible, startVisibleTimeout } = useVisibleTimeout();
@@ -88,16 +94,17 @@ export const SyncButton = (props: SyncButtonProps) => {
 
   return (
     <Button
+      onClick={clickHandler}
+      onMouseEnter={makeVisible}
+      onMouseLeave={startVisibleTimeout}
+      {...buttonProps}
       style={{
         top: position.top + 'px',
         right: position.right + 'px',
         cursor: disabled ? 'not-allowed' : undefined,
         opacity: isVisible ? 1 : 0,
-        zIndex: 10000,
+        ...buttonProps.style,
       }}
-      onClick={clickHandler}
-      onMouseEnter={makeVisible}
-      onMouseLeave={startVisibleTimeout}
     >
       {disabled ? (
         <DisabledLogoSvg />

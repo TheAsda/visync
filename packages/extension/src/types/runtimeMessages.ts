@@ -1,3 +1,5 @@
+import { ClientSettings } from './settings';
+
 type RuntimeMessage<T, P = void> = {
   type: T;
 } & (P extends void ? {} : { payload: P });
@@ -13,7 +15,9 @@ export type RuntimeRequest =
   | RuntimeMessage<'rewind', { time: number }>
   | RuntimeMessage<'play-speed', { speed: number }>
   | RuntimeMessage<'stop-sync'>
-  | RuntimeMessage<'ping'>;
+  | RuntimeMessage<'ping'>
+  | RuntimeMessage<'settings'>
+  | RuntimeMessage<'update-settings', ClientSettings>;
 
 export type RuntimeResponse =
   | RuntimeMessage<
@@ -31,4 +35,5 @@ export type RuntimeResponse =
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>
-  | RuntimeMessage<'play-speed', { speed: number }>;
+  | RuntimeMessage<'play-speed', { speed: number }>
+  | RuntimeMessage<'settings', ClientSettings>;

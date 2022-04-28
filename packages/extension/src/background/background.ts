@@ -3,6 +3,7 @@ import { RuntimeRequest } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { pingRequestHandler } from './runtime/ping';
 import { roomRequestHandler } from './runtime/room';
+import { settingsRequestHandler } from './runtime/settings';
 import { statusRequestHandler } from './runtime/status';
 import { syncRequestHandler } from './runtime/sync';
 
@@ -11,6 +12,7 @@ const handlers = [
   syncRequestHandler,
   pingRequestHandler,
   statusRequestHandler,
+  settingsRequestHandler,
 ];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
