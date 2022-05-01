@@ -5,10 +5,11 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import svgr from '@svgr/rollup';
-import { copyFileSync, existsSync, mkdirSync, readdirSync } from 'fs';
-import { readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { writeFile } from 'fs/promises';
 import { rollup } from 'rollup';
+import { terser } from 'rollup-plugin-terser';
+import manifest from './src/manifestBase.js';
+import cpy from 'cpy';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -33,6 +34,7 @@ const popupBuild = rollup({
     html({
       title: 'Syncboii',
     }),
+    terser(),
   ],
 }).then((bundle) => {
   return bundle.write({
@@ -43,11 +45,23 @@ const popupBuild = rollup({
 
 const backgroundBuild = rollup({
   input: 'src/background/background.ts',
-  plugins: [typescript(), commonjs(), nodeResolve({ browser: true })],
+  plugins: [
+    replace({
+      preventAssignment: true,
+      'process.env.NODE_ENV': JSON.stringify(
+        isProduction ? 'production' : 'development'
+      ),
+    }),
+    typescript(),
+    commonjs(),
+    nodeResolve({ browser: true }),
+    terser(),
+  ],
 }).then((bundle) => {
   return bundle.write({
     dir: 'dist',
     sourcemap: !isProduction,
+    format: 'esm',
   });
 });
 
@@ -69,6 +83,7 @@ const contentBuild = rollup({
     svgr({ dimensions: false }),
     commonjs(),
     nodeResolve({ browser: true }),
+    terser(),
   ],
 }).then((bundle) => {
   return bundle.write({
@@ -77,27 +92,24 @@ const contentBuild = rollup({
   });
 });
 
-Promise.all([popupBuild, backgroundBuild, contentBuild])
-  .then(async (outputs) => {
+const iconsCopy = cpy(['src/icons/*'], 'dist/icons');
+
+Promise.all([popupBuild, backgroundBuild, contentBuild, iconsCopy]).then(
+  async (outputs) => {
     const popupOutput = outputs[0];
     const backgroundOutput = outputs[1];
     const contentOutput = outputs[2];
 
-    const manifest = JSON.parse(
-      await readFile('./src/manifest.json', { encoding: 'utf8' })
-    );
-    delete manifest['$schema'];
     manifest.action.default_popup = popupOutput.output[1].fileName;
+
     manifest.background.service_worker = backgroundOutput.output[0].fileName;
-    manifest.content_scripts[0].js[0] = contentOutput.output[0].fileName;
-    return writeFile('dist/manifest.json', JSON.stringify(manifest));
-  })
-  .then(() => {
-    const icons = readdirSync('src/icons');
-    if (!existsSync('dist/icons')) {
-      mkdirSync('dist/icons');
-    }
-    icons.forEach((icon) => {
-      copyFileSync(join('src/icons', icon), join('dist/icons', icon));
+    manifest.background.type = 'module';
+
+    manifest.content_scripts.push({
+      js: contentOutput.output[0].fileName,
+      matches: ['<all_urls>'],
     });
-  });
+
+    return writeFile('dist/manifest.json', JSON.stringify(manifest));
+  }
+);
