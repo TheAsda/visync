@@ -1,4 +1,4 @@
-import { ClientStatus } from 'syncboii-contracts';
+import { ClientStatus } from 'visync-contracts';
 import { fetcher } from '../fetcher';
 
 export const getClientStatus = (clientId: string): Promise<ClientStatus> => {

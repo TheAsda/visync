@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { ClientStatus, Room } from 'syncboii-contracts';
+import { ClientStatus, Room } from 'visync-contracts';
 import { socketExists } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
 

@@ -21,6 +21,7 @@ const popupBuild = rollup({
       'process.env.NODE_ENV': JSON.stringify(
         isProduction ? 'production' : 'development'
       ),
+      'process.env.SCRIPT': 'popup',
     }),
     typescript(),
     babel({
@@ -32,7 +33,7 @@ const popupBuild = rollup({
     commonjs(),
     nodeResolve(),
     html({
-      title: 'Syncboii',
+      title: 'ViSync',
     }),
     terser(),
   ],
@@ -51,6 +52,7 @@ const backgroundBuild = rollup({
       'process.env.NODE_ENV': JSON.stringify(
         isProduction ? 'production' : 'development'
       ),
+      'process.env.SCRIPT': 'background',
     }),
     typescript(),
     commonjs(),
@@ -73,6 +75,7 @@ const contentBuild = rollup({
       'process.env.NODE_ENV': JSON.stringify(
         isProduction ? 'production' : 'development'
       ),
+      'process.env.SCRIPT': 'content',
     }),
     typescript(),
     babel({

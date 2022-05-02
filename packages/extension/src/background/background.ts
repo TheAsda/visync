@@ -1,4 +1,4 @@
-import { logger } from '../logger';
+import { logger } from './logger';
 import { RuntimeRequest } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { pingRequestHandler } from './runtime/ping';

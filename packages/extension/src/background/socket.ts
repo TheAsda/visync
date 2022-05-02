@@ -1,5 +1,5 @@
-import { SocketRequest, SocketResponse } from 'syncboii-contracts';
-import { logger } from '../logger';
+import { SocketRequest, SocketResponse } from 'visync-contracts';
+import { logger } from './logger';
 import { RuntimeResponse } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';

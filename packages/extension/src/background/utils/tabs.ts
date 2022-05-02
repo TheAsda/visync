@@ -1,4 +1,4 @@
-import { logger } from '../../logger';
+import { logger } from '../logger';
 import { RuntimeResponse } from '../../types/runtimeMessages';
 import { getTabId } from '../socket';
 

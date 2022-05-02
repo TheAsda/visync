@@ -1,7 +1,7 @@
 import logdna, { Logger } from '@logdna/logger';
 
 const logger = logdna.createLogger(process.env['LOGDNA_INGESTION_KEY']!, {
-  app: 'syncboii-server',
+  app: 'visync-server',
   level: 'debug',
 }) as Required<Logger>;
 
@@ -30,7 +30,7 @@ logger.log = (statement, options) => {
     default:
       consoleOut = console.log;
   }
-  consoleOut(statement);
+  consoleOut(statement, options?.meta);
   if (disableLogDna) {
     return;
   }

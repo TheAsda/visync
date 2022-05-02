@@ -1,5 +1,5 @@
 import type { FastifyPluginAsync } from 'fastify';
-import type { SocketRequest, SocketResponse } from 'syncboii-contracts';
+import type { SocketRequest, SocketResponse } from 'visync-contracts';
 import { logger } from '../logger';
 import { getSocket, removeSocket, saveSocket } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';

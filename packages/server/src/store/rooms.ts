@@ -1,4 +1,4 @@
-import type { Room } from 'syncboii-contracts';
+import type { Room } from 'visync-contracts';
 import { nanoid } from 'nanoid';
 import { logger } from '../logger';
 

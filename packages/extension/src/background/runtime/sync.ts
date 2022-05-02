@@ -1,4 +1,4 @@
-import { SocketRequest } from 'syncboii-contracts';
+import { SocketRequest } from 'visync-contracts';
 import { RuntimeResponse } from '../../types/runtimeMessages';
 import { getClientId } from '../clientId';
 import {

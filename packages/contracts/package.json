@@ -1,9 +1,11 @@
 {
-  "name": "syncboii-contracts",
+  "name": "visync-contracts",
   "version": "1.0.0",
   "description": "",
   "typings": "dist/index.d.ts",
-  "devDependencies": {},
+  "devDependencies": {
+    "@logdna/logger": "^2.6.4"
+  },
   "scripts": {
     "build": "tsc"
   },

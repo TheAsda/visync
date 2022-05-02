@@ -5,6 +5,7 @@ import {
   useEffect,
   useState,
 } from 'react';
+import { logger } from '../../runtimeLogger';
 import { RuntimeResponse, RuntimeRequest } from '../../types/runtimeMessages';
 
 type Data = {
@@ -33,6 +34,7 @@ export const DataProvider = (props: { children?: ReactNode }) => {
       const response = JSON.parse(message) as RuntimeResponse;
       switch (response.type) {
         case 'status':
+          logger.debug(`Got status: ${JSON.stringify(response.payload)}`);
           setClientId(response.payload.clientId);
           setIsSynced(response.payload.isSynced);
           setRoom(response.payload.room);
@@ -47,6 +49,7 @@ export const DataProvider = (props: { children?: ReactNode }) => {
   }, []);
 
   const createRoom = () => {
+    logger.debug('Create room');
     setIsLoading(true);
     const request: RuntimeRequest = {
       type: 'create-room',
@@ -55,6 +58,7 @@ export const DataProvider = (props: { children?: ReactNode }) => {
   };
 
   const joinRoom = (roomId: string) => {
+    logger.debug(`Join room ${roomId}`);
     setIsLoading(true);
     const request: RuntimeRequest = {
       type: 'join-room',
@@ -66,6 +70,7 @@ export const DataProvider = (props: { children?: ReactNode }) => {
   };
 
   const leaveRoom = () => {
+    logger.debug('Leave room');
     setIsLoading(true);
     const request: RuntimeRequest = {
       type: 'leave-room',

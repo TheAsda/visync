@@ -1,4 +1,5 @@
 import { ClientSettings } from './settings';
+import type { LogRequest } from 'visync-contracts';
 
 type RuntimeMessage<T, P = void> = {
   type: T;
@@ -17,7 +18,8 @@ export type RuntimeRequest =
   | RuntimeMessage<'stop-sync'>
   | RuntimeMessage<'ping'>
   | RuntimeMessage<'settings'>
-  | RuntimeMessage<'update-settings', ClientSettings>;
+  | RuntimeMessage<'update-settings', ClientSettings>
+  | RuntimeMessage<'log', LogRequest>;
 
 export type RuntimeResponse =
   | RuntimeMessage<

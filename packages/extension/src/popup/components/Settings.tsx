@@ -1,5 +1,6 @@
 import { styled } from 'goober';
 import { useEffect, useState } from 'react';
+import { logger } from '../../runtimeLogger';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 import { ClientSettings } from '../../types/settings';
 import { Checkbox } from './Checkbox';
@@ -28,6 +29,7 @@ const FormHelperText = styled('p')({
 });
 
 const saveSettings = (settings: ClientSettings) => {
+  logger.debug(`Update settings: ${settings}`);
   const request: RuntimeRequest = {
     type: 'update-settings',
     payload: settings,
@@ -48,7 +50,7 @@ export const Settings = () => {
       if (response.type !== 'settings') {
         return;
       }
-
+      logger.debug(`Got settings: ${JSON.stringify(response.payload)}`);
       setSettings(response.payload);
     });
   }, []);

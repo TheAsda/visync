@@ -1,4 +1,4 @@
-import { logger } from '../../logger';
+import { logger } from '../logger';
 import { getTabId, getTabSocket, initializeTabSocket } from '../socket';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 

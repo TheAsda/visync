@@ -1,7 +1,7 @@
 {
-  "name": "syncboii",
+  "name": "visync",
   "version": "1.0.0",
-  "description": "Extension to sync videos on web sites",
+  "description": "Sync videos across any site",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

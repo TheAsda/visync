@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { logger } from '../../runtimeLogger';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 
 export const useCanSync = () => {
@@ -10,10 +11,11 @@ export const useCanSync = () => {
       if (message.type !== 'status') {
         return;
       }
-      setCanSync(
+      const canSync =
         message.payload.room !== undefined &&
-          (!message.payload.isSynced || !!message.payload.tabIsSynced)
-      );
+        (!message.payload.isSynced || !!message.payload.tabIsSynced);
+      logger.debug(`Updating canSync: ${canSync}`);
+      setCanSync(canSync);
     };
 
     chrome.runtime.onMessage.addListener(handleStatus);

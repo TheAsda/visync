@@ -53,9 +53,11 @@ export const SyncButton = (props: SyncButtonProps) => {
         setPosition(null);
         return;
       }
+
+      const right = document.body.scrollWidth - (left + width);
       setPosition({
         top,
-        right: document.body.scrollWidth - (left + width),
+        right,
       });
     };
 

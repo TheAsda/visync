@@ -5,7 +5,7 @@ import type {
   LeaveRoomRequest,
   Room,
   SocketResponse,
-} from 'syncboii-contracts';
+} from 'visync-contracts';
 import { logger } from '../logger';
 import { getSocket } from '../store/clientSocket';
 import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';

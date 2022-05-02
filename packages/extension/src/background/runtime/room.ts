@@ -3,7 +3,7 @@ import {
   JoinRoomRequest,
   LeaveRoomRequest,
   Room,
-} from 'syncboii-contracts';
+} from 'visync-contracts';
 import { RuntimeResponse } from '../../types/runtimeMessages';
 import { fetcher } from '../fetcher';
 import { sendResponseToTabs } from '../utils/tabs';
