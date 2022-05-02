@@ -1,10 +1,8 @@
-// import logdna, { Logger } from '@logdna/logger';
-
 import { LogRequest } from 'syncboii-contracts';
 import { getClientId } from './clientId';
 import { fetcher } from './fetcher';
 
-const disableLogDna = Boolean(process.env['DISABLE_LOGDNA']);
+const disableLogDna = Boolean('process.env.DISABLE_LOGDNA');
 if (disableLogDna) {
   console.warn('LogDNA is disabled');
 }
@@ -29,7 +27,11 @@ export const sendLogs = async (request: LogRequest) => {
     default:
       consoleOut = console.log;
   }
-  consoleOut(request.message, request.meta);
+  if (request.meta) {
+    consoleOut(request.message, request.meta);
+  } else {
+    consoleOut(request.message);
+  }
 
   if (disableLogDna) {
     return;
@@ -46,8 +48,7 @@ export const sendLogs = async (request: LogRequest) => {
 };
 
 const getLogger =
-  (level: LogRequest['level']) =>
-  (message: string, meta: any = {}) => {
+  (level: LogRequest['level']) => (message: string, meta?: any) => {
     return sendLogs({
       level,
       message,

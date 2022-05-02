@@ -30,7 +30,11 @@ logger.log = (statement, options) => {
     default:
       consoleOut = console.log;
   }
-  consoleOut(statement, options?.meta);
+  if (options?.meta) {
+    consoleOut(statement, options?.meta);
+  } else {
+    consoleOut(statement);
+  }
   if (disableLogDna) {
     return;
   }

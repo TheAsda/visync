@@ -53,6 +53,7 @@ const backgroundBuild = rollup({
         isProduction ? 'production' : 'development'
       ),
       'process.env.SCRIPT': 'background',
+      'process.env.DISABLE_LOGDNA': isProduction ? 'false' : 'true',
     }),
     typescript(),
     commonjs(),
@@ -109,7 +110,7 @@ Promise.all([popupBuild, backgroundBuild, contentBuild, iconsCopy]).then(
     manifest.background.type = 'module';
 
     manifest.content_scripts.push({
-      js: contentOutput.output[0].fileName,
+      js: [contentOutput.output[0].fileName],
       matches: ['<all_urls>'],
     });
 

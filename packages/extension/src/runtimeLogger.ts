@@ -1,13 +1,17 @@
 import { LogRequest } from 'visync-contracts';
+import { RuntimeRequest } from './types/runtimeMessages';
 
 const getLog =
   (level: LogRequest['level']) => (message: string, meta?: any) => {
-    const request: LogRequest = {
-      level,
-      message,
-      meta: {
-        ...meta,
-        script: process.env.SCRIPT,
+    const request: RuntimeRequest = {
+      type: 'log',
+      payload: {
+        level,
+        message,
+        meta: {
+          ...meta,
+          script: 'process.env.SCRIPT',
+        },
       },
     };
     chrome.runtime.sendMessage(JSON.stringify(request));
