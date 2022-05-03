@@ -2,9 +2,13 @@
   "name": "visync",
   "version": "1.0.0",
   "description": "Sync videos across any site",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:prod": "cross-env NODE_ENV=production npm run build",
+    "build": "npm run build:contracts && npm run build:server && npm run build:extension",
+    "build:contracts": "npm run build -w visync-contracts",
+    "build:server": "npm run build -w visync-server",
+    "build:extension": "npm run build -w visync-extension",
+    "start:server": "npm run start -w visync-server"
   },
   "author": "Andrey Kiselev",
   "license": "ISC",
@@ -15,6 +19,7 @@
   ],
   "devDependencies": {
     "@rollup/plugin-typescript": "^8.3.2",
+    "cross-env": "^7.0.3",
     "rollup": "^2.70.2",
     "typescript": "^4.6.3"
   }

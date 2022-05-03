@@ -53,7 +53,7 @@ const backgroundBuild = rollup({
         isProduction ? 'production' : 'development'
       ),
       'process.env.SCRIPT': 'background',
-      'process.env.DISABLE_LOGDNA': isProduction ? 'false' : 'true',
+      'process.env.DISABLE_LOGDNA': isProduction ? false : true,
     }),
     typescript(),
     commonjs(),

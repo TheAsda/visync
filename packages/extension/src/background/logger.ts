@@ -1,8 +1,8 @@
-import { LogRequest } from 'syncboii-contracts';
+import type { LogRequest } from 'visync-contracts';
 import { getClientId } from './clientId';
 import { fetcher } from './fetcher';
 
-const disableLogDna = Boolean('process.env.DISABLE_LOGDNA');
+const disableLogDna = process.env.DISABLE_LOGDNA;
 if (disableLogDna) {
   console.warn('LogDNA is disabled');
 }

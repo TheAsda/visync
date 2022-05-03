@@ -11,6 +11,14 @@ if (disableLogDna) {
 }
 
 logger.log = (statement, options) => {
+  logToConsole(statement, options);
+  if (disableLogDna) {
+    return;
+  }
+  logger.log.bind(logger)(statement, options);
+};
+
+const logToConsole = (statement: any, options?: logdna.LogOptions) => {
   let consoleOut: typeof console.log;
   switch (options?.level) {
     case 'fatal':
@@ -30,15 +38,10 @@ logger.log = (statement, options) => {
     default:
       consoleOut = console.log;
   }
-  if (options?.meta) {
-    consoleOut(statement, options?.meta);
-  } else {
-    consoleOut(statement);
-  }
-  if (disableLogDna) {
-    return;
-  }
-  logger.log.bind(logger)(statement, options);
+  const log = `[${new Date().toISOString()}] ${
+    options?.app ? `[${options.app}] ` : ''
+  }${statement}${options?.meta ? ' ' + JSON.stringify(options.meta) : ''}`;
+  consoleOut(log);
 };
 
 export { logger };
