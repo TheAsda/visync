@@ -1,0 +1,40 @@
+name: Build and publish
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+jobs:
+  build:
+    name: Build and publish artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install dependencies
+        run: npm install -ws
+      - name: Build for production
+        run: npm run build:prod
+      - name: Publish extension artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: visync-extension
+          path: packages/extension/dist
+      - name: Login to Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build image
+        uses: docker/build-push-action@master
+        with:
+          context: packages/server
+          push: true
+          tags: ghcr.io/visync-server:${{ github.sha }},ghcr.io/visync-server:latest

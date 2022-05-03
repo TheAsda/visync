@@ -54,6 +54,10 @@ const backgroundBuild = rollup({
       ),
       'process.env.SCRIPT': 'background',
       'process.env.DISABLE_LOGDNA': isProduction ? false : true,
+      'process.env.SERVER_HOSTNAME': JSON.stringify(
+        process.env.SERVER_HOSTNAME
+      ),
+      'process.env.SERVER_PORT': JSON.stringify(process.env.SERVER_PORT),
     }),
     typescript(),
     commonjs(),

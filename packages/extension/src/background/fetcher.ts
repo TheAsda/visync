@@ -1,5 +1,5 @@
-export const serverHostname = '95.165.104.170';
-export const serverPort = 7001;
+export const serverHostname = process.env.SERVER_HOSTNAME ?? 'localhost';
+export const serverPort = process.env.SERVER_PORT ?? 7001;
 export const serverUrl = `http://${serverHostname}:${serverPort}`;
 
 export const fetcher = <R = void, B = void>(

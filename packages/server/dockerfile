@@ -1,0 +1,9 @@
+FROM node:lts-slim
+
+WORKDIR /app
+COPY dist .
+COPY package.json .
+COPY ../../package-lock.json .
+RUN npm ci
+
+CMD npm run start
