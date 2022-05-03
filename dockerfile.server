@@ -9,7 +9,7 @@ FROM node:lts-slim as target
 
 WORKDIR /app
 COPY --from=builder /app/packages/server/dist /app
-COPY --from=buildre /app/packages/server/package.json /app
+COPY --from=builder /app/packages/server/package.json /app
 RUN npm install --production
 
 CMD npm run start
