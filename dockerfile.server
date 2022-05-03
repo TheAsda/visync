@@ -2,9 +2,14 @@ FROM node:lts as builder
 
 WORKDIR /app
 COPY . .
-RUN npm install -ws
+RUN npm install
 RUN npm run build:server:prod
-RUN npm prune
-RUN npm install --production -w visync-server
 
-CMD npm run start:server
+FROM node:lts-slim as target
+
+WORKDIR /app
+COPY --from=builder /app/packages/server/dist /app
+COPY --from=buildre /app/packages/server/package.json /app
+RUN npm install --production
+
+CMD npm run start
