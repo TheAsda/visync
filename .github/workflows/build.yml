@@ -15,8 +15,6 @@ jobs:
         with:
           node-version: 16
       - name: Install dependencies
-        run: npm install
-      - name: Install workspaces dependencies
         run: npm install -ws
       - name: Build for production
         run: npm run build:prod
