@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
 jobs:
-  build:
-    name: Build and publish artifacts
+  build-extension:
+    name: Build and publish extension artifacts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -23,6 +23,13 @@ jobs:
         with:
           name: visync-extension
           path: packages/extension/dist
+
+  build-server:
+    name: Build and publish server docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
       - name: Login to Docker Registry
         uses: docker/login-action@v1
         with:
@@ -35,6 +42,6 @@ jobs:
       - name: Build image
         uses: docker/build-push-action@master
         with:
-          context: packages/server
+          file: dockerfile.server
           push: true
           tags: ghcr.io/visync-server:${{ github.sha }},ghcr.io/visync-server:latest

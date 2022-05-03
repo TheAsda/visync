@@ -1,0 +1,10 @@
+FROM node:lts as builder
+
+WORKDIR /app
+COPY . .
+RUN npm install -ws
+RUN npm run build:server:prod
+RUN npm prune
+RUN npm install --production -w visync-server
+
+CMD npm run start:server

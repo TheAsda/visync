@@ -1,8 +1,0 @@
-FROM node:lts-slim
-
-WORKDIR /app
-COPY dist .
-COPY package.json .
-RUN npm install --production
-
-CMD npm run start

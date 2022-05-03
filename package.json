@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "Sync videos across any site",
   "scripts": {
+    "build:server:prod": "cross-env NODE_ENV=production npm run build:server",
+    "build:extension:prod": "cross-env NODE_ENV=production npm run build:extension",
     "build:prod": "cross-env NODE_ENV=production npm run build",
-    "build": "npm run build:contracts && npm run build:server && npm run build:extension",
+    "build": "npm run build:server && npm run build:extension",
     "build:contracts": "npm run build -w visync-contracts",
+    "prebuild:server": "npm run build:contracts",
     "build:server": "npm run build -w visync-server",
+    "prebuild:extension": "npm run build:contracts",
     "build:extension": "npm run build -w visync-extension",
     "start:server": "npm run start -w visync-server"
   },
