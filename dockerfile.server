@@ -1,15 +1,10 @@
-FROM node:lts as builder
+FROM node:lts-slim as builder
 
 WORKDIR /app
 COPY . .
 RUN npm install
 RUN npm run build:server:prod
+RUN npm prune --production
+RUN npm cache clean --force
 
-FROM node:lts-slim as target
-
-WORKDIR /app
-COPY --from=builder /app/packages/server/dist /app
-COPY --from=builder /app/packages/server/package.json /app
-RUN npm install --production
-
-CMD npm run start
+CMD npm run start:server
