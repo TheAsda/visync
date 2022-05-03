@@ -18,8 +18,8 @@
     "pino-pretty": "^7.6.1"
   },
   "devDependencies": {
-    "visync-contracts": "^1.0.0",
     "@logdna/logger": "^2.6.4",
-    "@types/ws": "^8.5.3"
+    "@types/ws": "^8.5.3",
+    "visync-contracts": "^1.0.0"
   }
 }
