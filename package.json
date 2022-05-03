@@ -13,9 +13,9 @@
   "author": "Andrey Kiselev",
   "license": "ISC",
   "workspaces": [
-    "packages\\server",
-    "packages\\extension",
-    "packages\\contracts"
+    "packages/server",
+    "packages/extension",
+    "packages/contracts"
   ],
   "devDependencies": {
     "@rollup/plugin-typescript": "^8.3.2",
