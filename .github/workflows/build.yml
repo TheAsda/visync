@@ -44,4 +44,4 @@ jobs:
         with:
           file: dockerfile.server
           push: true
-          tags: ghcr.io/visync/server:${{ github.sha }},ghcr.io/visync/server:latest
+          tags: ghcr.io/theasda/visync-server:${{ github.sha }},ghcr.io/theasda/visync-server:latest
