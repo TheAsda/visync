@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 16
       - name: Install dependencies
-        run: npm install -ws
+        run: npm install
       - name: Build for production
         run: npm run build:prod
       - name: Publish extension artifact
