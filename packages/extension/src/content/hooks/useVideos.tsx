@@ -7,7 +7,7 @@ export const useVideos = () => {
   useEffect(() => {
     const observer = new MutationObserver((e) => {
       const videos = Array.from(document.getElementsByTagName('video'));
-      logger.debug(`Found ${videos}`);
+      logger.debug(`Found ${videos.length}`);
 
       setVideos((s) => {
         const newVideos: HTMLVideoElement[] = [];
