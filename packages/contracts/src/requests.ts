@@ -1,5 +1,4 @@
 import { Room } from './room';
-import { LogLevel } from '@logdna/logger';
 
 export type CreateRoomRequest = {
   clientId: string;
@@ -20,7 +19,7 @@ export type ClientStatus = {
 };
 
 export type LogRequest = {
-  level: keyof typeof LogLevel;
+  level: string;
   message: string;
   app?: string;
   meta?: any;

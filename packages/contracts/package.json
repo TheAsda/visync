@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "typings": "dist/index.d.ts",
-  "devDependencies": {
-    "@logdna/logger": "^2.6.6"
-  },
+  "devDependencies": {},
   "scripts": {
     "build": "tsc"
   },
