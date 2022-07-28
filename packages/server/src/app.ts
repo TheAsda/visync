@@ -19,4 +19,6 @@ fastify.register(logRoutes);
 fastify.register(FastifyWebSocket);
 fastify.register(socketRoutes);
 
-fastify.listen(7001, '0.0.0.0');
+fastify.listen({
+  port: process.env.PORT ? Number(process.env.PORT) : 7001,
+});
