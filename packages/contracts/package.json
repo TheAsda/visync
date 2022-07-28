@@ -4,7 +4,7 @@
   "description": "",
   "typings": "dist/index.d.ts",
   "devDependencies": {
-    "@logdna/logger": "^2.6.4"
+    "@logdna/logger": "^2.6.6"
   },
   "scripts": {
     "build": "tsc"
