@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { logger } from '../../runtimeLogger';
 
 export const useVideos = () => {
   const [videos, setVideos] = useState<(HTMLVideoElement | null)[]>([]);
@@ -7,7 +6,6 @@ export const useVideos = () => {
   useEffect(() => {
     const observer = new MutationObserver((e) => {
       const videos = Array.from(document.getElementsByTagName('video'));
-      logger.debug(`Found ${videos.length}`);
 
       setVideos((s) => {
         const newVideos: HTMLVideoElement[] = [];
@@ -17,7 +15,6 @@ export const useVideos = () => {
             newVideos.push(v);
           }
         });
-        logger.debug(`${newVideos.length} videos are new`);
 
         if (newVideos.length === 0) {
           return s;
@@ -35,7 +32,6 @@ export const useVideos = () => {
             removedVideoIndexes.push(i);
           }
         });
-        logger.debug(`${removedVideoIndexes.length} videos are removed`);
 
         if (removedVideoIndexes.length === 0) {
           return s;
@@ -43,7 +39,6 @@ export const useVideos = () => {
         return s.map((v, i) => (removedVideoIndexes.includes(i) ? null : v));
       });
     });
-    logger.debug('Start observing body');
     observer.observe(document.body, { subtree: true, childList: true });
 
     return () => {

@@ -5,7 +5,6 @@ import CopyIcon from '../assets/CopyIcon.svg';
 import RoomIcon from '../assets/RoomIcon.svg';
 import CheckIcon from '../assets/CheckIcon.svg';
 import { useEffect, useRef, useState } from 'react';
-import { logger } from '../../runtimeLogger';
 
 const Container = styled('div')({
   display: 'flex',
@@ -60,7 +59,6 @@ export const RoomInfo = () => {
     if (!room) {
       return;
     }
-    logger.debug(`Copy ${room.roomId} to clipboard`);
     navigator.clipboard.writeText(room.roomId);
     setShowCheck(true);
   };

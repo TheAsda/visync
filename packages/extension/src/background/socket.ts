@@ -1,5 +1,4 @@
 import { SocketRequest, SocketResponse } from 'visync-contracts';
-import { logger } from './logger';
 import { RuntimeResponse } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
@@ -15,12 +14,10 @@ type TabSocket = {
 let tabSocket: TabSocket | undefined = undefined;
 
 export const initializeTabSocket = (tabId: number): WebSocket => {
-  logger.debug('Initializing tab socket');
   const socket = new WebSocket(address);
 
   socket.onopen = () => {
     getClientId().then((clientId) => {
-      logger.debug('Sending register request');
       const socketRequest: SocketRequest = {
         type: 'register',
         payload: { clientId },
@@ -31,7 +28,6 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
 
   socket.onmessage = async (e) => {
     const socketResponse = JSON.parse(e.data) as SocketResponse;
-    logger.debug(`Websocket response starting ${socketResponse.type}`);
 
     let response: RuntimeResponse;
 
@@ -69,7 +65,6 @@ export const initializeTabSocket = (tabId: number): WebSocket => {
 
     chrome.runtime.sendMessage(JSON.stringify(response));
     sendResponseToTabs(response);
-    logger.debug(`Websocket response finished ${socketResponse.type}`);
   };
 
   tabSocket = {

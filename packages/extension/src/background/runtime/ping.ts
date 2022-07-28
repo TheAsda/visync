@@ -1,4 +1,3 @@
-import { logger } from '../logger';
 import { getTabId, getTabSocket, initializeTabSocket } from '../socket';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
@@ -23,7 +22,6 @@ export const pingRequestHandler: RuntimeRequestHandler = async (
   try {
     getTabSocket(tabId);
   } catch {
-    logger.warn('Ping means that tab is synced but tab socket does not exist');
     initializeTabSocket(tabId);
   }
 };

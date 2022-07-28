@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { logger } from '../../runtimeLogger';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 import { usePing } from './usePing';
 
@@ -23,11 +22,9 @@ export const useSync = (props: UseSyncProps) => {
 
   const playCallback = useCallback(() => {
     if (ignoreNextEventRef.current) {
-      logger.debug('Ignoring play event');
       ignoreNextEventRef.current = false;
       return;
     }
-    logger.debug('Play');
     const request: RuntimeRequest = {
       type: 'play',
     };
@@ -36,11 +33,9 @@ export const useSync = (props: UseSyncProps) => {
 
   const pauseCallback = useCallback(() => {
     if (ignoreNextEventRef.current) {
-      logger.debug('Ignoring pause event');
       ignoreNextEventRef.current = false;
       return;
     }
-    logger.debug('Pause');
     const request: RuntimeRequest = {
       type: 'pause',
     };
@@ -49,7 +44,6 @@ export const useSync = (props: UseSyncProps) => {
 
   const rewindCallback = useCallback(() => {
     if (ignoreRewindEventRef.current) {
-      logger.debug('Ignoring rewind event');
       ignoreRewindEventRef.current = false;
       return;
     }
@@ -62,7 +56,6 @@ export const useSync = (props: UseSyncProps) => {
       return;
     }
     previousTimeRef.current = time;
-    logger.debug(`Rewind to ${time}`);
     const request: RuntimeRequest = {
       type: 'rewind',
       payload: { time },
@@ -72,11 +65,9 @@ export const useSync = (props: UseSyncProps) => {
 
   const rateCallback = useCallback(() => {
     if (ignoreRateEventRef.current) {
-      logger.debug('Ignoring play speed event');
       ignoreRateEventRef.current = false;
       return;
     }
-    logger.debug(`Update play speed to ${props.video.playbackRate}`);
     const request: RuntimeRequest = {
       type: 'play-speed',
       payload: { speed: props.video.playbackRate },
@@ -87,11 +78,9 @@ export const useSync = (props: UseSyncProps) => {
   const runtimeListener = useCallback(
     (data: string) => {
       const message = JSON.parse(data) as RuntimeResponse;
-      logger.debug(`Got runtime message: ${data}`);
       switch (message.type) {
         case 'play': {
           if (!props.video.paused) {
-            logger.info('Video is already playing');
             return;
           }
           ignoreNextEventRef.current = true;
@@ -100,7 +89,6 @@ export const useSync = (props: UseSyncProps) => {
         }
         case 'pause': {
           if (props.video.paused) {
-            logger.info('Video is already paused');
             return;
           }
           ignoreNextEventRef.current = true;
@@ -123,7 +111,6 @@ export const useSync = (props: UseSyncProps) => {
   );
 
   const startSyncing = useCallback(() => {
-    logger.info('Start syncing');
     setIsSyncing(true);
     const request: RuntimeRequest = {
       type: 'start-sync',
@@ -138,7 +125,6 @@ export const useSync = (props: UseSyncProps) => {
   }, []);
 
   const stopSyncing = useCallback(() => {
-    logger.info('Stop syncing');
     chrome.runtime.onMessage.removeListener(runtimeListener);
     props.video.removeEventListener('play', playCallback);
     props.video.removeEventListener('pause', pauseCallback);

@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { logger } from '../../runtimeLogger';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 
 export const useCanSync = () => {
@@ -14,7 +13,6 @@ export const useCanSync = () => {
       const canSync =
         message.payload.room !== undefined &&
         (!message.payload.isSynced || !!message.payload.tabIsSynced);
-      logger.debug(`Updating canSync: ${canSync}`);
       setCanSync(canSync);
     };
 

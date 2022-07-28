@@ -7,6 +7,7 @@ import typescript from '@rollup/plugin-typescript';
 import svgr from '@svgr/rollup';
 import { terser } from 'rollup-plugin-terser';
 import copy from 'rollup-plugin-copy';
+import json from '@rollup/plugin-json';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -30,7 +31,8 @@ export default [
       }),
       svgr({ dimensions: false }),
       commonjs(),
-      nodeResolve(),
+      nodeResolve({ browser: true }),
+      json(),
       html({
         title: 'ViSync',
       }),
@@ -50,7 +52,6 @@ export default [
           isProduction ? 'production' : 'development'
         ),
         'process.env.SCRIPT': 'background',
-        'process.env.DISABLE_LOGDNA': isProduction ? false : true,
         'process.env.SERVER_HOSTNAME': JSON.stringify(
           process.env.SERVER_HOSTNAME
         ),
@@ -86,6 +87,7 @@ export default [
       svgr({ dimensions: false }),
       commonjs(),
       nodeResolve({ browser: true }),
+      json(),
       terser(),
       copy({
         targets: [

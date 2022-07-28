@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { logger } from '../../runtimeLogger';
 import { RuntimeRequest } from '../../types/runtimeMessages';
 
 const pingBackgroundScript = () => {
@@ -16,13 +15,11 @@ export const usePing = (enabled: boolean) => {
 
   useEffect(() => {
     if (enabled) {
-      logger.debug('Start pinging');
       intervalRef.current = setInterval(
         pingBackgroundScript,
         interval
       ) as unknown as number;
     } else {
-      logger.debug('Stop pinging');
       clearInterval(intervalRef.current);
     }
     return () => {

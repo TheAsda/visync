@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { logger } from '../../runtimeLogger';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 import { ClientSettings } from '../../types/settings';
 
@@ -14,7 +13,6 @@ export const useSettings = () => {
         return;
       }
 
-      logger.debug(`Updating settings: ${JSON.stringify(response.payload)}`);
       setSettings(response.payload);
     };
 
