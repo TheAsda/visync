@@ -19,7 +19,7 @@ export default [
       replace({
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(
-          isProduction ? 'production' : 'development'
+          process.env.NODE_ENV || 'development'
         ),
         'process.env.SCRIPT': 'popup',
       }),
@@ -49,7 +49,7 @@ export default [
       replace({
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(
-          isProduction ? 'production' : 'development'
+          process.env.NODE_ENV || 'development'
         ),
         'process.env.SCRIPT': 'background',
         'process.env.SERVER_HOSTNAME': JSON.stringify(
@@ -61,6 +61,18 @@ export default [
       commonjs(),
       nodeResolve({ browser: true }),
       terser(),
+      copy({
+        targets: [
+          {
+            src: 'src/manifest.json',
+            dest: 'dist',
+          },
+          {
+            src: 'src/icons/*',
+            dest: 'dist/icons',
+          },
+        ],
+      }),
     ],
     output: {
       file: 'dist/background.js',
@@ -74,7 +86,7 @@ export default [
       replace({
         preventAssignment: true,
         'process.env.NODE_ENV': JSON.stringify(
-          isProduction ? 'production' : 'development'
+          process.env.NODE_ENV || 'development'
         ),
         'process.env.SCRIPT': 'content',
       }),
@@ -89,18 +101,6 @@ export default [
       nodeResolve({ browser: true }),
       json(),
       terser(),
-      copy({
-        targets: [
-          {
-            src: 'src/manifest.json',
-            dest: 'dist',
-          },
-          {
-            src: 'src/icons/*',
-            dest: 'dist/icons',
-          },
-        ],
-      }),
     ],
     output: {
       file: 'dist/content.js',
