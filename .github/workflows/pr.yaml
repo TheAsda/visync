@@ -1,0 +1,65 @@
+name: Build and PR version
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_extension:
+    name: Build extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Build extension
+        run: npm run build:extension
+      - name: Archive extension
+        uses: thedoctor0/zip-release@main
+        with:
+          type: zip
+          filename: visync-extension.zip
+          path: packages/extension/dist/
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: visync-extension
+          path: visync-extension.zip
+  build_server:
+    name: Build server
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build docker image
+        uses: philips-software/docker-ci-scripts@v4.1.2
+        with:
+          dockerfile: dockerfile.server
+          image-name: visync-server
+          tags: pr-${{ github.sha }}
+        env:
+          DOCKER_USERNAME: ${{ github.actor }}
+          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_REGISTRY: ghcr.io/theasda
+          GITHUB_ORGANIZATION: theasda
+    update_pr:
+      name: Update PR
+      runs-on: ubuntu-latest
+      depends_on:
+        - build_extension
+        - build_server
+      steps:
+        - name: Create comment
+          uses: marocchino/sticky-pull-request-comment@v2
+          with:
+            header: Extension published
+            message: |
+              #### You can try out extension of this pull request.
+
+              Server is available by ghcr.io/theasda/visync-server:pr-${{ github.sha }}
+
+              Extension is uploaded to pipeline [artifacts](https://github.com/theasda/visync/actions/runs/${{ github.run_id }}#artifacts)
