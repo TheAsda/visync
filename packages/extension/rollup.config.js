@@ -8,8 +8,15 @@ import svgr from '@svgr/rollup';
 import { terser } from 'rollup-plugin-terser';
 import copy from 'rollup-plugin-copy';
 import json from '@rollup/plugin-json';
+import { readFileSync } from 'fs';
+
+const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
 const isProduction = process.env.NODE_ENV === 'production';
+
+if (isProduction) {
+  console.log('Building for production');
+}
 
 /** @type { import('rollup').RollupOptions[] } */
 export default [
@@ -21,7 +28,6 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(
           process.env.NODE_ENV || 'development'
         ),
-        'process.env.SCRIPT': 'popup',
       }),
       typescript(),
       babel({
@@ -40,6 +46,7 @@ export default [
     ],
     output: {
       file: 'dist/popup.js',
+      sourcemap: isProduction && 'inline',
       format: 'esm',
     },
   },
@@ -51,7 +58,6 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(
           process.env.NODE_ENV || 'development'
         ),
-        'process.env.SCRIPT': 'background',
         'process.env.SERVER_HOSTNAME': JSON.stringify(
           process.env.SERVER_HOSTNAME
         ),
@@ -66,6 +72,8 @@ export default [
           {
             src: 'src/manifest.json',
             dest: 'dist',
+            transform: (content) =>
+              content.toString().replace('process.env.VERSION', version),
           },
           {
             src: 'src/icons/*',
@@ -76,7 +84,7 @@ export default [
     ],
     output: {
       file: 'dist/background.js',
-      sourcemap: !isProduction,
+      sourcemap: isProduction && 'inline',
       format: 'esm',
     },
   },
@@ -88,7 +96,6 @@ export default [
         'process.env.NODE_ENV': JSON.stringify(
           process.env.NODE_ENV || 'development'
         ),
-        'process.env.SCRIPT': 'content',
       }),
       typescript(),
       babel({
@@ -104,7 +111,8 @@ export default [
     ],
     output: {
       file: 'dist/content.js',
-      sourcemap: !isProduction,
+      sourcemap: isProduction && 'inline',
+      format: 'esm',
     },
   },
 ];

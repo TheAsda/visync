@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ViSync",
   "description": "Sync videos across any site",
-  "version": "1.0",
+  "version": "process.env.VERSION",
   "host_permissions": ["<all_urls>"],
   "icons": {
     "16": "icons/logo16.png",
