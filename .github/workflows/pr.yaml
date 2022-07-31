@@ -35,17 +35,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Build docker image
-        uses: philips-software/docker-ci-scripts@v4.1.2
+      - name: Login to Docker Hub
+        uses: actions/login@v3
         with:
-          dockerfile: dockerfile.server
-          image-name: visync-server
-          tags: pr-${{ github.sha }}
-        env:
-          DOCKER_USERNAME: ${{ github.actor }}
-          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_REGISTRY: ghcr.io/theasda
-          GITHUB_ORGANIZATION: theasda
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build docker image
+        uses: uses: docker/build-push-action@v3
+        with:
+          file: dockerfile.server
+          push: true
+          tags: ghcr.io/theasda/visync-server:pr-${{ github.sha }}
   update_pr:
     name: Update PR
     runs-on: ubuntu-latest
