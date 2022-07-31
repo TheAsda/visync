@@ -11,28 +11,16 @@ import PlayLogoSvg from '../assets/PlayLogo.svg';
 import StopLogoSvg from '../assets/StopLogo.svg';
 import { useSync } from '../hooks/useSync';
 import { useVisibleTimeout } from '../hooks/useVisibleTimeout';
+import { clsx } from 'clsx';
+import styles from './SyncButton.css';
+import ReactShadowRoot from 'react-shadow-root';
 
 type Position = {
   top: number;
   right: number;
 };
 
-const size = '100px';
-
-const Button = styled('div')({
-  position: 'fixed',
-  width: size,
-  height: size,
-  background: 'transparent',
-  cursor: 'pointer',
-  transform: 'scale(0.9)',
-  transition: 'transform 0.2s ease, opacity 0.7s ease-out',
-  '&:hover': {
-    transform: 'scale(1)',
-  },
-});
-
-export interface SyncButtonProps extends ComponentPropsWithoutRef<'div'> {
+export interface SyncButtonProps extends ComponentPropsWithoutRef<'button'> {
   video: HTMLVideoElement;
   disabled: boolean;
   onStartSync: () => void;
@@ -95,26 +83,33 @@ export const SyncButton = (props: SyncButtonProps) => {
   }
 
   return (
-    <Button
-      onClick={clickHandler}
-      onMouseEnter={makeVisible}
-      onMouseLeave={startVisibleTimeout}
-      {...buttonProps}
-      style={{
-        top: position.top + 'px',
-        right: position.right + 'px',
-        cursor: disabled ? 'not-allowed' : undefined,
-        opacity: isVisible ? 1 : 0,
-        ...buttonProps.style,
-      }}
-    >
-      {disabled ? (
-        <DisabledLogoSvg />
-      ) : isSyncing ? (
-        <StopLogoSvg />
-      ) : (
-        <PlayLogoSvg />
-      )}
-    </Button>
+    <div>
+      <ReactShadowRoot>
+        <style>{styles}</style>
+        <button
+          onClick={clickHandler}
+          onMouseEnter={makeVisible}
+          onMouseLeave={startVisibleTimeout}
+          disabled={disabled}
+          {...buttonProps}
+          className={clsx(buttonProps.className, 'vi-sync-button', {
+            'vi-sync-button--hidden': !isVisible,
+          })}
+          style={{
+            top: position.top + 'px',
+            right: position.right + 'px',
+            ...buttonProps.style,
+          }}
+        >
+          {disabled ? (
+            <DisabledLogoSvg />
+          ) : isSyncing ? (
+            <StopLogoSvg />
+          ) : (
+            <PlayLogoSvg />
+          )}
+        </button>
+      </ReactShadowRoot>
+    </div>
   );
 };

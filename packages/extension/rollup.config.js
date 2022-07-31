@@ -9,6 +9,7 @@ import { terser } from 'rollup-plugin-terser';
 import copy from 'rollup-plugin-copy';
 import json from '@rollup/plugin-json';
 import { readFileSync } from 'fs';
+import postcss from 'rollup-plugin-postcss';
 
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
@@ -108,6 +109,7 @@ export default [
       nodeResolve({ browser: true }),
       json(),
       terser(),
+      postcss({}),
     ],
     output: {
       file: 'dist/content.js',
