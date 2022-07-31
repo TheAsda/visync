@@ -46,20 +46,20 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_REGISTRY: ghcr.io/theasda
           GITHUB_ORGANIZATION: theasda
-    update_pr:
-      name: Update PR
-      runs-on: ubuntu-latest
-      depends_on:
-        - build_extension
-        - build_server
-      steps:
-        - name: Create comment
-          uses: marocchino/sticky-pull-request-comment@v2
-          with:
-            header: Extension published
-            message: |
-              #### You can try out extension of this pull request.
+  update_pr:
+    name: Update PR
+    runs-on: ubuntu-latest
+    depends_on:
+      - build_extension
+      - build_server
+    steps:
+      - name: Create comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: Extension published
+          message: |
+            #### You can try out extension of this pull request.
 
-              Server is available by ghcr.io/theasda/visync-server:pr-${{ github.sha }}
+            Server is available by ghcr.io/theasda/visync-server:pr-${{ github.sha }}
 
-              Extension is uploaded to pipeline [artifacts](https://github.com/theasda/visync/actions/runs/${{ github.run_id }}#artifacts)
+            Extension is uploaded to pipeline [artifacts](https://github.com/theasda/visync/actions/runs/${{ github.run_id }}#artifacts)
