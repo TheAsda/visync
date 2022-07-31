@@ -49,7 +49,7 @@ jobs:
   update_pr:
     name: Update PR
     runs-on: ubuntu-latest
-    depends_on:
+    needs:
       - build_extension
       - build_server
     steps:
