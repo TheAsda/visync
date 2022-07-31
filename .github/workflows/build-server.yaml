@@ -2,9 +2,6 @@ name: Build and publish server
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - 'packages/server/src/**'
     branches:
       - main
 
