@@ -6,6 +6,8 @@ import {
   useState,
 } from 'react';
 import { RuntimeResponse, RuntimeRequest } from '../../types/runtimeMessages';
+import { getStatus } from '../lib/runtime/getStatus';
+import { subscribe } from '../lib/runtime/subscribe';
 
 type Data = {
   isLoading: boolean;
@@ -29,21 +31,17 @@ export const DataProvider = (props: { children?: ReactNode }) => {
   const [room, setRoom] = useState<Data['room']>();
 
   useEffect(() => {
-    chrome.runtime.onMessage.addListener((message) => {
-      const response = JSON.parse(message) as RuntimeResponse;
-      switch (response.type) {
-        case 'status':
-          setClientId(response.payload.clientId);
-          setIsSynced(response.payload.isSynced);
-          setRoom(response.payload.room);
-          setIsLoading(false);
-          break;
+    const unsubscribe = subscribe((response) => {
+      if (response.type === 'status') {
+        setClientId(response.payload.clientId);
+        setIsSynced(response.payload.isSynced);
+        setRoom(response.payload.room);
+        setIsLoading(false);
       }
     });
-    const request: RuntimeRequest = {
-      type: 'status',
-    };
-    chrome.runtime.sendMessage(JSON.stringify(request));
+    getStatus();
+
+    return unsubscribe;
   }, []);
 
   const createRoom = () => {

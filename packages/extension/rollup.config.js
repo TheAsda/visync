@@ -45,14 +45,14 @@ export default [
       html({
         title: 'ViSync',
       }),
-      terser(),
+      // terser(),
       postcss({
         plugins: [postcssJitProps(OpenProps)],
       }),
     ],
     output: {
       file: 'dist/popup.js',
-      sourcemap: isProduction && 'inline',
+      sourcemap: !isProduction && 'inline',
       format: 'esm',
     },
   },
@@ -72,7 +72,7 @@ export default [
       typescript(),
       commonjs(),
       nodeResolve({ browser: true }),
-      terser(),
+      // terser(),
       copy({
         targets: [
           {
@@ -90,7 +90,7 @@ export default [
     ],
     output: {
       file: 'dist/background.js',
-      sourcemap: isProduction && 'inline',
+      sourcemap: !isProduction && 'inline',
       format: 'esm',
     },
   },
@@ -113,12 +113,12 @@ export default [
       commonjs(),
       nodeResolve({ browser: true }),
       json(),
-      terser(),
+      // terser(),
       postcss({}),
     ],
     output: {
       file: 'dist/content.js',
-      sourcemap: isProduction && 'inline',
+      sourcemap: !isProduction && 'inline',
       format: 'esm',
     },
   },

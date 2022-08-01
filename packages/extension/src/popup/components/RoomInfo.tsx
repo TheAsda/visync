@@ -1,55 +1,61 @@
-import { useData } from '../hooks/useData';
-import { Button } from './Button';
-import CopyIcon from '../assets/CopyIcon.svg';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import RoomIcon from '../assets/RoomIcon.svg';
-import CheckIcon from '../assets/CheckIcon.svg';
-import { useEffect, useRef, useState } from 'react';
+import { queryKeys } from '../lib/queryKeys';
+import { getStatus } from '../lib/runtime/getStatus';
+import { leaveRoom } from '../lib/runtime/leaveRoom';
+import { Button } from './Button';
+import { CopyButton } from './CopyButton';
+import { Loader } from './Loader';
 import './RoomInfo.css';
 
 export const RoomInfo = () => {
-  const { room, leaveRoom, isSynced } = useData();
-  const [showCheck, setShowCheck] = useState(false);
-  const timeoutRef = useRef<number>();
+  const queryClient = useQueryClient();
+  const { data: status, status: statusStatus } = useQuery(
+    queryKeys.status,
+    getStatus
+  );
+  const { mutate: leave, status: leaveStatus } = useMutation(leaveRoom, {
+    onSuccess: (status) => {
+      queryClient.setQueryData(queryKeys.status, status);
+    },
+  });
 
   const copyRoomId = () => {
-    if (!room) {
-      return;
+    if (status?.room) {
+      navigator.clipboard.writeText(status.room.roomId);
     }
-    navigator.clipboard.writeText(room.roomId);
-    setShowCheck(true);
   };
 
-  useEffect(() => {
-    if (showCheck) {
-      timeoutRef.current = setTimeout(
-        () => setShowCheck(false),
-        2000
-      ) as unknown as number;
-    }
+  if (statusStatus === 'loading') {
+    return <Loader />;
+  }
 
-    return () => {
-      clearTimeout(timeoutRef.current);
-    };
-  }, [showCheck]);
+  if (!status?.room) {
+    throw new Error('How did you get here?');
+  }
+
+  if (leaveStatus === 'loading') {
+    return <Loader loadingText="Leaving" />;
+  }
 
   return (
     <div className="room-info">
       <div className="room-info__info">
-        <p className="room-info__text">Room: {room?.roomId}</p>
+        <p className="room-info__text">Room: {status.room.roomId}</p>
         <div className="room-info__count-box">
           <RoomIcon />
-          <p className="room-info__count">{room?.clientsCount}</p>
+          <p className="room-info__count">{status.room.clientsCount}</p>
         </div>
-        <Button
+        <CopyButton
           className="room-info__copy-button"
           aria-label="Copy to clipboard"
           onClick={copyRoomId}
-        >
-          {showCheck ? <CheckIcon /> : <CopyIcon />}
-        </Button>
+        />
       </div>
-      <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p>
-      <Button type="button" onClick={leaveRoom}>
+      <p className="room-info__text">
+        {status.isSynced ? 'Synced' : 'Not Synced'}
+      </p>
+      <Button type="button" onClick={() => leave()}>
         Leave Room
       </Button>
     </div>

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Mulish&display=swap');
 
-:root{
+:root {
   font-size: 18px;
 }
 
@@ -16,6 +16,7 @@ body,
   width: 400px;
   height: 400px;
   font-size: var(--font-size-1);
+  font-weight: var(--font-weight-4);
   font-family: 'Mulish', var(--font-sans);
   line-height: var(--font-lineheight-3);
 }

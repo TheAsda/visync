@@ -1,6 +1,6 @@
 .button {
   appearance: none;
-  background: var(--violet-4);
+  background: var(--violet-5);
   border-radius: var(--radius-2);
   box-shadow: var(--shadow-1);
   padding: var(--size-2);
@@ -9,9 +9,14 @@
 }
 
 .button:hover {
-  background: var(--violet-5);
+  background: var(--violet-6);
 }
 
 .button:active {
-  background: var(--violet-6);
+  background: var(--violet-7);
+}
+
+.button:disabled {
+  background: var(--gray-6);
+  cursor: not-allowed;
 }

@@ -1,5 +1,6 @@
 import { ClientSettings } from './settings';
 import type { LogRequest } from 'visync-contracts';
+import { Status } from './status';
 
 type RuntimeMessage<T, P = void> = {
   type: T;
@@ -22,18 +23,7 @@ export type RuntimeRequest =
   | RuntimeMessage<'log', LogRequest>;
 
 export type RuntimeResponse =
-  | RuntimeMessage<
-      'status',
-      {
-        clientId: string;
-        room?: {
-          roomId: string;
-          clientsCount: number;
-        };
-        isSynced: boolean;
-        tabIsSynced?: boolean;
-      }
-    >
+  | RuntimeMessage<'status', Status>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>

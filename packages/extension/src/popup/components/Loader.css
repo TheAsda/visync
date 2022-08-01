@@ -11,3 +11,13 @@
   animation-duration: 1s;
   animation-direction: reverse;
 }
+
+.loader__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loader__text {
+  text-align: center;
+}
