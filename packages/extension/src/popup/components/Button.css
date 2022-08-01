@@ -1,0 +1,17 @@
+.button {
+  appearance: none;
+  background: var(--violet-4);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+  padding: var(--size-2);
+  cursor: pointer;
+  border: none;
+}
+
+.button:hover {
+  background: var(--violet-5);
+}
+
+.button:active {
+  background: var(--violet-6);
+}

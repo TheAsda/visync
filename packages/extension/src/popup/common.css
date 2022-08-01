@@ -1,0 +1,3 @@
+.focusable:focus-visible {
+  outline: var(--border-size-2) solid var(--indigo-3);
+}

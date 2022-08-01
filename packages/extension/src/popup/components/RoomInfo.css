@@ -1,0 +1,45 @@
+.room-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: var(--size-3) 0;
+  margin: 0 var(--size-6);
+  gap: var(--size-2);
+}
+
+.room-info__text {
+  font-size: var(--font-size-2);
+  text-align: center;
+}
+
+.room-info__copy-button {
+  --size: var(--size-7);
+  width: var(--size);
+  height: var(--size);
+  padding: var(--size-1);
+}
+
+.room-info__count-box {
+  --size: var(--size-5);
+  aspect-ratio: var(--ratio-square);
+  width: var(--size);
+  height: var(--size);
+  position: relative;
+}
+
+.room-info__count {
+  position: absolute;
+  text-align: center;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  font-size: var(--font-size-0);
+}
+
+.room-info__info {
+  display: flex;
+  justify-content: center;
+  gap: var(--size-2);
+  align-items: center;
+}

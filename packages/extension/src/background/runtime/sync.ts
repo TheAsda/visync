@@ -19,7 +19,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
 ) => {
   switch (request.type) {
     case 'start-sync': {
-      const tabId = ensureTabId(sender);
+      const tabId = getTabIdFromSender(sender);
       const status = await getClientStatus(clientId);
       if (status.isSynced) {
         throw new Error('Already synced');
@@ -47,7 +47,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
     }
     case 'play':
     case 'pause': {
-      const tabId = ensureTabId(sender);
+      const tabId = getTabIdFromSender(sender);
       const socket = getTabSocket(tabId);
       const socketRequest: SocketRequest = {
         type: request.type,
@@ -60,7 +60,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
       break;
     }
     case 'rewind': {
-      const tabId = ensureTabId(sender);
+      const tabId = getTabIdFromSender(sender);
       const socket = getTabSocket(tabId);
       const socketRequest: SocketRequest = {
         type: 'rewind',
@@ -74,7 +74,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
       break;
     }
     case 'play-speed': {
-      const tabId = ensureTabId(sender);
+      const tabId = getTabIdFromSender(sender);
       const socket = getTabSocket(tabId);
       const socketRequest: SocketRequest = {
         type: 'play-speed',
@@ -88,7 +88,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
       break;
     }
     case 'stop-sync': {
-      const tabId = ensureTabId(sender);
+      const tabId = getTabIdFromSender(sender);
       terminateTabSocket(tabId);
       stopListeningForTabClose();
       const status = await getClientStatus(clientId);
@@ -113,7 +113,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
   }
 };
 
-const ensureTabId = (sender: chrome.runtime.MessageSender): number => {
+const getTabIdFromSender = (sender: chrome.runtime.MessageSender): number => {
   if (!sender.tab?.id) {
     throw new Error('Sender is not tab');
   }

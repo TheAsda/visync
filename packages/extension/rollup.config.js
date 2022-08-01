@@ -10,6 +10,8 @@ import copy from 'rollup-plugin-copy';
 import json from '@rollup/plugin-json';
 import { readFileSync } from 'fs';
 import postcss from 'rollup-plugin-postcss';
+const postcssJitProps = require('postcss-jit-props');
+const OpenProps = require('open-props');
 
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
@@ -44,6 +46,9 @@ export default [
         title: 'ViSync',
       }),
       terser(),
+      postcss({
+        plugins: [postcssJitProps(OpenProps)],
+      }),
     ],
     output: {
       file: 'dist/popup.js',

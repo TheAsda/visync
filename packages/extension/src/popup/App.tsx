@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Container } from './components/Container';
+import './App.css';
 import { Content } from './components/Content';
 import { Header } from './components/Header';
 import { Settings } from './components/Settings';
@@ -12,9 +12,9 @@ export const App = () => {
   };
 
   return (
-    <Container>
+    <main className="app">
       <Header onSettingsClick={toggleSettings} />
       {showSettings ? <Settings /> : <Content />}
-    </Container>
+    </main>
   );
 };

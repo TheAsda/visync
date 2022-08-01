@@ -1,4 +1,4 @@
-import { styled } from 'goober';
+import { clsx } from 'clsx';
 import {
   ComponentPropsWithoutRef,
   MouseEventHandler,
@@ -6,14 +6,13 @@ import {
   useEffect,
   useState,
 } from 'react';
+import ReactShadowRoot from 'react-shadow-root';
 import DisabledLogoSvg from '../assets/DisabledLogo.svg';
 import PlayLogoSvg from '../assets/PlayLogo.svg';
 import StopLogoSvg from '../assets/StopLogo.svg';
 import { useSync } from '../hooks/useSync';
 import { useVisibleTimeout } from '../hooks/useVisibleTimeout';
-import { clsx } from 'clsx';
 import styles from './SyncButton.css';
-import ReactShadowRoot from 'react-shadow-root';
 
 type Position = {
   top: number;

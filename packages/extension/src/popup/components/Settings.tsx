@@ -1,31 +1,9 @@
-import { styled } from 'goober';
 import { useEffect, useState } from 'react';
 import { RuntimeRequest, RuntimeResponse } from '../../types/runtimeMessages';
 import { ClientSettings } from '../../types/settings';
 import { Checkbox } from './Checkbox';
 import { Loader } from './Loader';
-
-const Container = styled('section')({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: '0.3rem',
-});
-
-const FormControl = styled('div')({
-  display: 'flex',
-  flexWrap: 'wrap',
-  alignItems: 'center',
-  gap: '0.5rem',
-  justifyContent: 'center',
-  textAlign: 'center',
-});
-
-const FormLabel = styled('label')({});
-
-const FormHelperText = styled('p')({
-  fontSize: '0.8rem',
-  filter: 'brightness(0.8)',
-});
+import './Settings.css';
 
 const saveSettings = (settings: ClientSettings) => {
   const request: RuntimeRequest = {
@@ -64,10 +42,10 @@ export const Settings = () => {
   }
 
   return (
-    <Container>
-      <FormControl>
-        <FormLabel>Use forced rendering</FormLabel>
+    <div className="settings">
+      <div className="settings__setting">
         <Checkbox
+          className="settings__setting-checkbox"
           checked={settings.useForcedDisplaying}
           onChange={(e) =>
             setSettings((s) => ({
@@ -76,10 +54,11 @@ export const Settings = () => {
             }))
           }
         />
-        <FormHelperText>
+        <label className="settings__setting-label">Use forced rendering</label>
+        <p className="settings__setting-helper-text">
           May overlap player's controls and make them inaccessible
-        </FormHelperText>
-      </FormControl>
-    </Container>
+        </p>
+      </div>
+    </div>
   );
 };
