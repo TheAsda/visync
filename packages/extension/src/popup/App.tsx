@@ -12,9 +12,9 @@ export const App = () => {
   };
 
   return (
-    <main className="app">
+    <div className="app">
       <Header onSettingsClick={toggleSettings} />
-      {showSettings ? <Settings /> : <Content />}
-    </main>
+      <main>{showSettings ? <Settings /> : <Content />}</main>
+    </div>
   );
 };

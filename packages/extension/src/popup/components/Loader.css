@@ -8,4 +8,6 @@
 .loader__spinner {
   width: var(--size-8);
   animation: var(--animation-spin);
+  animation-duration: 1s;
+  animation-direction: reverse;
 }
