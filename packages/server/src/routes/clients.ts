@@ -3,9 +3,14 @@ import { ClientStatus, Room } from 'visync-contracts';
 import { socketExists } from '../store/clientSocket';
 import { getRoomByClientId } from '../store/rooms';
 
-export const clientRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get('/client/:id/status', async (request, reply) => {
-    const { id: clientId } = request.params as { id: string };
+export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.post('/clients/:clientId/register', async (request, reply) => {
+    const { clientId } = request.params as { clientId: string };
+    
+  });
+
+  fastify.get('/clients/:clientId/status', async (request, reply) => {
+    const { clientId } = request.params as { clientId: string };
 
     let room: Room | undefined = undefined;
     try {

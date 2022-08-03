@@ -11,8 +11,8 @@ import { getSocket } from '../store/clientSocket';
 import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';
 import { retry } from '../utils/retry';
 
-export const roomRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post('/room/create', (request, reply) => {
+export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.post('/rooms', (request, reply) => {
     const body = request.body as CreateRoomRequest;
 
     const room = createRoom(body.clientId);
@@ -20,7 +20,7 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
     reply.status(201).send(room);
   });
 
-  fastify.post('/room/join', async (request, reply) => {
+  fastify.post('/rooms/join', async (request, reply) => {
     const body = request.body as JoinRoomRequest;
 
     try {
@@ -42,7 +42,7 @@ export const roomRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  fastify.post('/room/leave', async (request, reply) => {
+  fastify.post('/rooms/leave', async (request, reply) => {
     const body = request.body as LeaveRoomRequest;
 
     try {
