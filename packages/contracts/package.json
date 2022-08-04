@@ -5,7 +5,8 @@
   "typings": "dist/index.d.ts",
   "devDependencies": {},
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "dev": "tsc --watch"
   },
   "author": "Andrey Kiselev",
   "license": "ISC"

@@ -1,31 +1,47 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { ClientStatus, Room } from 'visync-contracts';
-import { socketExists } from '../store/clientSocket';
-import { getRoomByClientId } from '../store/rooms';
+import { Client } from '../store/knex.js';
 
 export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post('/clients/:clientId/register', async (request, reply) => {
-    const { clientId } = request.params as { clientId: string };
-    
-  });
-
-  fastify.get('/clients/:clientId/status', async (request, reply) => {
+  fastify.put('/clients/:clientId', async (request, reply) => {
     const { clientId } = request.params as { clientId: string };
 
-    let room: Room | undefined = undefined;
-    try {
-      room = getRoomByClientId(clientId);
-    } catch {
-      // Do nothing
+    const client = await fastify.knex
+      .table<Client>('client')
+      .where('clientId', clientId)
+      .first();
+
+    if (client) {
+      reply.code(400).send({
+        error: `Client ${clientId} already registered`,
+      });
+      return;
     }
 
-    const exists = await socketExists(clientId);
+    await fastify.knex.table<Client>('client').insert({ clientId });
+    // TODO: change to returning when knex will be updated
+    const createdClient = await fastify.knex
+      .table<Client>('client')
+      .where('clientId', clientId)
+      .first();
 
-    const status: ClientStatus = {
-      room: room,
-      isSynced: exists,
-    };
+    reply.code(201).send(createdClient);
+  });
 
-    reply.send(status);
+  fastify.get('/clients/:clientId', async (request, reply) => {
+    const { clientId } = request.params as { clientId: string };
+
+    const client = await fastify.knex
+      .table<Client>('client')
+      .where('clientId', clientId)
+      .first();
+
+    if (!client) {
+      reply.code(404).send({
+        error: `Client ${clientId} not found`,
+      });
+      return;
+    }
+
+    reply.send(client);
   });
 };

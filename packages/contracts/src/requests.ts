@@ -2,6 +2,7 @@ import { Room } from './room';
 
 export type CreateRoomRequest = {
   clientId: string;
+  link?: string;
 };
 
 export type JoinRoomRequest = {

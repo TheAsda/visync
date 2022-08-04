@@ -1,14 +1,14 @@
 import type { WebSocket } from 'ws';
-import { logger } from '../logger';
+import { logger as defaultLogger } from '../logger.js';
 
-const meta = {
+const logger = defaultLogger.child({
   store: 'client-socket',
-};
+});
 
 const clientSockets: Record<string, WebSocket> = {};
 
 export const saveSocket = (clientId: string, socket: WebSocket): void => {
-  logger.debug(`Saving socket for ${clientId}`, { meta });
+  logger.debug(`Saving socket for ${clientId}`);
   if (clientSockets[clientId] !== undefined) {
     logger.warn(
       `Socket has already been registered for ${clientId}, closing old socket`
@@ -19,7 +19,7 @@ export const saveSocket = (clientId: string, socket: WebSocket): void => {
 };
 
 export const getSocket = (clientId: string): WebSocket => {
-  logger.debug(`Getting socket for ${clientId}`, { meta });
+  logger.debug(`Getting socket for ${clientId}`);
   if (!clientSockets[clientId]) {
     throw new Error('Cannot find socket');
   }
@@ -27,10 +27,10 @@ export const getSocket = (clientId: string): WebSocket => {
 };
 
 export const socketExists = async (clientId: string): Promise<boolean> => {
-  logger.debug(`Checking for ${clientId} socket`, { meta });
+  logger.debug(`Checking for ${clientId} socket`);
   const socket = clientSockets[clientId];
   if (!socket) {
-    logger.debug(`No socket for ${clientId}`, { meta });
+    logger.debug(`No socket for ${clientId}`);
     return false;
   }
 
@@ -55,7 +55,7 @@ export const socketExists = async (clientId: string): Promise<boolean> => {
 };
 
 export const removeSocketByClientId = (clientId: string): void => {
-  logger.debug(`Removing socket for ${clientId}`, { meta });
+  logger.debug(`Removing socket for ${clientId}`);
   if (clientSockets[clientId].readyState !== 3) {
     clientSockets[clientId].close();
   }
@@ -63,18 +63,18 @@ export const removeSocketByClientId = (clientId: string): void => {
 };
 
 export const removeSocket = (socket: WebSocket): void => {
-  logger.debug(`Removing socket`, { meta });
+  logger.debug(`Removing socket`);
   const clientIndex = Object.values(clientSockets).findIndex(
     (s) => s === socket
   );
   const clientId = Object.keys(clientSockets)[clientIndex];
   if (!clientId) {
-    logger.warn('Cannot find record for socket', { meta });
+    logger.warn('Cannot find record for socket');
     return;
   }
   if (clientSockets[clientId].readyState !== 3) {
     clientSockets[clientId].close();
   }
   delete clientSockets[clientId];
-  logger.debug(`Removed socket for ${clientId}`, { meta });
+  logger.debug(`Removed socket for ${clientId}`);
 };

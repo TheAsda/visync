@@ -1,23 +1,9 @@
-import 'dotenv/config';
-import Fastify from 'fastify';
-import FastifyWebSocket from '@fastify/websocket';
-import { loggerPlugin } from './loggerPlugin';
-import { clientsRoutes } from './routes/clients';
-import { roomsRoutes } from './routes/rooms';
-import { socketRoutes } from './routes/socket';
+import { loggerPlugin } from './loggerPlugin.js';
+import server from './server.js';
 
-const fastify = Fastify({
-  logger: false,
-  requestTimeout: 2000,
-});
+await server.register(loggerPlugin);
 
-fastify.register(loggerPlugin);
-fastify.register(roomsRoutes);
-fastify.register(clientsRoutes);
-fastify.register(FastifyWebSocket);
-fastify.register(socketRoutes);
-
-fastify.listen({
+server.listen({
   host: '0.0.0.0',
   port: process.env.PORT ? Number(process.env.PORT) : 7001,
 });

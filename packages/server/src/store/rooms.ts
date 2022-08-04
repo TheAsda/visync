@@ -1,6 +1,6 @@
 import type { Room } from 'visync-contracts';
 import { nanoid } from 'nanoid';
-import { logger as defaultLogger } from '../logger';
+import { logger as defaultLogger } from '../logger.js';
 
 const logger = defaultLogger.child({
   store: 'rooms',

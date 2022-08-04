@@ -4,3 +4,4 @@ node_modules/
 **/.env
 .turbo
 assets/
+.nyc_output/

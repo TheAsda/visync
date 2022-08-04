@@ -1,9 +1,9 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'visync-contracts';
-import { logger } from '../logger';
-import { getSocket, removeSocket, saveSocket } from '../store/clientSocket';
-import { getRoomByClientId } from '../store/rooms';
-import { retry } from '../utils/retry';
+import { logger } from '../logger.js';
+import { getSocket, removeSocket, saveSocket } from '../store/clientSocket.js';
+import { getRoomByClientId } from '../store/rooms.js';
+import { retry } from '../utils/retry.js';
 
 export const socketRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/*', { websocket: true }, (connection, req) => {

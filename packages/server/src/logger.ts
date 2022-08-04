@@ -1,10 +1,9 @@
-import { createLogger, format } from 'winston';
-import { Console } from 'winston/lib/winston/transports';
+import { createLogger, format, transports } from 'winston';
 
 export const logger = createLogger({
   level: 'info',
   transports: [
-    new Console({
+    new transports.Console({
       format: format.combine(
         format.colorize(),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),

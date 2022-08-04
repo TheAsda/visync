@@ -1,87 +1,158 @@
 import type { FastifyPluginAsync } from 'fastify';
+import { nanoid } from 'nanoid';
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
-  Room,
   SocketResponse,
 } from 'visync-contracts';
-import { logger } from '../logger';
-import { getSocket } from '../store/clientSocket';
-import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms';
-import { retry } from '../utils/retry';
+import { logger } from '../logger.js';
+import { getSocket } from '../store/clientSocket.js';
+import { Client, Room } from '../store/knex.js';
+import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms.js';
+import { clientExists } from '../store/utils/client.js';
+import { roomExists } from '../store/utils/room.js';
+import { retry } from '../utils/retry.js';
+import {
+  ensureClientIdFromBody,
+  ensureRoomIdFromParams,
+} from './utils/ensure.js';
 
 export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.post('/rooms', (request, reply) => {
-    const body = request.body as CreateRoomRequest;
+  fastify.put(
+    '/rooms/:roomId',
+    { preHandler: ensureClientIdFromBody },
+    async (request, reply) => {
+      const { roomId } = request.params as { roomId: string };
+      const body = request.body as CreateRoomRequest;
 
-    const room = createRoom(body.clientId);
-
-    reply.status(201).send(room);
-  });
-
-  fastify.post('/rooms/join', async (request, reply) => {
-    const body = request.body as JoinRoomRequest;
-
-    try {
-      const room = joinRoom(body.roomId, body.clientId);
-      reply.send(room);
-      const response: SocketResponse = {
-        type: 'room',
-        payload: room,
-      };
-      await translateToOthersInRoom(room, body.clientId, response);
-    } catch (err) {
-      if (err instanceof Error) {
-        logger.error(err?.message);
-        reply.code(400).send();
-      } else {
-        logger.error(`Unknown error occurred: ${err}`);
-        reply.code(500).send();
+      if (await roomExists(fastify.knex, roomId)) {
+        reply.code(400).send({
+          error: `Room ${roomId} already exists`,
+        });
+        return;
       }
+
+      try {
+        await fastify.knex.transaction(async (trx) => {
+          await trx.table<Room>('room').insert({
+            roomId,
+            link: body.link,
+          });
+          await trx
+            .table<Client>('client')
+            .update({
+              roomId,
+            })
+            .where('clientId', body.clientId);
+        });
+      } catch (e) {
+        reply.code(500).send({
+          error: `Failed to create room ${roomId}`,
+        });
+        return;
+      }
+
+      const room = await fastify.knex
+        .table<Room>('room')
+        .where('roomId', roomId)
+        .first();
+
+      reply.status(201).send(room);
     }
-  });
+  );
 
-  fastify.post('/rooms/leave', async (request, reply) => {
-    const body = request.body as LeaveRoomRequest;
+  fastify.post(
+    '/rooms/:roomId/join',
+    { preHandler: [ensureRoomIdFromParams, ensureClientIdFromBody] },
+    async (request, reply) => {
+      const { roomId } = request.params as { roomId: string };
+      const body = request.body as JoinRoomRequest;
 
-    try {
-      const room = leaveRoom(body.clientId);
-      if (room.clientIds.length === 0) {
-        deleteRoom(room.roomId);
+      const client = await fastify.knex
+        .table<Client>('client')
+        .where('clientId', body.clientId)
+        .first();
+
+      if (client?.roomId === roomId) {
+        reply.code(400).send({
+          error: `Client ${body.clientId} already in room ${roomId}`,
+        });
+        return;
       }
+      if (client?.roomId !== null) {
+        reply.code(400).send({
+          error: `Client ${body.clientId} already in room ${client?.roomId}`,
+        });
+        return;
+      }
+
+      try {
+        await fastify.knex
+          .table<Client>('client')
+          .update({ roomId })
+          .where('clientId', body.clientId);
+      } catch (e) {
+        reply.code(500).send({
+          error: `Failed to join room ${roomId}`,
+        });
+        return;
+      }
+
+      const r = await fastify.knex
+        .table<Room>('room')
+        .where('room.roomId', roomId)
+        .join('client', 'room.roomId', '=', 'client.roomId')
+        .select('room.roomId', 'room.link', 'client.clientId');
+      reply.send(r);
+    }
+  );
+
+  fastify.post(
+    '/rooms/:roomId/leave',
+    { preHandler: [ensureRoomIdFromParams, ensureClientIdFromBody] },
+    async (request, reply) => {
+      const { roomId } = request.params as { roomId: string };
+      const body = request.body as LeaveRoomRequest;
+
+      const client = await fastify.knex
+        .table<Client>('client')
+        .where({
+          clientId: body.clientId,
+        })
+        .first();
+      if (client?.roomId !== roomId) {
+        reply.code(400).send({
+          error: `Client ${body.clientId} is not in room ${roomId}`,
+        });
+        return;
+      }
+
+      await fastify.knex
+        .table<Client>('client')
+        .where('clientId', body.clientId)
+        .update({ roomId: null });
+
       reply.status(204).send();
-      const response: SocketResponse = {
-        type: 'room',
-        payload: room,
-      };
-      await translateToOthersInRoom(room, body.clientId, response);
-    } catch (err) {
-      if (err instanceof Error) {
-        logger.error(err?.message);
-        reply.code(400).send();
-      } else {
-        logger.error(`Unknown error occurred: ${err}`);
-        reply.code(500).send();
-      }
+      // await translateToOthersInRoom(room, body.clientId, response);
     }
-  });
+  );
 };
 
-const translateToOthersInRoom = async (
-  room: Room,
-  clientId: string,
-  response: SocketResponse
-) => {
-  logger.debug(`Translating response from ${clientId} to others in room`);
-  const otherClientIds = room.clientIds.filter((id) => id !== clientId);
-  const message = JSON.stringify(response);
-  const promises = [];
-  for (const clientId of otherClientIds) {
-    const sendResponse = () => {
-      getSocket(clientId).send(message);
-    };
-    promises.push(retry(sendResponse));
-  }
-  return Promise.all(promises);
-};
+// const translateToOthersInRoom = async (
+//   room: Room,
+//   clientId: string,
+//   response: SocketResponse
+// ) => {
+//   logger.debug(`Translating response from ${clientId} to others in room`);
+//   const otherClientIds = room.clientIds.filter((id) => id !== clientId);
+//   const message = JSON.stringify(response);
+//   const promises = [];
+//   for (const clientId of otherClientIds) {
+//     const sendResponse = () => {
+//       getSocket(clientId).send(message);
+//     };
+//     promises.push(retry(sendResponse));
+//   }
+//   return Promise.all(promises);
+// };
