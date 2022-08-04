@@ -1,4 +1,4 @@
-import anyTest, { TestFn } from 'ava';
+import test from 'ava';
 import { nanoid } from 'nanoid';
 import {
   CreateRoomRequest,
@@ -7,23 +7,15 @@ import {
 } from 'visync-contracts';
 import server from '../src/server.js';
 
-const test = anyTest as TestFn<{
-  registerClient: () => Promise<string>;
-}>;
-
-test.beforeEach('Register user', async (t) => {
-  const registerClient = async () => {
-    const clientId = nanoid(6);
-    await server.inject().put(`/clients/${clientId}`);
-    return clientId;
-  };
-  t.context = { registerClient };
-});
+const registerClient = async () => {
+  const clientId = nanoid(6);
+  await server.inject().put(`/clients/${clientId}`);
+  return clientId;
+};
 
 test('Create room', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
-  const room = await server.knex.table('room').select('roomId')
+  const clientId = await registerClient();
   const response = await server
     .inject()
     .put(`/rooms/${roomId}`)
@@ -47,14 +39,14 @@ test('Client does not exists on create', async (t) => {
 
 test('Room already exists on create', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
     .body({
       clientId,
     } as CreateRoomRequest);
-  const clientId2 = await t.context.registerClient();
+  const clientId2 = await registerClient();
   const response = await server
     .inject()
     .put(`/rooms/${roomId}`)
@@ -66,14 +58,14 @@ test('Room already exists on create', async (t) => {
 
 test('Join room', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
     .body({
       clientId,
     } as CreateRoomRequest);
-  const clientId2 = await t.context.registerClient();
+  const clientId2 = await registerClient();
   const response = await server
     .inject()
     .post(`/rooms/${roomId}/join`)
@@ -85,7 +77,7 @@ test('Join room', async (t) => {
 
 test('Client does not exists on join', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
@@ -103,7 +95,7 @@ test('Client does not exists on join', async (t) => {
 
 test('Room does not exists on join', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   const response = await server
     .inject()
     .post(`/rooms/${roomId}/join`)
@@ -115,14 +107,14 @@ test('Room does not exists on join', async (t) => {
 
 test('Join room twice', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
     .body({
       clientId,
     } as CreateRoomRequest);
-  const clientId2 = await t.context.registerClient();
+  const clientId2 = await registerClient();
   await server
     .inject()
     .post(`/rooms/${roomId}/join`)
@@ -140,7 +132,7 @@ test('Join room twice', async (t) => {
 
 test('Already in another room on join', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
@@ -148,14 +140,14 @@ test('Already in another room on join', async (t) => {
       clientId,
     } as CreateRoomRequest);
   const roomId2 = nanoid(6);
-  const clientId2 = await t.context.registerClient();
+  const clientId2 = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId2}`)
     .body({
       clientId: clientId2,
     } as CreateRoomRequest);
-  const clientId3 = await t.context.registerClient();
+  const clientId3 = await registerClient();
   await server
     .inject()
     .post(`/rooms/${roomId}/join`)
@@ -173,7 +165,7 @@ test('Already in another room on join', async (t) => {
 
 test('Leave room', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
@@ -191,14 +183,14 @@ test('Leave room', async (t) => {
 
 test('Client does not exists on leave', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   await server
     .inject()
     .put(`/rooms/${roomId}`)
     .body({
       clientId,
     } as CreateRoomRequest);
-  const clientId2 = await t.context.registerClient();
+  const clientId2 = await registerClient();
   const response = await server
     .inject()
     .post(`/rooms/${roomId}/leave`)
@@ -210,7 +202,7 @@ test('Client does not exists on leave', async (t) => {
 
 test('Room does not exists on leave', async (t) => {
   const roomId = nanoid(6);
-  const clientId = await t.context.registerClient();
+  const clientId = await registerClient();
   const response = await server
     .inject()
     .post(`/rooms/${roomId}/leave`)

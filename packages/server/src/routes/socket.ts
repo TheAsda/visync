@@ -1,31 +1,67 @@
 import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'visync-contracts';
-import { logger } from '../logger.js';
-import { getSocket, removeSocket, saveSocket } from '../store/clientSocket.js';
-import { getRoomByClientId } from '../store/rooms.js';
-import { retry } from '../utils/retry.js';
+import { Client } from '../store/knex.js';
+import { clientExists } from '../store/utils/client.js';
+import { roomExists } from '../store/utils/room.js';
 
 export const socketRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get('/*', { websocket: true }, (connection, req) => {
-    logger.debug('Got socket connection');
-    connection.socket.on('message', async (data) => {
-      const { type, payload } = JSON.parse(
-        data.toString('utf8')
-      ) as SocketRequest;
-      logger.info(`Websocket request starting ${type}`);
+  fastify.get(
+    '/rooms/:roomId/socket',
+    { websocket: true },
+    async (connection, req) => {
+      const { roomId } = req.params as { roomId: string };
+      const clientId = req.headers['x-client-id'];
+      if (!clientId) {
+        throw new Error('Client ID not found in request headers');
+      }
+      if (Array.isArray(clientId)) {
+        throw new Error('Client ID is an array');
+      }
+      if (!(await clientExists(fastify.knex, clientId))) {
+        throw new Error('Client does not exist');
+      }
+      if (!(await roomExists(fastify.knex, roomId))) {
+        throw new Error('Room does not exist');
+      }
+      fastify.clientSockets[clientId] = connection.socket;
+      const client = await fastify.knex
+        .table<Client>('client')
+        .where({ clientId })
+        .first();
+      if (client?.roomId !== roomId) {
+        throw new Error('Client is not in the room');
+      }
 
-      try {
+      const translateToOthers = async (response: SocketResponse) => {
+        const clients = await fastify.knex
+          .table<Client>('client')
+          .where({ roomId })
+          .and.whereNot({ clientId })
+          .select('clientId');
+
+        await Promise.all(
+          clients.map((client) => {
+            const socket = fastify.clientSockets[client.clientId];
+            if (!socket) {
+              throw new Error(`Socket for ${client.clientId} not found`);
+            }
+            socket.send(JSON.stringify(response));
+          })
+        );
+      };
+
+      connection.socket.on('message', async (data) => {
+        const { type, payload } = JSON.parse(
+          data.toString('utf8')
+        ) as SocketRequest;
+
         switch (type) {
-          case 'register': {
-            saveSocket(payload.clientId, connection.socket);
-            break;
-          }
           case 'pause':
           case 'play': {
             const response: SocketResponse = {
               type: type,
             };
-            await translateToOthers(payload.clientId, response);
+            await translateToOthers(response);
             break;
           }
           case 'rewind': {
@@ -33,7 +69,7 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
               type: 'rewind',
               payload: { time: payload.time },
             };
-            await translateToOthers(payload.clientId, response);
+            await translateToOthers(response);
             break;
           }
           case 'play-speed': {
@@ -41,43 +77,17 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
               type: 'play-speed',
               payload: { speed: payload.speed },
             };
-            await translateToOthers(payload.clientId, response);
+            await translateToOthers(response);
             break;
           }
           default:
             throw new Error(`Unknown request type ${type}`);
         }
-      } catch (err) {
-        if (err instanceof Error) {
-          logger.error(err?.message);
-        } else {
-          logger.error(`Unknown error occurred: ${err}`);
-        }
-      }
-      logger.info(`Websocket request finished ${type}`);
-    });
+      });
 
-    connection.socket.on('close', () => {
-      logger.debug('Socket connection closed');
-      removeSocket(connection.socket);
-    });
-  });
-};
-
-const translateToOthers = async (
-  clientId: string,
-  response: SocketResponse
-) => {
-  logger.debug(`Translating response from ${clientId} to others in room`);
-  const room = getRoomByClientId(clientId);
-  const otherClientIds = room.clientIds.filter((id) => id !== clientId);
-  const message = JSON.stringify(response);
-  const promises = [];
-  for (const clientId of otherClientIds) {
-    const sendResponse = () => {
-      getSocket(clientId).send(message);
-    };
-    promises.push(retry(sendResponse));
-  }
-  return Promise.all(promises);
+      connection.socket.on('close', () => {
+        delete fastify.clientSockets[clientId];
+      });
+    }
+  );
 };

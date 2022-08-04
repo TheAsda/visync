@@ -3,6 +3,7 @@ import { RuntimeResponse } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
 import { sendResponseToTabs } from './utils/tabs';
+import { WebSocket } from 'ws';
 
 export const address = serverUrl.replace('http', 'ws');
 
@@ -13,8 +14,13 @@ type TabSocket = {
 
 let tabSocket: TabSocket | undefined = undefined;
 
-export const initializeTabSocket = (tabId: number): WebSocket => {
-  const socket = new WebSocket(address);
+export const initializeTabSocket = async (tabId: number): WebSocket => {
+  const clientId = await getClientId();
+  const socket = new WebSocket(address, {
+    headers: {
+      'X-Client-Id': clientId,
+    },
+  });
 
   socket.onopen = () => {
     getClientId().then((clientId) => {

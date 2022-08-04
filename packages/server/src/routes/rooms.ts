@@ -1,18 +1,11 @@
 import type { FastifyPluginAsync } from 'fastify';
-import { nanoid } from 'nanoid';
 import type {
   CreateRoomRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
-  SocketResponse,
 } from 'visync-contracts';
-import { logger } from '../logger.js';
-import { getSocket } from '../store/clientSocket.js';
 import { Client, Room } from '../store/knex.js';
-import { createRoom, deleteRoom, joinRoom, leaveRoom } from '../store/rooms.js';
-import { clientExists } from '../store/utils/client.js';
 import { roomExists } from '../store/utils/room.js';
-import { retry } from '../utils/retry.js';
 import {
   ensureClientIdFromBody,
   ensureRoomIdFromParams,
