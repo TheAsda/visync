@@ -10,8 +10,28 @@ import {
   ensureClientIdFromBody,
   ensureRoomIdFromParams,
 } from './utils/ensure.js';
+import { mapRoom } from './utils/map.js';
 
 export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
+  fastify.get(
+    '/rooms/:roomId',
+    { preHandler: ensureRoomIdFromParams },
+    async (request, reply) => {
+      const { roomId } = request.params as { roomId: string };
+
+      const room = await fastify.knex
+        .table<Room>('room')
+        .where('room.roomId', roomId)
+        .leftJoin('client', 'room.roomId', 'client.roomId')
+        .select<(Room & Pick<Client, 'clientId'>)[]>(
+          'room.*',
+          'client.clientId'
+        );
+
+      reply.send(mapRoom(room));
+    }
+  );
+
   fastify.put(
     '/rooms/:roomId',
     { preHandler: ensureClientIdFromBody },
@@ -48,10 +68,14 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
 
       const room = await fastify.knex
         .table<Room>('room')
-        .where('roomId', roomId)
-        .first();
+        .where('room.roomId', roomId)
+        .leftJoin('client', 'room.roomId', 'client.roomId')
+        .select<(Room & Pick<Client, 'clientId'>)[]>(
+          'room.*',
+          'client.clientId'
+        );
 
-      reply.status(201).send(room);
+      reply.status(201).send(mapRoom(room));
     }
   );
 
@@ -92,12 +116,16 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         return;
       }
 
-      const r = await fastify.knex
+      const room = await fastify.knex
         .table<Room>('room')
         .where('room.roomId', roomId)
-        .join('client', 'room.roomId', '=', 'client.roomId')
-        .select('room.roomId', 'room.link', 'client.clientId');
-      reply.send(r);
+        .leftJoin('client', 'room.roomId', 'client.roomId')
+        .select<(Room & Pick<Client, 'clientId'>)[]>(
+          'room.*',
+          'client.clientId'
+        );
+
+      reply.send(mapRoom(room));
     }
   );
 

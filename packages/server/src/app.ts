@@ -4,6 +4,6 @@ import server from './server.js';
 await server.register(loggerPlugin);
 
 server.listen({
-  host: '0.0.0.0',
+  host: 'localhost',
   port: process.env.PORT ? Number(process.env.PORT) : 7001,
 });

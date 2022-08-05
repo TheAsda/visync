@@ -6,13 +6,18 @@ import { getRoom } from '../lib/runtime/getRoom';
 import { leaveRoom } from '../lib/runtime/leaveRoom';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';
+import { ErrorMessage } from './ErrorMessage';
 import { Loader } from './Loader';
 import './RoomInfo.css';
 
 export const RoomInfo = () => {
   const queryClient = useQueryClient();
   const { data: room, status: roomStatus } = useQuery(queryKeys.room, getRoom);
-  const { mutate: leave, status: leaveStatus } = useMutation(leaveRoom, {
+  const {
+    mutate: leave,
+    status: leaveStatus,
+    error: leaveError,
+  } = useMutation(leaveRoom, {
     onSuccess: (room) => {
       queryClient.setQueryData(queryKeys.room, room);
       queryClient.setQueryData<Client>(queryKeys.client, (client) => {
@@ -48,7 +53,7 @@ export const RoomInfo = () => {
         <p className="room-info__text">Room: {room.roomId}</p>
         <div className="room-info__count-box">
           <RoomIcon />
-          <p className="room-info__count">{0}</p>
+          <p className="room-info__count">{room.clientIds.length}</p>
         </div>
         <CopyButton
           className="room-info__copy-button"
@@ -60,6 +65,9 @@ export const RoomInfo = () => {
       <Button type="button" onClick={() => leave()}>
         Leave Room
       </Button>
+      <ErrorMessage>
+        {leaveError instanceof Error ? leaveError.message : null}
+      </ErrorMessage>
     </div>
   );
 };

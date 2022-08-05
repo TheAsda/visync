@@ -2,7 +2,7 @@ import { SocketRequest, SocketResponse } from 'visync-contracts';
 import { RuntimeResponse } from '../types/runtimeMessages';
 import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
-import { sendResponseToTabs } from './utils/tabs';
+import { sendResponseToTabs } from './lib/tabs';
 import { WebSocket } from 'ws';
 import { clientStore } from './store/client';
 

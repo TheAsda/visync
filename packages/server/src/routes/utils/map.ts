@@ -11,10 +11,12 @@ export const mapClient = (client: Client): ClientResponse => {
   };
 };
 
-export const mapRoom = (room: Room): RoomResponse => {
+export const mapRoom = (
+  room: (Room & Pick<Client, 'clientId'>)[]
+): RoomResponse => {
   return {
-    roomId: room.roomId,
-    link: room.link ?? undefined,
-    clientIds: [],
+    roomId: room[0].roomId,
+    link: room[0].link ?? undefined,
+    clientIds: room.map((c) => c.clientId),
   };
 };

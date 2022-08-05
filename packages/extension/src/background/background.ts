@@ -4,7 +4,8 @@ import { settingsStream } from '../messages/settings';
 import { Client } from '../types/client';
 import { clientStore } from './store/client';
 import { settingsStore } from './store/settings';
-import { isServerError } from './utils/isAxiosError';
+import { isServerError } from './lib/isAxiosError';
+import { getRoom } from './lib/fetch/getRoom';
 
 clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
@@ -18,8 +19,11 @@ clientStream.subscribe(([, sender, sendResponse]) => {
 roomStream.subscribe(async ([request, sender, sendResponse]) => {
   if (!request) {
     if (clientStore.roomId) {
+      const room = await getRoom(clientStore.roomId);
       sendResponse({
-        roomId: clientStore.roomId,
+        roomId: room.roomId,
+        link: room.link,
+        clientIds: room.clientIds,
       });
     } else {
       sendResponse(null);
@@ -29,8 +33,12 @@ roomStream.subscribe(async ([request, sender, sendResponse]) => {
   switch (request.type) {
     case 'create-room': {
       try {
-        const roomId = await clientStore.createRoom();
-        sendResponse({ roomId });
+        const room = await clientStore.createRoom();
+        sendResponse({
+          roomId: room.roomId,
+          link: room.link,
+          clientIds: room.clientIds,
+        });
       } catch (error) {
         let message;
         if (isServerError(error)) {
@@ -43,8 +51,12 @@ roomStream.subscribe(async ([request, sender, sendResponse]) => {
     }
     case 'join-room': {
       try {
-        const roomId = await clientStore.joinRoom(request.payload.roomId);
-        sendResponse({ roomId });
+        const room = await clientStore.joinRoom(request.payload.roomId);
+        sendResponse({
+          roomId: room.roomId,
+          link: room.link,
+          clientIds: room.clientIds,
+        });
       } catch (error) {
         let message;
         if (isServerError(error)) {

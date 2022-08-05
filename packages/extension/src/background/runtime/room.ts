@@ -7,7 +7,7 @@ import {
 import { RuntimeResponse } from '../../types/runtimeMessages';
 import { fetcher } from '../fetcher';
 import { clientStore } from '../store/client';
-import { sendResponseToTabs } from '../utils/tabs';
+import { sendResponseToTabs } from '../lib/tabs';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
 export const roomRequestHandler: RuntimeRequestHandler = async (

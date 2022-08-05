@@ -8,6 +8,9 @@ import {
 } from 'visync-contracts';
 import { getClientId } from '../clientId';
 import { fetcher } from '../fetcher';
+import { createRoom } from '../lib/fetch/createRoom';
+import { joinRoom } from '../lib/fetch/joinRoom';
+import { leaveRoom } from '../lib/fetch/leaveRoom';
 
 class ClientStore {
   private _clientId: string | undefined;
@@ -50,31 +53,25 @@ class ClientStore {
       throw new Error('Client is already in a room');
     }
     const roomId = nanoid(6);
-    await fetcher.put(`/rooms/${roomId}`, {
-      clientId: this.clientId,
-    } as CreateRoomRequest);
+    const room = await createRoom(roomId, this.clientId);
     this._roomId = roomId;
-    return roomId;
+    return room;
   }
 
   async joinRoom(roomId: string) {
     if (this._roomId) {
       throw new Error('Client is already in a room');
     }
-    await fetcher.post(`/rooms/${roomId}/join`, {
-      clientId: this.clientId,
-    } as JoinRoomRequest);
+    const room = await joinRoom(roomId, this.clientId);
     this._roomId = roomId;
-    return roomId;
+    return room;
   }
 
   async leaveRoom() {
     if (!this._roomId) {
       throw new Error('Client is not in a room');
     }
-    await fetcher.post(`/rooms/${this._roomId}/leave`, {
-      clientId: this.clientId,
-    } as LeaveRoomRequest);
+    await leaveRoom(this._roomId, this.clientId);
     this._roomId = undefined;
   }
 }
