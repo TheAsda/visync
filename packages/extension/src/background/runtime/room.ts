@@ -6,83 +6,56 @@ import {
 } from 'visync-contracts';
 import { RuntimeResponse } from '../../types/runtimeMessages';
 import { fetcher } from '../fetcher';
+import { clientStore } from '../store/client';
 import { sendResponseToTabs } from '../utils/tabs';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
 export const roomRequestHandler: RuntimeRequestHandler = async (
-  clientId,
   request,
   sender,
   sendResponse
 ) => {
   switch (request.type) {
     case 'create-room': {
-      const createRoomRequest: CreateRoomRequest = {
-        clientId,
-      };
-      const room = await fetcher<Room, CreateRoomRequest>(
-        '/room/create',
-        createRoomRequest
-      );
+      const roomId = await clientStore.createRoom();
       const response: RuntimeResponse = {
-        type: 'status',
+        type: 'client',
         payload: {
-          clientId,
-          room: {
-            roomId: room.roomId,
-            clientsCount: room.clientIds.length,
-          },
-          isSynced: false,
+          roomId,
+          clientId: clientStore.clientId,
         },
       };
       sendResponseToTabs(response);
       const message = JSON.stringify(response);
       sendResponse(message);
-      chrome.runtime.sendMessage(message);
       break;
     }
     case 'join-room': {
-      const joinRoomRequest: JoinRoomRequest = {
-        clientId,
-        roomId: request.payload.roomId,
-      };
-      const room = await fetcher<Room, JoinRoomRequest>(
-        '/room/join',
-        joinRoomRequest
-      );
+      const roomId = await clientStore.joinRoom(request.payload.roomId);
       const response: RuntimeResponse = {
-        type: 'status',
+        type: 'client',
         payload: {
-          clientId,
-          room: {
-            roomId: room.roomId,
-            clientsCount: room.clientIds.length,
-          },
-          isSynced: false,
+          roomId,
+          clientId: clientStore.clientId,
         },
       };
       sendResponseToTabs(response);
       const message = JSON.stringify(response);
       sendResponse(message);
-      chrome.runtime.sendMessage(message);
       break;
     }
     case 'leave-room': {
-      const leaveRoomRequest: LeaveRoomRequest = {
-        clientId,
-      };
-      await fetcher<void, LeaveRoomRequest>('/room/leave', leaveRoomRequest);
+      await clientStore.leaveRoom();
       const response: RuntimeResponse = {
-        type: 'status',
+        type: 'client',
         payload: {
-          clientId,
-          isSynced: false,
+          roomId: undefined,
+          clientId: clientStore.clientId,
         },
       };
       sendResponseToTabs(response);
       const message = JSON.stringify(response);
       sendResponse(message);
-      chrome.runtime.sendMessage(message);
       break;
     }
   }

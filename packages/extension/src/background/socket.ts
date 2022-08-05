@@ -4,6 +4,7 @@ import { getClientId } from './clientId';
 import { serverUrl } from './fetcher';
 import { sendResponseToTabs } from './utils/tabs';
 import { WebSocket } from 'ws';
+import { clientStore } from './store/client';
 
 export const address = serverUrl.replace('http', 'ws');
 
@@ -14,26 +15,16 @@ type TabSocket = {
 
 let tabSocket: TabSocket | undefined = undefined;
 
-export const initializeTabSocket = async (tabId: number): WebSocket => {
-  const clientId = await getClientId();
+export const initializeTabSocket = (tabId: number): WebSocket => {
+  const clientId = clientStore.clientId;
   const socket = new WebSocket(address, {
     headers: {
       'X-Client-Id': clientId,
     },
   });
 
-  socket.onopen = () => {
-    getClientId().then((clientId) => {
-      const socketRequest: SocketRequest = {
-        type: 'register',
-        payload: { clientId },
-      };
-      socket.send(JSON.stringify(socketRequest));
-    });
-  };
-
   socket.onmessage = async (e) => {
-    const socketResponse = JSON.parse(e.data) as SocketResponse;
+    const socketResponse = JSON.parse(e.data.toString()) as SocketResponse;
 
     let response: RuntimeResponse;
 
@@ -55,22 +46,11 @@ export const initializeTabSocket = async (tabId: number): WebSocket => {
         };
         break;
       case 'room':
-        response = {
-          type: 'status',
-          payload: {
-            clientId: await getClientId(),
-            isSynced: true,
-            room: {
-              roomId: socketResponse.payload.roomId,
-              clientsCount: socketResponse.payload.clientIds.length,
-            },
-          },
-        };
         break;
     }
 
-    chrome.runtime.sendMessage(JSON.stringify(response));
-    sendResponseToTabs(response);
+    // chrome.runtime.sendMessage(JSON.stringify(response));
+    // sendResponseToTabs(response);
   };
 
   tabSocket = {

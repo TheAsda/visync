@@ -1,5 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { Client } from '../store/knex.js';
+import { mapClient } from './utils/map.js';
 
 export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.put('/clients/:clientId', async (request, reply) => {
@@ -24,7 +25,7 @@ export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
       .where('clientId', clientId)
       .first();
 
-    reply.code(201).send(createdClient);
+    reply.code(201).send(mapClient(createdClient!));
   });
 
   fastify.get('/clients/:clientId', async (request, reply) => {
@@ -42,6 +43,6 @@ export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
       return;
     }
 
-    reply.send(client);
+    reply.send(mapClient(client!));
   });
 };

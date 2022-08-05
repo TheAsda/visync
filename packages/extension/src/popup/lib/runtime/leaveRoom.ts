@@ -1,9 +1,5 @@
-import { sendMessage } from './sendMessage';
+import { sendRoom } from '../../../messages/room';
 
-export const leaveRoom = () =>
-  sendMessage({ type: 'leave-room' }).then((res) => {
-    if (res.type !== 'status') {
-      throw new Error('Unexpected response type');
-    }
-    return res.payload;
-  });
+export const leaveRoom = () => {
+  return sendRoom({ type: 'leave-room' });
+};

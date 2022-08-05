@@ -1,13 +1,14 @@
 import { ClientSettings } from './settings';
-import type { LogRequest } from 'visync-contracts';
-import { Status } from './status';
+import { Client } from './client';
+import { Room } from 'visync-contracts';
 
-type RuntimeMessage<T, P = void> = {
+export type RuntimeMessage<T, P = void> = {
   type: T;
 } & (P extends void ? {} : { payload: P });
 
 export type RuntimeRequest =
-  | RuntimeMessage<'status'>
+  | RuntimeMessage<'client'>
+  | RuntimeMessage<'room'> 
   | RuntimeMessage<'create-room'>
   | RuntimeMessage<'join-room', { roomId: string }>
   | RuntimeMessage<'leave-room'>
@@ -19,11 +20,11 @@ export type RuntimeRequest =
   | RuntimeMessage<'stop-sync'>
   | RuntimeMessage<'ping'>
   | RuntimeMessage<'settings'>
-  | RuntimeMessage<'update-settings', ClientSettings>
-  | RuntimeMessage<'log', LogRequest>;
+  | RuntimeMessage<'update-settings', ClientSettings>;
 
 export type RuntimeResponse =
-  | RuntimeMessage<'status', Status>
+  | RuntimeMessage<'client', Client>
+  | RuntimeMessage<'room', Room | null>
   | RuntimeMessage<'play'>
   | RuntimeMessage<'pause'>
   | RuntimeMessage<'rewind', { time: number }>

@@ -1,12 +1,8 @@
+import { sendSettings } from '../../../messages/settings';
 import { ClientSettings } from '../../../types/settings';
-import { sendMessage } from './sendMessage';
 
 export const saveSettings = (
   settings: ClientSettings
-): Promise<ClientSettings> =>
-  sendMessage({ type: 'update-settings', payload: settings }).then((res) => {
-    if (res.type !== 'settings') {
-      throw new Error('Unexpected response type');
-    }
-    return res.payload;
-  });
+): Promise<ClientSettings> => {
+  return sendSettings({ type: 'save-settings', payload: settings });
+};

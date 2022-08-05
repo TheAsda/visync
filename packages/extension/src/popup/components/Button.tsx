@@ -2,11 +2,26 @@ import { ComponentPropsWithoutRef } from 'react';
 import { clsx } from 'clsx';
 import './Button.css';
 
-export const Button = (props: ComponentPropsWithoutRef<'button'>) => {
+export interface ButtonProps extends ComponentPropsWithoutRef<'button'> {
+  isLoading?: boolean;
+}
+
+export const Button = (props: ButtonProps) => {
+  const {
+    isLoading = false,
+    className,
+    disabled = false,
+    children,
+    ...buttonProps
+  } = props;
   return (
     <button
-      {...props}
-      className={clsx(props.className, 'button', 'focusable')}
-    />
+      {...buttonProps}
+      aria-busy={isLoading}
+      disabled={isLoading || disabled}
+      className={clsx(className, 'button', 'focusable')}
+    >
+      {isLoading ? 'Loading...' : children}
+    </button>
   );
 };

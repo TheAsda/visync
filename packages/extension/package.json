@@ -11,9 +11,13 @@
   "license": "ISC",
   "private": true,
   "dependencies": {
+    "@extend-chrome/messages": "^1.2.2",
+    "@extend-chrome/storage": "^1.5.0",
     "@rollup/plugin-image": "^2.1.1",
     "@svgr/rollup": "^6.3.1",
     "@tanstack/react-query": "^4.0.10",
+    "@vespaiach/axios-fetch-adapter": "^0.3.0",
+    "axios": "^0.27.2",
     "clsx": "^1.2.1",
     "loglevel": "^1.8.0",
     "nanoid": "^4.0.0",

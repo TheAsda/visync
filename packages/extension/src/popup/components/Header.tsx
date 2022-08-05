@@ -2,12 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import LogoSvg from '../assets/Logo.svg';
 import SettingsIconSvg from '../assets/SettingsIcon.svg';
 import { queryKeys } from '../lib/queryKeys';
-import { getStatus } from '../lib/runtime/getStatus';
+import { getClient } from '../lib/runtime/getClient';
 import { Button } from './Button';
 import './Header.css';
 
 export const Header = (props: { onSettingsClick: () => void }) => {
-  const { data, isLoading } = useQuery(queryKeys.status, getStatus);
+  const { data, isLoading } = useQuery(queryKeys.client, getClient);
 
   return (
     <header className="header">

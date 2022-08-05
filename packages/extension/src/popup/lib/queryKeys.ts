@@ -1,4 +1,5 @@
 export const queryKeys = {
-  status: ['status'],
+  client: ['client'],
+  room: ['room'],
   settings: ['settings'],
 };

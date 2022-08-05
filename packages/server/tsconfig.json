@@ -1,11 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "Node16",
-    "moduleResolution": "Node16",
-    "outDir": "dist"
-  },
-  "include": ["src/**/*.ts", "tests/**/*.ts"],
-  "exclude": ["node_modules"]
+  "extends": "./tsconfig.build.json",
+  "include": ["src/**/*.ts", "tests/**/*.ts"]
 }

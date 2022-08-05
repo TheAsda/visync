@@ -7,12 +7,11 @@ import {
   initializeTabSocket,
   terminateTabSocket,
 } from '../socket';
-import { getClientStatus } from '../utils/status';
+import { clientStore } from '../store/client';
 import { sendResponseToTabs } from '../utils/tabs';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
 export const syncRequestHandler: RuntimeRequestHandler = async (
-  clientId,
   request,
   sender,
   sendResponse
@@ -20,7 +19,7 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
   switch (request.type) {
     case 'start-sync': {
       const tabId = getTabIdFromSender(sender);
-      const status = await getClientStatus(clientId);
+      const status = await getClientStatus(clientStore.clientId);
       if (status.isSynced) {
         throw new Error('Already synced');
       }
@@ -29,18 +28,6 @@ export const syncRequestHandler: RuntimeRequestHandler = async (
       }
       initializeTabSocket(tabId);
       startListeningForTabClose();
-      const response: RuntimeResponse = {
-        type: 'status',
-        payload: {
-          clientId,
-          isSynced: true,
-          tabIsSynced: true,
-          room: {
-            roomId: status.room.roomId,
-            clientsCount: status.room?.clientIds.length,
-          },
-        },
-      };
       sendResponseToTabs(response);
       sendResponse(JSON.stringify(response));
       break;

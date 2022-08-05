@@ -7,20 +7,20 @@ export const useCanSync = () => {
   useEffect(() => {
     const handleStatus = async (data: string) => {
       const message = JSON.parse(data) as RuntimeResponse;
-      if (message.type !== 'status') {
-        return;
-      }
-      const canSync =
-        message.payload.room !== undefined &&
-        (!message.payload.isSynced || !!message.payload.tabIsSynced);
-      setCanSync(canSync);
+      // if (message.type !== 'status') {
+      //   return;
+      // }
+      // const canSync =
+      //   message.payload.room !== undefined &&
+      //   (!message.payload.isSynced || !!message.payload.tabIsSynced);
+      // setCanSync(canSync);
     };
 
     chrome.runtime.onMessage.addListener(handleStatus);
-    const request: RuntimeRequest = {
-      type: 'status',
-    };
-    chrome.runtime.sendMessage(JSON.stringify(request), handleStatus);
+    // const request: RuntimeRequest = {
+    //   type: 'status',
+    // };
+    // chrome.runtime.sendMessage(JSON.stringify(request), handleStatus);
 
     return () => {
       chrome.runtime.onMessage.removeListener(handleStatus);

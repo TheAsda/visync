@@ -2,7 +2,6 @@ import { getTabId, getTabSocket, initializeTabSocket } from '../socket';
 import { RuntimeRequestHandler } from './runtimeRequestHandler';
 
 export const pingRequestHandler: RuntimeRequestHandler = async (
-  clientId,
   request,
   sender,
   sendResponse

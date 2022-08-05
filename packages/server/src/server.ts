@@ -1,7 +1,6 @@
+import FastifyWebSocket from '@fastify/websocket';
 import 'dotenv/config';
 import Fastify from 'fastify';
-import FastifyWebSocket from '@fastify/websocket';
-import { loggerPlugin } from './loggerPlugin.js';
 import { clientsRoutes } from './routes/clients.js';
 import { roomsRoutes } from './routes/rooms.js';
 import { socketRoutes } from './routes/socket.js';
