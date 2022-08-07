@@ -1,16 +1,21 @@
+import FastifyWebSocket from '@fastify/websocket';
 import type { FastifyPluginAsync } from 'fastify';
 import type { SocketRequest, SocketResponse } from 'visync-contracts';
+import { logger } from '../logger.js';
+import { clientSocketPlugin } from '../store/clientSocket.js';
 import { Client } from '../store/knex.js';
 import { clientExists } from '../store/utils/client.js';
 import { roomExists } from '../store/utils/room.js';
 
 export const socketRoutes: FastifyPluginAsync = async (fastify) => {
+  await fastify.register(clientSocketPlugin);
+  await fastify.register(FastifyWebSocket.default);
   fastify.get(
     '/rooms/:roomId/socket',
     { websocket: true },
     async (connection, req) => {
       const { roomId } = req.params as { roomId: string };
-      const clientId = req.headers['x-client-id'];
+      const { clientId } = req.query as { clientId: string };
       if (!clientId) {
         throw new Error('Client ID not found in request headers');
       }
@@ -54,6 +59,8 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
         const { type, payload } = JSON.parse(
           data.toString('utf8')
         ) as SocketRequest;
+
+        logger.info(`Received ${type} from ${clientId}`);
 
         switch (type) {
           case 'pause':

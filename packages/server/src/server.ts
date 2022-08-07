@@ -1,4 +1,3 @@
-import FastifyWebSocket from '@fastify/websocket';
 import 'dotenv/config';
 import Fastify from 'fastify';
 import { clientsRoutes } from './routes/clients.js';
@@ -14,7 +13,6 @@ const fastify = Fastify.default({
 await fastify.register(knexPlugin);
 await fastify.register(roomsRoutes);
 await fastify.register(clientsRoutes);
-await fastify.register(FastifyWebSocket.default);
 await fastify.register(socketRoutes);
 
 export default fastify;

@@ -2,10 +2,11 @@ import { clientStream } from '../messages/client';
 import { roomStream } from '../messages/room';
 import { settingsStream } from '../messages/settings';
 import { Client } from '../types/client';
+import { getRoom } from './lib/fetch/getRoom';
+import { isServerError } from './lib/isAxiosError';
 import { clientStore } from './store/client';
 import { settingsStore } from './store/settings';
-import { isServerError } from './lib/isAxiosError';
-import { getRoom } from './lib/fetch/getRoom';
+import './contextMenu';
 
 clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
