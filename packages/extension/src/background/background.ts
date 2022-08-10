@@ -7,6 +7,7 @@ import { isServerError } from './lib/isAxiosError';
 import { clientStore } from './store/client';
 import { settingsStore } from './store/settings';
 import './contextMenu';
+import { syncStream } from '../messages/sync';
 
 clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
@@ -96,4 +97,8 @@ settingsStream.subscribe(async ([request, sender, sendResponse]) => {
       sendResponse(settings);
     }
   }
+});
+
+syncStream.subscribe(async () => {
+  console.debug('Got ping');
 });

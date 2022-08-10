@@ -65,7 +65,7 @@ syncedTabId$.subscribe((tabId) => {
   chrome.contextMenus.update(syncButtonId, {
     title: 'Stop sync',
   });
-  sendSync({ type: 'sync-started' }, { tabId });
+  sendSync({ type: 'sync-started', payload: {} }, { tabId });
 
   socket$ = webSocket<SocketResponse>(
     `${address}/rooms/${clientStore.roomId}/socket?clientId=${clientStore.clientId}`

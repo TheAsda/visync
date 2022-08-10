@@ -12,6 +12,7 @@ import {
   RewindRequest,
   sendSync,
   SyncRequest,
+  SyncStartedRequest,
   syncStream,
 } from '../messages/sync';
 
@@ -26,11 +27,24 @@ const syncedVideo$ = new Subject<HTMLVideoElement>();
 syncStream$
   .pipe(
     filter((request) => request.type === 'sync-started'),
-    switchMap(() => contextMenuStream)
+    combineLatestWith(contextMenuStream)
   )
-  .subscribe((target) => {
-    if (target.tagName !== 'VIDEO') return;
-    syncedVideo$.next(target as HTMLVideoElement);
+  .subscribe(([request, target]) => {
+    let video;
+    if (request.type === 'sync-started' && request.payload.videoSelector) {
+      video = target.querySelector(
+        request.payload.videoSelector
+      ) as HTMLVideoElement;
+      if (!video) {
+        throw new Error('Video not found');
+      }
+    } else {
+      video = target as HTMLVideoElement;
+    }
+    if (video.tagName !== 'VIDEO') {
+      throw new Error('Target is not a video');
+    }
+    syncedVideo$.next(video);
   });
 
 syncStream$

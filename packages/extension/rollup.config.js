@@ -95,7 +95,7 @@ export default [
     },
   },
   {
-    input: 'src/content/content.tsx',
+    input: 'src/content/sync.ts',
     plugins: [
       replace({
         preventAssignment: true,
@@ -104,20 +104,13 @@ export default [
         ),
       }),
       typescript(),
-      babel({
-        presets: ['@babel/preset-react'],
-        babelHelpers: 'bundled',
-        compact: true,
-      }),
-      svgr({ dimensions: false }),
       commonjs(),
       nodeResolve({ browser: true }),
       json(),
       // terser(),
-      postcss({}),
     ],
     output: {
-      file: 'dist/content.js',
+      file: 'dist/sync.js',
       sourcemap: !isProduction && 'inline',
       format: 'esm',
     },
