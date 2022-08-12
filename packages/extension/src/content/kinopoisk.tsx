@@ -6,7 +6,9 @@ import {
   combineLatestWith,
   Subject,
 } from 'rxjs';
+import { clientStream } from '../messages/client';
 import { sendSync, syncStream } from '../messages/sync';
+import { tabStatusStream } from '../messages/tabStatus';
 import { SyncButton } from './components/SyncButton';
 
 const controlsSelector =
@@ -24,21 +26,30 @@ const isDisabled$ = new BehaviorSubject(false);
 const isSynced$ = new BehaviorSubject(false);
 const root$ = new Subject<Root>();
 
-root$.pipe(combineLatestWith(isSynced$)).subscribe(([root, isSynced]) => {
-  console.debug('[ViSync] Render button');
-  root.render(
-    <SyncButton
-      onSyncStart={startSync}
-      onSyncStop={stopSync}
-      isDisabled={false}
-      isSynced={isSynced}
-    />
+tabStatusStream.subscribe(([status]) => {
+  isDisabled$.next(
+    (status.isSynced && !status.isTabSynced) || !status.isInRoom
   );
-  return () => {
-    console.debug('[ViSync] Unmount button');
-    root.unmount();
-  };
+  isSynced$.next(status.isTabSynced);
 });
+
+root$
+  .pipe(combineLatestWith(isSynced$), combineLatestWith(isDisabled$))
+  .subscribe(([[root, isSynced], isDisabled]) => {
+    console.debug('[ViSync] Render button');
+    root.render(
+      <SyncButton
+        onSyncStart={startSync}
+        onSyncStop={stopSync}
+        isDisabled={isDisabled}
+        isSynced={isSynced}
+      />
+    );
+    return () => {
+      console.debug('[ViSync] Unmount button');
+      root.unmount();
+    };
+  });
 
 syncStream.subscribe(([request]) => {
   switch (request.type) {

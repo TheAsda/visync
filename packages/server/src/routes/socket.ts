@@ -52,7 +52,8 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
           clients.map((client) => {
             const socket = fastify.clientSockets[client.clientId];
             if (!socket) {
-              throw new Error(`Socket for ${client.clientId} not found`);
+              logger.warn(`Socket for ${client.clientId} not found`);
+              return;
             }
             socket.send(JSON.stringify(response));
           })

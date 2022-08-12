@@ -1,24 +1,23 @@
+import { useDebugValue } from 'react';
 import {
   BehaviorSubject,
   combineLatestWith,
   filter,
+  finalize,
   fromEventPattern,
   map,
-  pairwise,
   share,
   Subject,
   Subscription,
   switchMap,
+  withLatestFrom,
 } from 'rxjs';
 import makeWebSocketObservable from 'rxjs-websockets';
 import { SocketRequest, SocketResponse } from 'visync-contracts';
+import { sendClient } from '../messages/client';
 import { forEachTab } from '../messages/forEachTab';
-import {
-  sendSync,
-  StartSyncRequest,
-  SyncRequest,
-  syncStream,
-} from '../messages/sync';
+import { sendSync, StartSyncRequest, syncStream } from '../messages/sync';
+import { sendTabStatus } from '../messages/tabStatus';
 import { serverUrl } from './fetcher';
 import { clientStore } from './store/client';
 
@@ -49,41 +48,50 @@ const contextMenu$ = fromEventPattern<
   ),
   map(([info, tab]) => tab as chrome.tabs.Tab)
 );
-const syncedTabId$ = new BehaviorSubject<number | undefined>(undefined);
+export const syncedTabId$ = new BehaviorSubject<number | undefined>(undefined);
 
-contextMenu$.subscribe((tab) => {
-  const syncedTabId = syncedTabId$.getValue();
-  if (syncedTabId) {
-    syncedTabId$.next(undefined);
-    return;
-  }
-  syncedTabId$.next(tab.id);
-});
+contextMenu$
+  .pipe(
+    map((tab) => tab.id),
+    filter((tabId): tabId is number => tabId !== undefined)
+  )
+  .subscribe((tabId) => {
+    const syncedTabId = syncedTabId$.getValue();
+    if (syncedTabId) {
+      syncedTabId$.complete();
+      return;
+    }
+    syncedTabId$.next(tabId);
+  });
 
-syncStream.subscribe(([request, sender]) => {
-  if (!sender.tab?.id) {
-    console.warn('Sender is not a tab');
-    return;
-  }
-  switch (request.type) {
-    case 'start-sync': {
-      const syncedTabId = syncedTabId$.getValue();
-      if (syncedTabId) {
-        syncedTabId$.next(undefined);
+syncStream
+  .pipe(withLatestFrom(syncedTabId$))
+  .subscribe(([[request, sender], syncedTabId]) => {
+    if (!sender.tab?.id) {
+      console.warn('Sender is not a tab');
+      return;
+    }
+    switch (request.type) {
+      case 'start-sync': {
+        if (syncedTabId) {
+          syncedTabId$.complete();
+        }
+        syncedTabId$.next(sender.tab.id);
+        break;
       }
-      syncedTabId$.next(sender.tab.id);
-      break;
+      case 'stop-sync': {
+        syncedTabId$.complete();
+        break;
+      }
     }
-    case 'stop-sync': {
-      syncedTabId$.next(undefined);
-      break;
-    }
-  }
-});
+  });
+
+const ensureTabId = (tabId: number | undefined): tabId is number =>
+  tabId !== undefined;
 
 syncedTabId$
   .pipe(
-    filter((tabId) => tabId !== undefined),
+    filter(ensureTabId),
     combineLatestWith(
       syncStream.pipe(
         map(([request]) => request),
@@ -95,6 +103,43 @@ syncedTabId$
     )
   )
   .subscribe(([syncedTabId, request]) => {
+    chrome.contextMenus.update(syncButtonId, {
+      title: 'Stop sync',
+    });
+    const socketAddress = `${address}/rooms/${clientStore.roomId}/socket?clientId=${clientStore.clientId}`;
+
+    const socket$ = makeWebSocketObservable(socketAddress);
+    const socketInput$ = new Subject<SocketRequest>();
+    const messages$ = socket$.pipe(
+      switchMap((getResponses) => {
+        return getResponses(
+          socketInput$.pipe(map((request) => JSON.stringify(request)))
+        );
+      }),
+      share()
+    );
+
+    syncStream.subscribe(async ([request]) => {
+      if (
+        request.type === 'sync-started' ||
+        request.type === 'sync-stopped' ||
+        request.type === 'start-sync' ||
+        request.type === 'stop-sync'
+      ) {
+        return;
+      }
+      socketInput$.next(request);
+    });
+
+    messagesSubscription = messages$
+      .pipe(map((value) => JSON.parse(value.toString()) as SocketResponse))
+      .subscribe((response) => {
+        if (response.type === 'room') {
+          return;
+        }
+        sendSync(response, { tabId: syncedTabId });
+      });
+
     sendSync(
       {
         type: 'sync-started',
@@ -106,8 +151,25 @@ syncedTabId$
 
 let messagesSubscription: Subscription;
 
-syncedTabId$.subscribe((tabId) => {
-  if (!tabId) {
+syncedTabId$.subscribe({
+  next: (syncedTabId) => {
+    forEachTab((tabId) => {
+      sendTabStatus(
+        {
+          isSynced: syncedTabId !== undefined,
+          isTabSynced: syncedTabId === tabId,
+          isInRoom: clientStore.roomId !== undefined,
+        },
+        { tabId }
+      );
+    });
+    sendTabStatus({
+      isSynced: syncedTabId !== undefined,
+      isTabSynced: false,
+      isInRoom: clientStore.roomId !== undefined,
+    });
+  },
+  complete: () => {
     chrome.contextMenus.update(syncButtonId, {
       title: 'Sync',
     });
@@ -115,42 +177,20 @@ syncedTabId$.subscribe((tabId) => {
       sendSync({ type: 'sync-stopped' }, { tabId });
     });
     messagesSubscription?.unsubscribe();
-    return;
-  }
-  chrome.contextMenus.update(syncButtonId, {
-    title: 'Stop sync',
-  });
-  const socketAddress = `${address}/rooms/${clientStore.roomId}/socket?clientId=${clientStore.clientId}`;
-
-  const socket$ = makeWebSocketObservable(socketAddress);
-  const socketInput$ = new Subject<SocketRequest>();
-  const messages$ = socket$.pipe(
-    switchMap((getResponses) => {
-      return getResponses(
-        socketInput$.pipe(map((request) => JSON.stringify(request)))
+    forEachTab((tabId) => {
+      sendTabStatus(
+        {
+          isSynced: false,
+          isTabSynced: false,
+          isInRoom: clientStore.roomId !== undefined,
+        },
+        { tabId }
       );
-    }),
-    share()
-  );
-
-  syncStream.subscribe(async ([request]) => {
-    if (
-      request.type === 'sync-started' ||
-      request.type === 'sync-stopped' ||
-      request.type === 'start-sync' ||
-      request.type === 'stop-sync'
-    ) {
-      return;
-    }
-    socketInput$.next(request);
-  });
-
-  messagesSubscription = messages$
-    .pipe(map((value) => JSON.parse(value.toString()) as SocketResponse))
-    .subscribe((response) => {
-      if (response.type === 'room') {
-        return;
-      }
-      sendSync(response, { tabId });
     });
+    sendTabStatus({
+      isSynced: false,
+      isTabSynced: false,
+      isInRoom: clientStore.roomId !== undefined,
+    });
+  },
 });

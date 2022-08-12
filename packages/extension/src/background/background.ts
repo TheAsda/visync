@@ -4,6 +4,7 @@ import { roomStream } from '../messages/room';
 import { settingsStream } from '../messages/settings';
 import { Client } from '../types/client';
 import './contextMenu';
+import { syncedTabId$ } from './contextMenu';
 import { getRoom } from './lib/fetch/getRoom';
 import { isServerError } from './lib/isAxiosError';
 import { clientStore } from './store/client';
@@ -13,7 +14,7 @@ clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
     clientId: clientStore.clientId,
     roomId: clientStore.roomId,
-    isSynced: false,
+    isSynced: syncedTabId$.getValue() !== undefined,
   };
   sendResponse(client);
 });
