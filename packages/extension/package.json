@@ -20,6 +20,7 @@
     "@vespaiach/axios-fetch-adapter": "^0.3.0",
     "axios": "^0.27.2",
     "clsx": "^1.2.1",
+    "css-selector-generator": "^3.6.3",
     "loglevel": "^1.8.0",
     "nanoid": "^4.0.0",
     "open-props": "^1.4.5",

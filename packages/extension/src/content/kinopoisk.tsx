@@ -1,14 +1,7 @@
 import { createRoot, Root } from 'react-dom/client';
-import {
-  BehaviorSubject,
-  combineLatest,
-  combineLatestAll,
-  combineLatestWith,
-  Subject,
-} from 'rxjs';
-import { clientStream } from '../messages/client';
+import { BehaviorSubject, combineLatest, filter, Subject } from 'rxjs';
 import { sendSync, syncStream } from '../messages/sync';
-import { tabStatusStream } from '../messages/tabStatus';
+import { tabStatusStream, sendTabStatus } from '../messages/tabStatus';
 import { SyncButton } from './components/SyncButton';
 
 const controlsSelector =
@@ -26,6 +19,17 @@ const isDisabled$ = new BehaviorSubject(false);
 const isSynced$ = new BehaviorSubject(false);
 const root$ = new Subject<Root>();
 
+syncStream
+  .pipe(filter(([request]) => request.type === 'sync-started'))
+  .subscribe(() => {
+    isSynced$.next(true);
+  });
+syncStream
+  .pipe(filter(([request]) => request.type === 'sync-stopped'))
+  .subscribe(() => {
+    isSynced$.next(false);
+  });
+
 tabStatusStream.subscribe(([status]) => {
   isDisabled$.next(
     (status.isSynced && !status.isTabSynced) || !status.isInRoom
@@ -33,9 +37,8 @@ tabStatusStream.subscribe(([status]) => {
   isSynced$.next(status.isTabSynced);
 });
 
-root$
-  .pipe(combineLatestWith(isSynced$), combineLatestWith(isDisabled$))
-  .subscribe(([[root, isSynced], isDisabled]) => {
+combineLatest([root$, isSynced$, isDisabled$]).subscribe(
+  ([root, isSynced, isDisabled]) => {
     console.debug('[ViSync] Render button');
     root.render(
       <SyncButton
@@ -45,11 +48,8 @@ root$
         isSynced={isSynced}
       />
     );
-    return () => {
-      console.debug('[ViSync] Unmount button');
-      root.unmount();
-    };
-  });
+  }
+);
 
 syncStream.subscribe(([request]) => {
   switch (request.type) {
@@ -92,6 +92,7 @@ const observer = new MutationObserver(() => {
   }
   try {
     attachSyncButton();
+    sendTabStatus({ isInRoom: false, isSynced: false, isTabSynced: false });
   } catch (e) {
     console.debug('[ViSync] Failed to attach sync button');
     return;

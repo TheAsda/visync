@@ -1,20 +1,22 @@
+import { filter } from 'rxjs';
 import { clientStream } from '../messages/client';
 import { pingStream } from '../messages/ping';
 import { roomStream } from '../messages/room';
 import { settingsStream } from '../messages/settings';
+import { syncStream } from '../messages/sync';
 import { Client } from '../types/client';
 import './contextMenu';
-import { syncedTabId$ } from './contextMenu';
 import { getRoom } from './lib/fetch/getRoom';
 import { isServerError } from './lib/isAxiosError';
 import { clientStore } from './store/client';
 import { settingsStore } from './store/settings';
+import { startSyncing, stopSyncing } from './sync';
 
 clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
     clientId: clientStore.clientId,
     roomId: clientStore.roomId,
-    isSynced: syncedTabId$.getValue() !== undefined,
+    isSynced: false,
   };
   sendResponse(client);
 });
@@ -103,3 +105,27 @@ settingsStream.subscribe(async ([request, sender, sendResponse]) => {
 pingStream.subscribe(async () => {
   console.debug('Got ping');
 });
+
+syncStream
+  .pipe(
+    filter(
+      (request) =>
+        request[0].type === 'start-sync' || request[0].type === 'stop-sync'
+    )
+  )
+  .subscribe(([request, sender]) => {
+    if (!sender.tab?.id) {
+      console.warn('Sender is not a tab');
+      return;
+    }
+    switch (request.type) {
+      case 'start-sync': {
+        startSyncing(sender.tab.id, request.payload.videoSelector);
+        break;
+      }
+      case 'stop-sync': {
+        stopSyncing();
+        break;
+      }
+    }
+  });
