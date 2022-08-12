@@ -14,6 +14,10 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
     '/rooms/:roomId/socket',
     { websocket: true },
     async (connection, req) => {
+      connection.socket.on('open', () => {
+        logger.info(`Socket for ${clientId} is opened`);
+      });
+
       const { roomId } = req.params as { roomId: string };
       const { clientId } = req.query as { clientId: string };
       if (!clientId) {
@@ -93,6 +97,7 @@ export const socketRoutes: FastifyPluginAsync = async (fastify) => {
       });
 
       connection.socket.on('close', () => {
+        logger.info(`Socket for ${clientId} is closed`);
         delete fastify.clientSockets[clientId];
       });
     }

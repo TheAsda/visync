@@ -1,13 +1,13 @@
 import { clientStream } from '../messages/client';
+import { pingStream } from '../messages/ping';
 import { roomStream } from '../messages/room';
 import { settingsStream } from '../messages/settings';
 import { Client } from '../types/client';
+import './contextMenu';
 import { getRoom } from './lib/fetch/getRoom';
 import { isServerError } from './lib/isAxiosError';
 import { clientStore } from './store/client';
 import { settingsStore } from './store/settings';
-import './contextMenu';
-import { syncStream } from '../messages/sync';
 
 clientStream.subscribe(([, sender, sendResponse]) => {
   const client: Client = {
@@ -99,6 +99,6 @@ settingsStream.subscribe(async ([request, sender, sendResponse]) => {
   }
 });
 
-syncStream.subscribe(async () => {
+pingStream.subscribe(async () => {
   console.debug('Got ping');
 });

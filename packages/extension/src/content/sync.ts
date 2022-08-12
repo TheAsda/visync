@@ -1,9 +1,9 @@
 import { fromEvent, Subject } from 'rxjs';
 import {
   combineLatestWith,
+  defaultIfEmpty,
   filter,
   map,
-  pairwise,
   switchMap,
 } from 'rxjs/operators';
 import { startPinging } from '../messages/ping';
@@ -12,13 +12,11 @@ import {
   RewindRequest,
   sendSync,
   SyncRequest,
-  SyncStartedRequest,
   syncStream,
 } from '../messages/sync';
 
 const syncStream$ = new Subject<SyncRequest>();
-// NOTE: this is a hack to get around the fact that the syncStream uses older rxjs version
-syncStream.subscribe((value) => syncStream$.next(value[0]));
+syncStream.subscribe(([request]) => syncStream$.next(request));
 const contextMenuStream = fromEvent(document, 'contextmenu').pipe(
   map((e) => e.target as HTMLElement)
 );
@@ -26,21 +24,37 @@ const syncedVideo$ = new Subject<HTMLVideoElement>();
 
 syncStream$
   .pipe(
-    filter((request) => request.type === 'sync-started'),
+    filter(
+      (request) =>
+        request.type === 'sync-started' && !!request.payload.videoSelector
+    )
+  )
+  .subscribe((request) => {
+    if (request.type !== 'sync-started' || !request.payload.videoSelector) {
+      return;
+    }
+    const video = document.querySelector(
+      request.payload.videoSelector
+    ) as HTMLVideoElement;
+    if (!video) {
+      throw new Error('Video not found');
+    }
+    if (video.tagName !== 'VIDEO') {
+      throw new Error('Target is not a video');
+    }
+    syncedVideo$.next(video);
+  });
+
+syncStream$
+  .pipe(
+    filter(
+      (request) =>
+        request.type === 'sync-started' && !request.payload.videoSelector
+    ),
     combineLatestWith(contextMenuStream)
   )
   .subscribe(([request, target]) => {
-    let video;
-    if (request.type === 'sync-started' && request.payload.videoSelector) {
-      video = target.querySelector(
-        request.payload.videoSelector
-      ) as HTMLVideoElement;
-      if (!video) {
-        throw new Error('Video not found');
-      }
-    } else {
-      video = target as HTMLVideoElement;
-    }
+    const video = target as HTMLVideoElement;
     if (video.tagName !== 'VIDEO') {
       throw new Error('Target is not a video');
     }
@@ -51,6 +65,7 @@ syncStream$
   .pipe(filter((request) => request.type === 'sync-stopped'))
   .subscribe(() => {
     syncStream$.complete();
+    syncedVideo$.complete();
   });
 
 syncStream$
@@ -94,9 +109,14 @@ syncStream$
     video.playbackRate = speed;
   });
 
-syncedVideo$.subscribe(() => {
-  const stopPinging = startPinging();
-  return () => stopPinging();
+let stopPinging = () => {};
+syncedVideo$.subscribe({
+  next: () => {
+    stopPinging = startPinging();
+  },
+  complete: () => {
+    stopPinging();
+  },
 });
 
 syncedVideo$

@@ -115,4 +115,34 @@ export default [
       format: 'esm',
     },
   },
+  {
+    input: 'src/content/kinopoisk.tsx',
+    plugins: [
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(
+          process.env.NODE_ENV || 'development'
+        ),
+      }),
+      typescript(),
+      babel({
+        presets: ['@babel/preset-react'],
+        babelHelpers: 'bundled',
+        compact: true,
+      }),
+      svgr({ dimensions: false }),
+      commonjs(),
+      nodeResolve({ browser: true }),
+      json(),
+      // terser(),
+      postcss({
+        plugins: [postcssJitProps(OpenProps)],
+      }),
+    ],
+    output: {
+      file: 'dist/kinopoisk.js',
+      sourcemap: !isProduction && 'inline',
+      format: 'iife',
+    },
+  },
 ];
