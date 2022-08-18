@@ -5,7 +5,7 @@ import { tabStatusStream, sendTabStatus } from '../messages/tabStatus';
 import { SyncButton } from './components/SyncButton';
 
 const controlsSelector =
-  'body > div.ReactModalPortal > div > div > div > div > div > div > div > div > div.Layout__bottom--1eyDI > div.BottomControls__controls--20Sbh';
+  'div.BottomControls_controls__PEIx2';
 const subsButtonSelector = 'div:nth-child(10)';
 
 const startSync = () => {

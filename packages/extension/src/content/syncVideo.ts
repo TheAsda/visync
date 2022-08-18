@@ -1,4 +1,12 @@
-import { BehaviorSubject, fromEvent, merge, Subject, takeUntil } from 'rxjs';
+import {
+  BehaviorSubject,
+  filter,
+  fromEvent,
+  merge,
+  Subject,
+  takeUntil,
+  tap,
+} from 'rxjs';
 import { startPinging } from '../messages/ping';
 import { sendSync, SyncRequest, syncStream } from '../messages/sync';
 
@@ -8,14 +16,27 @@ syncStream.subscribe(([request]) => syncStream$.next(request));
 let syncedVideo$: BehaviorSubject<HTMLVideoElement> | undefined;
 
 export const startVideoSyncing = (video: HTMLVideoElement) => {
+  if (syncedVideo$) {
+    console.warn('Video is already synced');
+    syncedVideo$.complete();
+  }
+
   syncedVideo$ = new BehaviorSubject(video);
+  const lastSeeked$ = new BehaviorSubject<number | undefined>(undefined);
+  const lastPlaySpeed$ = new BehaviorSubject<number | undefined>(undefined);
 
   const onCompleted$ = new Subject<void>();
   merge(
     fromEvent(video, 'play'),
     fromEvent(video, 'pause'),
-    fromEvent(video, 'seeked'),
-    fromEvent(video, 'ratechange')
+    fromEvent(video, 'seeked').pipe(
+      filter(() => lastSeeked$.getValue() !== video.currentTime),
+      tap(() => lastSeeked$.next(undefined))
+    ),
+    fromEvent(video, 'ratechange').pipe(
+      filter(() => lastPlaySpeed$.getValue() !== video.currentTime),
+      tap(() => lastPlaySpeed$.next(undefined))
+    )
   )
     .pipe(takeUntil(onCompleted$))
     .subscribe((event) => {
@@ -45,9 +66,11 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
         video.pause();
         break;
       case 'rewind':
+        lastSeeked$.next(request.payload.time);
         video.currentTime = request.payload.time;
         break;
       case 'play-speed':
+        lastPlaySpeed$.next(request.payload.speed);
         video.playbackRate = request.payload.speed;
         break;
     }
@@ -60,6 +83,8 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
       stopPinging();
       onCompleted$.next();
       onCompleted$.complete();
+      lastSeeked$.complete();
+      lastPlaySpeed$.complete();
     },
   });
 };
