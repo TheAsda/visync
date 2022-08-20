@@ -1,26 +1,12 @@
+import { BehaviorSubject } from 'rxjs';
 import { ClientSettings, defaultSettings } from '../../types/settings';
 
-class SettingsStore {
-  private _settings: ClientSettings | undefined;
+const initialSettings =
+  (await chrome.storage.local.get(['settings'])).settings ?? defaultSettings;
+export const clientSettings$ = new BehaviorSubject<ClientSettings>(
+  initialSettings
+);
 
-  constructor() {
-    chrome.storage.local.get(['settings']).then(({ settings }) => {
-      this._settings = settings ?? defaultSettings;
-    });
-  }
-
-  get settings(): ClientSettings {
-    if (!this._settings) {
-      throw new Error('Settings not initialized');
-    }
-    return this._settings;
-  }
-
-  async saveSettings(settings: ClientSettings): Promise<ClientSettings> {
-    this._settings = settings;
-    await chrome.storage.local.set({ settings });
-    return this.settings;
-  }
-}
-
-export const settingsStore = new SettingsStore();
+clientSettings$.subscribe(async (settings) => {
+  await chrome.storage.local.set({ settings });
+});

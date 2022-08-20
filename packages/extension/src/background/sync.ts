@@ -1,4 +1,4 @@
-import { BehaviorSubject, filter, map } from 'rxjs';
+import { BehaviorSubject, filter, fromEventPattern, map } from 'rxjs';
 import { SocketResponse } from 'visync-contracts';
 import {
   PauseRequest,
@@ -13,6 +13,13 @@ import { notifySyncStarted, notifySyncStopped } from './runtimeHelpers';
 import { clientStore } from './store/client';
 
 let syncedTabId$: BehaviorSubject<number> | undefined;
+
+const tabRemoved$ = fromEventPattern<
+  [tabId: number, removeInfo: chrome.tabs.TabRemoveInfo]
+>(
+  (handler) => chrome.tabs.onRemoved.addListener(handler),
+  (handler) => chrome.tabs.onRemoved.removeListener(handler)
+);
 
 export const isSynced$ = new BehaviorSubject(false);
 
