@@ -1,25 +1,13 @@
 import { FormEventHandler, useRef, useState } from 'react';
 import { createRoom } from '../lib/runtime/createRoom';
 import { joinRoom } from '../lib/runtime/joinRoom';
+import { getMessageError } from '../lib/getErrorMessage';
 import { Button } from './Button';
+import { ErrorMessage } from './ErrorMessage';
 import { Input } from './Input';
 import './RoomActions.css';
-import { createSignal } from '@react-rxjs/utils';
-import { bind } from '@react-rxjs/core';
-import { filter, map, startWith, switchMap } from 'rxjs';
-import { error$ } from '../../messageStreams/error';
-import { ErrorMessage } from './ErrorMessage';
 
-const [messageId$, setMessageId] = createSignal<string>();
-const [useErrorMessage] = bind(
-  messageId$.pipe(
-    switchMap((messageId) =>
-      error$.pipe(filter((error) => error.message.messageId === messageId))
-    ),
-    map((error) => error.message.message),
-    startWith(undefined)
-  )
-);
+const [useErrorMessage, setMessageId] = getMessageError();
 
 export const RoomActions = () => {
   const [roomId, setRoomId] = useState('');

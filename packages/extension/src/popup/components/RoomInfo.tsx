@@ -5,9 +5,11 @@ import { roomId$ } from '../../messageStreams/roomId';
 import RoomIcon from '../assets/RoomIcon.svg';
 import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
 import { leaveRoom } from '../lib/runtime/leaveRoom';
+import { getMessageError } from '../lib/getErrorMessage';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';
 import './RoomInfo.css';
+import { ErrorMessage } from './ErrorMessage';
 
 const [useRoomId] = bind(
   roomId$.pipe(
@@ -22,12 +24,20 @@ const [useIsSynced] = bind(
   )
 );
 
+const [useErrorMessage, setMessageId] = getMessageError();
+
 export const RoomInfo = () => {
   const roomId = useRoomId();
   const isSynced = useIsSynced();
+  const errorMessage = useErrorMessage();
 
   const copyRoomId = () => {
     roomId && navigator.clipboard.writeText(roomId);
+  };
+
+  const leave = () => {
+    const messageId = leaveRoom();
+    setMessageId(messageId);
   };
 
   return (
@@ -45,12 +55,10 @@ export const RoomInfo = () => {
         />
       </div>
       <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p>
-      <Button type="button" onClick={leaveRoom}>
+      <Button type="button" onClick={leave}>
         Leave Room
       </Button>
-      {/* <ErrorMessage>
-        {leaveError instanceof Error ? leaveError.message : null}
-      </ErrorMessage> */}
+      <ErrorMessage>{errorMessage}</ErrorMessage>
     </div>
   );
 };
