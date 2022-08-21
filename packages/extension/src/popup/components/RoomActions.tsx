@@ -1,29 +1,52 @@
-import { FormEventHandler, useState } from 'react';
-import { sendCommand } from '../../messageStreams/command';
+import { FormEventHandler, useRef, useState } from 'react';
 import { createRoom } from '../lib/runtime/createRoom';
 import { joinRoom } from '../lib/runtime/joinRoom';
 import { Button } from './Button';
-import { ErrorMessage } from './ErrorMessage';
 import { Input } from './Input';
-import { Loader } from './Loader';
 import './RoomActions.css';
+import { createSignal } from '@react-rxjs/utils';
+import { bind } from '@react-rxjs/core';
+import { filter, map, startWith, switchMap } from 'rxjs';
+import { error$ } from '../../messageStreams/error';
+import { ErrorMessage } from './ErrorMessage';
+
+const [messageId$, setMessageId] = createSignal<string>();
+const [useErrorMessage] = bind(
+  messageId$.pipe(
+    switchMap((messageId) =>
+      error$.pipe(filter((error) => error.message.messageId === messageId))
+    ),
+    map((error) => error.message.message),
+    startWith(undefined)
+  )
+);
 
 export const RoomActions = () => {
   const [roomId, setRoomId] = useState('');
+  const latestActionRef = useRef<'join' | 'create' | undefined>(undefined);
+  const errorMessage = useErrorMessage();
 
   const handleJoinForm: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    joinRoom(roomId);
+    const messageId = joinRoom(roomId);
+    setMessageId(messageId);
+    latestActionRef.current = 'join';
+  };
+
+  const create = () => {
+    const messageId = createRoom();
+    setMessageId(messageId);
+    latestActionRef.current = 'create';
   };
 
   return (
     <div className="room-actions">
-      <Button onClick={createRoom} type="button">
+      <Button onClick={create} type="button">
         Create Room
       </Button>
-      {/* <ErrorMessage>
-        {createError instanceof Error ? createError.message : null}
-      </ErrorMessage> */}
+      {latestActionRef.current === 'create' && (
+        <ErrorMessage>{errorMessage}</ErrorMessage>
+      )}
       <form className="join-form" onSubmit={handleJoinForm}>
         <Input
           value={roomId}
@@ -33,9 +56,9 @@ export const RoomActions = () => {
         <Button type="submit" disabled={roomId.length === 0}>
           Join Room
         </Button>
-        {/* <ErrorMessage>
-          {joinError instanceof Error ? joinError.message : null}
-        </ErrorMessage> */}
+        {latestActionRef.current === 'join' && (
+          <ErrorMessage>{errorMessage}</ErrorMessage>
+        )}
       </form>
     </div>
   );

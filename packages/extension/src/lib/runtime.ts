@@ -1,6 +1,11 @@
-import { filter, fromEventPattern, map, ReplaySubject, share } from 'rxjs';
+import { nanoid } from 'nanoid';
+import { filter, fromEventPattern, map, shareReplay } from 'rxjs';
 
-type RuntimeMessage<T = any> = { stream: string; message: T };
+type RuntimeMessage<T = any> = {
+  stream: string;
+  message: T;
+  messageId: string;
+};
 
 const runtime$ = fromEventPattern<
   [
@@ -28,21 +33,26 @@ export const createMessageStream = <Message = any>(
     filter(({ message }) => message.stream === name),
     map(({ message, sender }) => ({
       message: message.message as Message,
+      messageId: message.messageId,
       sender,
-    }))
+    })),
+    shareReplay(1)
   );
 
   /** Used to send message to stream */
   const sendToStream = (message: Message, tabId?: number) => {
+    const messageId = nanoid(10);
     const runtimeMessage: RuntimeMessage = {
       stream: name,
       message: message,
+      messageId,
     };
     if (tabId) {
       chrome.tabs.sendMessage(tabId, runtimeMessage);
     } else {
       chrome.runtime.sendMessage(runtimeMessage);
     }
+    return messageId;
   };
   return [stream$, sendToStream] as const;
 };

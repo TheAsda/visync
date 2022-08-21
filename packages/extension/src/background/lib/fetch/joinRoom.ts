@@ -1,5 +1,6 @@
 import { JoinRoomRequest, Room } from 'visync-contracts';
 import { getUrl } from '../../url';
+import { mapResponse } from '../mapResponse';
 
 export const joinRoom = async (
   roomId: string,
@@ -14,5 +15,5 @@ export const joinRoom = async (
     headers: {
       'Content-Type': 'application/json',
     },
-  }).then((res) => res.json());
+  }).then(mapResponse);
 };

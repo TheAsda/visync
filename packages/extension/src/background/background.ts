@@ -4,17 +4,16 @@ import { sendIsSynced } from '../messageStreams/isSynced';
 import { ping$ } from '../messageStreams/ping';
 import { sendRoomId } from '../messageStreams/roomId';
 import './contextMenu';
+import { getTabId } from './lib/getTabId';
+import { handleError } from './lib/handleError';
 import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
 import { clientId, roomActions, roomId$ } from './store/client';
 import { isSynced$, startSyncing, stopSyncing } from './sync';
 
-command$.subscribe(({ message: command, sender }) => {
+command$.subscribe(async ({ message: command, sender, messageId }) => {
   switch (command.type) {
     case 'start-sync': {
-      if (!sender.tab?.id) {
-        throw new Error('Sender is not a tab');
-      }
-      startSyncing(sender.tab.id, command.payload.videoSelector);
+      startSyncing(getTabId(sender), command.payload.videoSelector);
       break;
     }
     case 'stop-sync': {
@@ -22,15 +21,27 @@ command$.subscribe(({ message: command, sender }) => {
       break;
     }
     case 'create-room': {
-      roomActions.create();
+      try {
+        await roomActions.create();
+      } catch (err) {
+        handleError(err, sender, messageId);
+      }
       break;
     }
     case 'join-room': {
-      roomActions.join(command.payload.roomId);
+      try {
+        await roomActions.join(command.payload.roomId);
+      } catch (err) {
+        handleError(err, sender, messageId);
+      }
       break;
     }
     case 'leave-room': {
-      roomActions.leave();
+      try {
+        await roomActions.leave();
+      } catch (err) {
+        handleError(err, sender, messageId);
+      }
       break;
     }
     case 'save-settings': {

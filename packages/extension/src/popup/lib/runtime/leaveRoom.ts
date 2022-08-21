@@ -1,5 +1,5 @@
 import { sendCommand } from '../../../messageStreams/command';
 
 export const leaveRoom = () => {
-  sendCommand({ type: 'leave-room' });
+  return sendCommand({ type: 'leave-room' });
 };

@@ -1,7 +1,8 @@
-import { bind } from '@react-rxjs/core';
+import { bind, Subscribe } from '@react-rxjs/core';
 import { map } from 'rxjs';
 import { roomId$ } from '../../messageStreams/roomId';
 import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
+import { Loader } from './Loader';
 import { RoomActions } from './RoomActions';
 import { RoomInfo } from './RoomInfo';
 
@@ -16,6 +17,10 @@ export const Content = () => {
   const roomId = useRoomId();
 
   return (
-    <div className="content">{roomId ? <RoomInfo /> : <RoomActions />}</div>
+    <div className="content">
+      <Subscribe fallback={<Loader loadingText="Loading room" />}>
+        {roomId ? <RoomInfo /> : <RoomActions />}
+      </Subscribe>
+    </div>
   );
 };

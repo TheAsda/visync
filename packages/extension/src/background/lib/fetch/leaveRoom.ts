@@ -1,5 +1,6 @@
 import { LeaveRoomRequest } from 'visync-contracts';
 import { getUrl } from '../../url';
+import { handleError } from '../mapResponse';
 
 export const leaveRoom = async (
   roomId: string,
@@ -14,5 +15,5 @@ export const leaveRoom = async (
     headers: {
       'Content-Type': 'application/json',
     },
-  });
+  }).then(handleError);
 };
