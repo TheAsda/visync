@@ -1,9 +1,7 @@
-import { map, Observable, share, Subject, switchMap } from 'rxjs';
-import makeWebSocketObservable, {
-  GetWebSocketResponses,
-} from 'rxjs-websockets';
+import { map, share, Subject, switchMap } from 'rxjs';
+import makeWebSocketObservable from 'rxjs-websockets';
 import { SocketRequest } from 'visync-contracts';
-import { serverUrl } from './fetcher';
+import { serverUrl } from './url';
 
 const address = serverUrl.replace('http', 'ws');
 

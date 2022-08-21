@@ -1,20 +1,20 @@
-import { useState } from 'react';
+import { Subscribe } from '@react-rxjs/core';
+import { useEffect } from 'react';
+import { sendCommand } from '../messageStreams/command';
 import './App.css';
 import { Content } from './components/Content';
 import { Header } from './components/Header';
-import { Settings } from './components/Settings';
+import { Loader } from './components/Loader';
 
 export const App = () => {
-  const [showSettings, setShowSettings] = useState(false);
-
-  const toggleSettings = () => {
-    setShowSettings((s) => !s);
-  };
-
   return (
     <div className="app">
-      <Header onSettingsClick={toggleSettings} />
-      <main>{showSettings ? <Settings /> : <Content />}</main>
+      <Subscribe fallback={<Loader />}>
+        <Header />
+        <main>
+          <Content />
+        </main>
+      </Subscribe>
     </div>
   );
 };

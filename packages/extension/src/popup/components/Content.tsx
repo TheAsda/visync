@@ -1,23 +1,21 @@
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '../lib/queryKeys';
-import { getClient } from '../lib/runtime/getClient';
-import { Loader } from './Loader';
+import { bind } from '@react-rxjs/core';
+import { map } from 'rxjs';
+import { roomId$ } from '../../messageStreams/roomId';
+import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
 import { RoomActions } from './RoomActions';
 import { RoomInfo } from './RoomInfo';
 
+const [useRoomId] = bind(
+  roomId$.pipe(
+    getStatusOnSubscribe,
+    map(({ message }) => message)
+  )
+);
+
 export const Content = () => {
-  const { data: client, status: clientStatus } = useQuery(
-    queryKeys.client,
-    getClient
-  );
-
-  if (clientStatus === 'loading') {
-    return <Loader />;
-  }
-
-  const isInRoom = client?.roomId !== undefined;
+  const roomId = useRoomId();
 
   return (
-    <div className="content">{isInRoom ? <RoomInfo /> : <RoomActions />}</div>
+    <div className="content">{roomId ? <RoomInfo /> : <RoomActions />}</div>
   );
 };

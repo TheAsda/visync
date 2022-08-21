@@ -1,5 +1,5 @@
 import { filter, fromEventPattern, map, withLatestFrom } from 'rxjs';
-import { clientStore } from './store/client';
+import { roomId$ } from './store/client';
 import { isSynced$, startSyncing, stopSyncing } from './sync';
 
 const syncButtonId = 'sync-button';
@@ -23,8 +23,6 @@ const updateContextMenuButtonTitle = (title: 'Sync' | 'Stop sync') => {
     title,
   });
 };
-
-clientStore.roomId$.subscribe((roomId) => {});
 
 const contextMenu$ = fromEventPattern<
   [chrome.contextMenus.OnClickData, chrome.tabs.Tab | undefined]
@@ -62,6 +60,6 @@ contextMenu$
     }
   });
 
-clientStore.roomId$.subscribe((roomId) => {
+roomId$.subscribe((roomId) => {
   toggleContextMenuButtonEnable(roomId !== undefined);
 });

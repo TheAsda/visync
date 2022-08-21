@@ -1,5 +1,5 @@
-import { sendRoom } from '../../../messages/room';
+import { sendCommand } from '../../../messageStreams/command';
 
 export const joinRoom = (roomId: string) => {
-  return sendRoom({ type: 'join-room', payload: { roomId } });
+  sendCommand({ type: 'join-room', payload: { roomId } });
 };

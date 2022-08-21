@@ -1,16 +1,9 @@
-import { BehaviorSubject, filter, fromEventPattern, map } from 'rxjs';
+import { BehaviorSubject, fromEventPattern, map } from 'rxjs';
 import { SocketResponse } from 'visync-contracts';
-import {
-  PauseRequest,
-  PlayRequest,
-  PlaySpeedRequest,
-  RewindRequest,
-  sendSync,
-  syncStream,
-} from '../messages/sync';
+import { sendSync, sync$ } from '../messageStreams/sync';
 import { createClientSocket } from './clientSocket';
-import { notifySyncStarted, notifySyncStopped } from './runtimeHelpers';
-import { clientStore } from './store/client';
+import { notifySyncStarted, notifySyncStopped } from './notify';
+import { clientId, roomId$ } from './store/client';
 
 let syncedTabId$: BehaviorSubject<number> | undefined;
 
@@ -23,29 +16,18 @@ const tabRemoved$ = fromEventPattern<
 
 export const isSynced$ = new BehaviorSubject(false);
 
-export const startSyncing = (tabId: number, videoSelector?: string) => {
-  if (!clientStore.roomId) {
+export const startSyncing = async (tabId: number, videoSelector?: string) => {
+  const roomId = roomId$.getValue();
+  if (!roomId) {
     throw new Error('Client is not in room');
   }
   syncedTabId$ = new BehaviorSubject(tabId);
   const { messages$, socketInput$ } = createClientSocket(
-    clientStore.roomId,
-    clientStore.clientId
+    roomId,
+    await clientId
   );
-  const syncSubscription = syncStream
-    .pipe(
-      map(([request]) => request),
-      filter(
-        (
-          request
-        ): request is
-          | PlayRequest
-          | PauseRequest
-          | RewindRequest
-          | PlaySpeedRequest =>
-          ['play', 'pause', 'rewind', 'play-speed'].includes(request.type)
-      )
-    )
+  const syncSubscription = sync$
+    .pipe(map(({ message }) => message))
     .subscribe((request) => {
       socketInput$.next(request);
     });
@@ -55,7 +37,7 @@ export const startSyncing = (tabId: number, videoSelector?: string) => {
       if (response.type === 'room') {
         return;
       }
-      sendSync(response, { tabId });
+      sendSync(response, tabId);
     });
 
   notifySyncStarted(tabId, videoSelector);

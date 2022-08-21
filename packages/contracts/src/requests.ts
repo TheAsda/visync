@@ -6,7 +6,6 @@ export type CreateRoomRequest = {
 };
 
 export type JoinRoomRequest = {
-  roomId: string;
   clientId: string;
 };
 

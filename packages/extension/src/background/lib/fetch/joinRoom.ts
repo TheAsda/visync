@@ -1,13 +1,18 @@
 import { JoinRoomRequest, Room } from 'visync-contracts';
-import { fetcher } from '../../fetcher';
+import { getUrl } from '../../url';
 
 export const joinRoom = async (
   roomId: string,
   clientId: string
 ): Promise<Room> => {
-  return fetcher
-    .post(`/rooms/${roomId}/join`, {
-      clientId: clientId,
-    } as JoinRoomRequest)
-    .then((res) => res.data);
+  const body: JoinRoomRequest = {
+    clientId: clientId,
+  };
+  return fetch(getUrl(`/rooms/${roomId}/join`), {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then((res) => res.json());
 };

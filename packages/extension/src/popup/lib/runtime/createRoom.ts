@@ -1,5 +1,5 @@
-import { sendRoom } from '../../../messages/room';
+import { sendCommand } from '../../../messageStreams/command';
 
 export const createRoom = () => {
-  return sendRoom({ type: 'create-room' });
+  sendCommand({ type: 'create-room' });
 };

@@ -1,22 +1,22 @@
-import { sendSync } from '../messages/sync';
+import { sendNotification } from '../messageStreams/notification';
 
 export const notifySyncStarted = (tabId: number, videoSelector?: string) => {
-  sendSync(
+  sendNotification(
     {
       type: 'sync-started',
       payload: {
         videoSelector: videoSelector,
       },
     },
-    { tabId }
+    tabId
   );
 };
 
 export const notifySyncStopped = (tabId: number) => {
-  sendSync(
+  sendNotification(
     {
       type: 'sync-stopped',
     },
-    { tabId }
+    tabId
   );
 };

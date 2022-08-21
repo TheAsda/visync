@@ -1,11 +1,18 @@
 import { LeaveRoomRequest } from 'visync-contracts';
-import { fetcher } from '../../fetcher';
+import { getUrl } from '../../url';
 
 export const leaveRoom = async (
   roomId: string,
   clientId: string
 ): Promise<void> => {
-  return fetcher.post(`/rooms/${roomId}/leave`, {
+  const body: LeaveRoomRequest = {
     clientId: clientId,
-  } as LeaveRoomRequest);
+  };
+  await fetch(getUrl(`/rooms/${roomId}/leave`), {
+    method: 'POST',
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 };

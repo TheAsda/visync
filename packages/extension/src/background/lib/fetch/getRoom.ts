@@ -1,6 +1,6 @@
 import { Room } from 'visync-contracts';
-import { fetcher } from '../../fetcher';
+import { getUrl } from '../../url';
 
 export const getRoom = (roomId: string): Promise<Room> => {
-  return fetcher.get(`/rooms/${roomId}`).then((res) => res.data);
+  return fetch(getUrl(`/rooms/${roomId}`)).then((res) => res.json());
 };

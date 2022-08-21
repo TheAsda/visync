@@ -2,16 +2,14 @@ import {
   BehaviorSubject,
   filter,
   fromEvent,
+  map,
   merge,
   Subject,
   takeUntil,
   tap,
 } from 'rxjs';
-import { startPinging } from '../messages/ping';
-import { sendSync, SyncRequest, syncStream } from '../messages/sync';
-
-const syncStream$ = new Subject<SyncRequest>();
-syncStream.subscribe(([request]) => syncStream$.next(request));
+import { startPinging } from '../messageStreams/ping';
+import { sync$, sendSync } from '../messageStreams/sync';
 
 let syncedVideo$: BehaviorSubject<HTMLVideoElement> | undefined;
 
@@ -57,24 +55,29 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
       }
     });
 
-  syncStream$.pipe(takeUntil(onCompleted$)).subscribe((request) => {
-    switch (request.type) {
-      case 'play':
-        video.play();
-        break;
-      case 'pause':
-        video.pause();
-        break;
-      case 'rewind':
-        lastSeeked$.next(request.payload.time);
-        video.currentTime = request.payload.time;
-        break;
-      case 'play-speed':
-        lastPlaySpeed$.next(request.payload.speed);
-        video.playbackRate = request.payload.speed;
-        break;
-    }
-  });
+  sync$
+    .pipe(
+      takeUntil(onCompleted$),
+      map(({ message }) => message)
+    )
+    .subscribe((message) => {
+      switch (message.type) {
+        case 'play':
+          video.play();
+          break;
+        case 'pause':
+          video.pause();
+          break;
+        case 'rewind':
+          lastSeeked$.next(message.payload.time);
+          video.currentTime = message.payload.time;
+          break;
+        case 'play-speed':
+          lastPlaySpeed$.next(message.payload.speed);
+          video.playbackRate = message.payload.speed;
+          break;
+      }
+    });
 
   const stopPinging = startPinging();
 

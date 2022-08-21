@@ -1,27 +1,29 @@
-import { AxiosError } from 'axios';
 import { nanoid } from 'nanoid';
-import { BehaviorSubject, from } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { Client } from 'visync-contracts';
 import { getClientId } from '../clientId';
-import { fetcher } from '../fetcher';
 import { createRoom } from '../lib/fetch/createRoom';
 import { joinRoom } from '../lib/fetch/joinRoom';
 import { leaveRoom } from '../lib/fetch/leaveRoom';
+import { getUrl } from '../url';
 
-export const clientId = await getClientId();
+export const clientId = getClientId();
 export const roomId$ = new BehaviorSubject<string | undefined>(undefined);
 
-try {
-  const client = await fetcher.get(`/clients/${clientId}`).then((res) => {
-    return res.data as Client;
-  });
-  roomId$.next(client.roomId);
-} catch (e) {
-  const err = e as AxiosError;
-  if (err.response?.status === 404) {
-    await fetcher.put(`/clients/${clientId}`);
-  }
-}
+clientId.then((clientId) =>
+  fetch(getUrl(`/clients/${clientId}`))
+    .then(async (res) => {
+      if (res.status === 404) {
+        await fetch(getUrl(`/clients/${clientId}`), { method: 'PUT' });
+        return;
+      }
+      const client: Client = await res.json();
+      roomId$.next(client.roomId);
+    })
+    .catch((err) => {
+      console.log(err);
+    })
+);
 
 export const roomActions = {
   create: async () => {
@@ -29,14 +31,14 @@ export const roomActions = {
       throw new Error('Already in a room');
     }
     const roomId = nanoid(6);
-    const room = await createRoom(roomId, clientId);
+    const room = await createRoom(roomId, await clientId);
     roomId$.next(room.roomId);
   },
   join: async (roomId: string) => {
     if (roomId$.getValue()) {
       throw new Error('Already in a room');
     }
-    const room = await joinRoom(roomId, clientId);
+    const room = await joinRoom(roomId, await clientId);
     roomId$.next(room.roomId);
   },
   leave: async () => {
@@ -44,7 +46,7 @@ export const roomActions = {
     if (!roomId) {
       throw new Error('Not in a room');
     }
-    await leaveRoom(roomId, clientId);
+    await leaveRoom(roomId, await clientId);
     roomId$.next(undefined);
   },
 };

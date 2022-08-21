@@ -1,131 +1,68 @@
-import { filter } from 'rxjs';
-import { clientStream } from '../messages/client';
-import { pingStream } from '../messages/ping';
-import { roomStream } from '../messages/room';
-import { settingsStream } from '../messages/settings';
-import { syncStream } from '../messages/sync';
-import { Client } from '../types/client';
+import { sendClientId } from '../messageStreams/clientId';
+import { command$ } from '../messageStreams/command';
+import { sendIsSynced } from '../messageStreams/isSynced';
+import { ping$ } from '../messageStreams/ping';
+import { sendRoomId } from '../messageStreams/roomId';
 import './contextMenu';
-import { getRoom } from './lib/fetch/getRoom';
-import { isServerError } from './lib/isAxiosError';
-import { clientStore } from './store/client';
-import { settingsStore } from './store/settings';
-import { startSyncing, stopSyncing } from './sync';
+import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
+import { clientId, roomActions, roomId$ } from './store/client';
+import { isSynced$, startSyncing, stopSyncing } from './sync';
 
-clientStream.subscribe(([, sender, sendResponse]) => {
-  const client: Client = {
-    clientId: clientStore.clientId,
-    roomId: clientStore.roomId,
-    isSynced: false,
-  };
-  sendResponse(client);
-});
-
-roomStream.subscribe(async ([request, sender, sendResponse]) => {
-  if (!request) {
-    if (clientStore.roomId) {
-      const room = await getRoom(clientStore.roomId);
-      sendResponse({
-        roomId: room.roomId,
-        link: room.link,
-        clientIds: room.clientIds,
-      });
-    } else {
-      sendResponse(null);
-    }
-    return;
-  }
-  switch (request.type) {
-    case 'create-room': {
-      try {
-        const room = await clientStore.createRoom();
-        sendResponse({
-          roomId: room.roomId,
-          link: room.link,
-          clientIds: room.clientIds,
-        });
-      } catch (error) {
-        let message;
-        if (isServerError(error)) {
-          message = error.response?.data.error;
-        }
-        message ??= 'Failed to create room';
-        sendResponse({ message });
+command$.subscribe(({ message: command, sender }) => {
+  switch (command.type) {
+    case 'start-sync': {
+      if (!sender.tab?.id) {
+        throw new Error('Sender is not a tab');
       }
+      startSyncing(sender.tab.id, command.payload.videoSelector);
+      break;
+    }
+    case 'stop-sync': {
+      stopSyncing();
+      break;
+    }
+    case 'create-room': {
+      roomActions.create();
       break;
     }
     case 'join-room': {
-      try {
-        const room = await clientStore.joinRoom(request.payload.roomId);
-        sendResponse({
-          roomId: room.roomId,
-          link: room.link,
-          clientIds: room.clientIds,
-        });
-      } catch (error) {
-        let message;
-        if (isServerError(error)) {
-          message = error.response?.data.error;
-        }
-        message ??= 'Failed to join room';
-        sendResponse({ message });
-      }
+      roomActions.join(command.payload.roomId);
       break;
     }
     case 'leave-room': {
-      try {
-        await clientStore.leaveRoom();
-        sendResponse(null);
-      } catch (error) {
-        let message;
-        if (isServerError(error)) {
-          message = error.response?.data.error;
-        }
-        message ??= 'Failed to leave room';
-        sendResponse({ message });
-      }
+      roomActions.leave();
+      break;
+    }
+    case 'save-settings': {
+      // clientSettings$.next(command.payload);
+      break;
+    }
+    case 'get-status': {
+      trigger();
       break;
     }
   }
 });
 
-settingsStream.subscribe(async ([request, sender, sendResponse]) => {
-  if (!request) {
-    sendResponse(settingsStore.settings);
-    return;
-  }
-  switch (request.type) {
-    case 'save-settings': {
-      const settings = await settingsStore.saveSettings(request.payload);
-      sendResponse(settings);
-    }
-  }
+statusTrigger$.subscribe(async () => {
+  sendClientId(await clientId);
 });
 
-pingStream.subscribe(async () => {
+// Send roomId to runtime when roomId changes
+roomId$.pipe(withStatusTrigger).subscribe((roomId) => {
+  sendRoomId(roomId);
+});
+
+// Update sync status when isSynced changes
+isSynced$.pipe(withStatusTrigger).subscribe((isSynced) => {
+  sendIsSynced(isSynced);
+});
+
+// // Update settings when client settings change
+// clientSettings$.pipe(withStatusTrigger).subscribe((settings) => {
+//   sendSettings(settings);
+// });
+
+ping$.subscribe(async () => {
   console.debug('Got ping');
 });
-
-syncStream
-  .pipe(
-    filter(
-      (request) =>
-        request[0].type === 'start-sync' || request[0].type === 'stop-sync'
-    )
-  )
-  .subscribe(([request, sender]) => {
-    if (!sender.tab?.id) {
-      console.warn('Sender is not a tab');
-      return;
-    }
-    switch (request.type) {
-      case 'start-sync': {
-        startSyncing(sender.tab.id, request.payload.videoSelector);
-        break;
-      }
-      case 'stop-sync': {
-        stopSyncing();
-        break;
-      }
-    }
-  });

@@ -1,68 +1,18 @@
 import { createRoot, Root } from 'react-dom/client';
-import { BehaviorSubject, combineLatest, filter, Subject } from 'rxjs';
-import { sendSync, syncStream } from '../messages/sync';
-import { tabStatusStream, sendTabStatus } from '../messages/tabStatus';
+import { sendCommand } from '../messageStreams/command';
 import { SyncButton } from './components/SyncButton';
 
-const controlsSelector =
-  'div.BottomControls_controls__PEIx2';
+const controlsSelector = 'div.BottomControls_controls__PEIx2';
 const subsButtonSelector = 'div:nth-child(10)';
 
 const startSync = () => {
-  sendSync({ type: 'start-sync', payload: { videoSelector: 'video' } });
+  sendCommand({ type: 'start-sync', payload: { videoSelector: 'video' } });
 };
 const stopSync = () => {
-  sendSync({ type: 'stop-sync' });
+  sendCommand({ type: 'stop-sync' });
 };
 
-const isDisabled$ = new BehaviorSubject(false);
-const isSynced$ = new BehaviorSubject(false);
-const root$ = new Subject<Root>();
-
-syncStream
-  .pipe(filter(([request]) => request.type === 'sync-started'))
-  .subscribe(() => {
-    isSynced$.next(true);
-  });
-syncStream
-  .pipe(filter(([request]) => request.type === 'sync-stopped'))
-  .subscribe(() => {
-    isSynced$.next(false);
-  });
-
-tabStatusStream.subscribe(([status]) => {
-  isDisabled$.next(
-    (status.isSynced && !status.isTabSynced) || !status.isInRoom
-  );
-  isSynced$.next(status.isTabSynced);
-});
-
-combineLatest([root$, isSynced$, isDisabled$]).subscribe(
-  ([root, isSynced, isDisabled]) => {
-    console.debug('[ViSync] Render button');
-    root.render(
-      <SyncButton
-        onSyncStart={startSync}
-        onSyncStop={stopSync}
-        isDisabled={isDisabled}
-        isSynced={isSynced}
-      />
-    );
-  }
-);
-
-syncStream.subscribe(([request]) => {
-  switch (request.type) {
-    case 'sync-started':
-      isSynced$.next(true);
-      break;
-    case 'sync-stopped':
-      isSynced$.next(false);
-      break;
-    default:
-      break;
-  }
-});
+let root: Root;
 
 const attachSyncButton = () => {
   const controls = document.querySelector(controlsSelector);
@@ -79,10 +29,15 @@ const attachSyncButton = () => {
   shadowRootElement.id = 'visync-shadow-root';
   const shadowRoot = shadowRootElement.attachShadow({ mode: 'open' });
 
-  const root = createRoot(shadowRoot);
-  root$.next(root);
+  root = createRoot(shadowRoot);
+
+  root.render(<SyncButton onSyncStart={startSync} onSyncStop={stopSync} />);
 
   controls.insertBefore(shadowRootElement, subsButton);
+};
+
+const detachSyncButton = () => {
+  root?.unmount();
 };
 
 const observer = new MutationObserver(() => {
@@ -92,8 +47,8 @@ const observer = new MutationObserver(() => {
   }
   try {
     attachSyncButton();
-    sendTabStatus({ isInRoom: false, isSynced: false, isTabSynced: false });
   } catch (e) {
+    detachSyncButton();
     console.debug('[ViSync] Failed to attach sync button');
     return;
   }
@@ -101,5 +56,3 @@ const observer = new MutationObserver(() => {
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
-
-export {};

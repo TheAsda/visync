@@ -1,19 +1,11 @@
 import { BehaviorSubject, fromEvent } from 'rxjs';
 import { filter, map, withLatestFrom } from 'rxjs/operators';
 import {
-  SyncStartedRequest,
-  SyncStoppedRequest,
-  syncStream,
-} from '../messages/sync';
+  notification$,
+  SyncStartedNotification,
+} from '../messageStreams/notification';
+import {} from '../messageStreams/sync';
 import { startVideoSyncing, stopVideoSyncing } from './syncVideo';
-
-const syncStream$ = syncStream.pipe(
-  map(([request]) => request),
-  filter(
-    (request): request is SyncStartedRequest | SyncStoppedRequest =>
-      request.type === 'sync-started' || request.type === 'sync-stopped'
-  )
-);
 
 const contextMenuTarget$ = new BehaviorSubject<HTMLElement | undefined>(
   undefined
@@ -24,11 +16,12 @@ fromEvent(document, 'contextmenu')
     contextMenuTarget$.next(target);
   });
 
-syncStream$
+notification$
   .pipe(
+    map(({ message }) => message),
     filter(
-      (request): request is SyncStartedRequest =>
-        request.type === 'sync-started'
+      (notification): notification is SyncStartedNotification =>
+        notification.type === 'sync-started'
     ),
     withLatestFrom(contextMenuTarget$)
   )
@@ -50,8 +43,14 @@ syncStream$
     startVideoSyncing(video);
   });
 
-syncStream$
-  .pipe(filter((request) => request.type === 'sync-stopped'))
+notification$
+  .pipe(
+    map(({ message }) => message),
+    filter(
+      (notification): notification is SyncStartedNotification =>
+        notification.type === 'sync-started'
+    )
+  )
   .subscribe(() => {
     stopVideoSyncing();
   });

@@ -91,7 +91,7 @@ export default [
     output: {
       file: 'dist/background.js',
       sourcemap: !isProduction && 'inline',
-      format: 'umd',
+      format: 'esm',
     },
   },
   {

@@ -14,6 +14,8 @@
     "@extend-chrome/menus": "^0.0.3",
     "@extend-chrome/messages": "^1.2.2",
     "@extend-chrome/storage": "^1.5.0",
+    "@react-rxjs/core": "^0.9.8",
+    "@react-rxjs/utils": "^0.9.5",
     "@rollup/plugin-image": "^2.1.1",
     "@svgr/rollup": "^6.3.1",
     "@tanstack/react-query": "^4.0.10",
