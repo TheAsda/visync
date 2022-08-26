@@ -14,13 +14,16 @@ export interface SyncButtonProps {
   onSyncStop?: () => void;
 }
 
-const [useIsSynced] = bind(isSynced$.pipe(map(({ message }) => message)));
+const [useIsSynced] = bind(
+  isSynced$.pipe(map(({ message }) => message)),
+  false
+);
 const [useIsTabSynced] = bind(
   notification$.pipe(
     map(({ message }) => message),
-    map((message) => (message.type === 'sync-started' ? true : false)),
-    startWith(false)
-  )
+    map((message) => (message.type === 'sync-started' ? true : false))
+  ),
+  false
 );
 
 export const SyncButton = (props: SyncButtonProps) => {
