@@ -1,16 +1,8 @@
 import { createRoot, Root } from 'react-dom/client';
-import { sendCommand } from '../messageStreams/command';
 import { SyncButton } from './components/SyncButton';
 
 const controlsSelector = 'div.BottomControls_controls__PEIx2';
 const subsButtonSelector = 'div:nth-child(10)';
-
-const startSync = () => {
-  sendCommand({ type: 'start-sync', payload: { videoSelector: 'video' } });
-};
-const stopSync = () => {
-  sendCommand({ type: 'stop-sync' });
-};
 
 let root: Root;
 
@@ -31,7 +23,7 @@ const attachSyncButton = () => {
 
   root = createRoot(shadowRoot);
 
-  root.render(<SyncButton onSyncStart={startSync} onSyncStop={stopSync} />);
+  root.render(<SyncButton videoSelector="video" />);
 
   controls.insertBefore(shadowRootElement, subsButton);
 };
