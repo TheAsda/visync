@@ -1,6 +1,7 @@
 import { filter, fromEventPattern, map, withLatestFrom } from 'rxjs';
 import { roomId$ } from './store/client';
-import { isSynced$, startSyncing, stopSyncing } from './sync';
+import { state$ } from './store/state';
+import { startSyncing, stopSyncing } from './sync';
 
 const syncButtonId = 'sync-button';
 
@@ -38,8 +39,8 @@ const contextMenu$ = fromEventPattern<
 
 createContextMenuButton();
 
-isSynced$.subscribe((isSynced) => {
-  if (isSynced) {
+state$.subscribe((state) => {
+  if (state.isSynced) {
     updateContextMenuButtonTitle('Stop sync');
   } else {
     updateContextMenuButtonTitle('Sync');
@@ -50,10 +51,10 @@ contextMenu$
   .pipe(
     map((tab) => tab.id),
     filter((tabId): tabId is number => tabId !== undefined),
-    withLatestFrom(isSynced$)
+    withLatestFrom(state$)
   )
-  .subscribe(([tabId, isSynced]) => {
-    if (isSynced) {
+  .subscribe(([tabId, state]) => {
+    if (state.isSynced) {
       stopSyncing();
     } else {
       startSyncing(tabId);

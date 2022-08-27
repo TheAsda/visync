@@ -4,6 +4,7 @@ import { sendSync, sync$ } from '../messageStreams/sync';
 import { createClientSocket } from './clientSocket';
 import { notifySyncStarted, notifySyncStopped } from './notify';
 import { clientId, roomId$ } from './store/client';
+import { state$ } from './store/state';
 
 let syncedTabId$: BehaviorSubject<number> | undefined;
 
@@ -13,8 +14,6 @@ const tabRemoved$ = fromEventPattern<
   (handler) => chrome.tabs.onRemoved.addListener(handler),
   (handler) => chrome.tabs.onRemoved.removeListener(handler)
 );
-
-export const isSynced$ = new BehaviorSubject(false);
 
 export const startSyncing = async (tabId: number, videoSelector?: string) => {
   console.debug('Starting syncing', tabId, videoSelector);
@@ -47,15 +46,20 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
   });
 
   notifySyncStarted(tabId, videoSelector);
-  isSynced$.next(true);
+
+  state$.next({
+    isSynced: true,
+    tabId,
+    videoSelector,
+  });
 
   syncedTabId$.subscribe({
     complete: () => {
-      isSynced$.next(false);
       notifySyncStopped(tabId);
       messagesSubscription.unsubscribe();
       syncSubscription.unsubscribe();
       tabRemoveSubscription.unsubscribe();
+      state$.next({ isSynced: false });
     },
   });
 };

@@ -1,3 +1,4 @@
+import { forEachTab } from '../lib/forEachTab';
 import { sendClientId } from '../messageStreams/clientId';
 import { command$ } from '../messageStreams/command';
 import { sendIsSynced } from '../messageStreams/isSynced';
@@ -8,7 +9,8 @@ import { getTabId } from './lib/getTabId';
 import { handleError } from './lib/handleError';
 import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
 import { clientId, roomActions, roomId$ } from './store/client';
-import { isSynced$, startSyncing, stopSyncing } from './sync';
+import { state$ } from './store/state';
+import { startSyncing, stopSyncing } from './sync';
 
 command$.subscribe(async ({ message: command, sender, messageId }) => {
   switch (command.type) {
@@ -60,9 +62,12 @@ roomId$.pipe(withStatusTrigger).subscribe((roomId) => {
   sendRoomId(roomId);
 });
 
-// Update sync status when isSynced changes
-isSynced$.pipe(withStatusTrigger).subscribe((isSynced) => {
-  sendIsSynced(isSynced);
+// Update sync status when state changes
+state$.pipe(withStatusTrigger).subscribe((state) => {
+  sendIsSynced(state.isSynced);
+  forEachTab((tabId) => {
+    sendIsSynced(state.isSynced, tabId);
+  });
 });
 
 ping$.subscribe(async () => {

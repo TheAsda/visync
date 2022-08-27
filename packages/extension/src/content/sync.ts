@@ -3,6 +3,7 @@ import { filter, map, withLatestFrom } from 'rxjs/operators';
 import {
   notification$,
   SyncStartedNotification,
+  SyncStoppedNotification,
 } from '../messageStreams/notification';
 import {} from '../messageStreams/sync';
 import { startVideoSyncing, stopVideoSyncing } from './syncVideo';
@@ -47,8 +48,8 @@ notification$
   .pipe(
     map(({ message }) => message),
     filter(
-      (notification): notification is SyncStartedNotification =>
-        notification.type === 'sync-started'
+      (notification): notification is SyncStoppedNotification =>
+        notification.type === 'sync-stopped'
     )
   )
   .subscribe(() => {
