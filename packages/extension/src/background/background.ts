@@ -44,10 +44,6 @@ command$.subscribe(async ({ message: command, sender, messageId }) => {
       }
       break;
     }
-    case 'save-settings': {
-      // clientSettings$.next(command.payload);
-      break;
-    }
     case 'get-status': {
       trigger();
       break;
@@ -68,11 +64,6 @@ roomId$.pipe(withStatusTrigger).subscribe((roomId) => {
 isSynced$.pipe(withStatusTrigger).subscribe((isSynced) => {
   sendIsSynced(isSynced);
 });
-
-// // Update settings when client settings change
-// clientSettings$.pipe(withStatusTrigger).subscribe((settings) => {
-//   sendSettings(settings);
-// });
 
 ping$.subscribe(async () => {
   console.debug('Got ping');

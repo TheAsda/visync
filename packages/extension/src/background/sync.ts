@@ -17,6 +17,7 @@ const tabRemoved$ = fromEventPattern<
 export const isSynced$ = new BehaviorSubject(false);
 
 export const startSyncing = async (tabId: number, videoSelector?: string) => {
+  console.debug('Starting syncing', tabId, videoSelector);
   const roomId = roomId$.getValue();
   if (!roomId) {
     throw new Error('Client is not in room');
@@ -39,6 +40,11 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
       }
       sendSync(response, tabId);
     });
+  const tabRemoveSubscription = tabRemoved$.subscribe(([tabId]) => {
+    if (tabId === syncedTabId$?.getValue()) {
+      stopSyncing();
+    }
+  });
 
   notifySyncStarted(tabId, videoSelector);
   isSynced$.next(true);
@@ -49,10 +55,12 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
       notifySyncStopped(tabId);
       messagesSubscription.unsubscribe();
       syncSubscription.unsubscribe();
+      tabRemoveSubscription.unsubscribe();
     },
   });
 };
 
 export const stopSyncing = () => {
+  console.debug('Stopping syncing');
   syncedTabId$?.complete();
 };
