@@ -15,6 +15,13 @@ const tabRemoved$ = fromEventPattern<
   (handler) => chrome.tabs.onRemoved.removeListener(handler)
 );
 
+const tabUpdated$ = fromEventPattern<
+  [tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab]
+>(
+  (handler) => chrome.tabs.onUpdated.addListener(handler),
+  (handler) => chrome.tabs.onUpdated.removeListener(handler)
+);
+
 export const startSyncing = async (tabId: number, videoSelector?: string) => {
   console.debug('Starting syncing', tabId, videoSelector);
   const roomId = roomId$.getValue();
@@ -34,9 +41,6 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
   const messagesSubscription = messages$
     .pipe(map((value) => JSON.parse(value) as SocketResponse))
     .subscribe((response) => {
-      if (response.type === 'room') {
-        return;
-      }
       sendSync(response, tabId);
     });
   const tabRemoveSubscription = tabRemoved$.subscribe(([tabId]) => {
@@ -44,6 +48,15 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
       stopSyncing();
     }
   });
+  const tabUpdatedSubscription = tabUpdated$.subscribe(
+    ([tabId, changeInfo]) => {
+      if (tabId === syncedTabId$?.getValue()) {
+        if (changeInfo.status === 'loading') {
+          stopSyncing();
+        }
+      }
+    }
+  );
 
   notifySyncStarted(tabId, videoSelector);
 
@@ -59,6 +72,7 @@ export const startSyncing = async (tabId: number, videoSelector?: string) => {
       messagesSubscription.unsubscribe();
       syncSubscription.unsubscribe();
       tabRemoveSubscription.unsubscribe();
+      tabUpdatedSubscription.unsubscribe();
       state$.next({ isSynced: false });
     },
   });
