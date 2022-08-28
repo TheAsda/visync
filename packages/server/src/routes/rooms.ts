@@ -154,26 +154,16 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .where('clientId', body.clientId)
         .update({ roomId: null });
 
+      const room = await fastify.knex
+        .table<Room>('room')
+        .where('room.roomId', roomId)
+        .leftJoin('client', 'room.roomId', 'client.roomId')
+        .select<(Room & Pick<Client, 'clientId'>)[]>(
+          'room.*',
+          'client.clientId'
+        );
+
       reply.status(204).send();
-      // await translateToOthersInRoom(room, body.clientId, response);
     }
   );
 };
-
-// const translateToOthersInRoom = async (
-//   room: Room,
-//   clientId: string,
-//   response: SocketResponse
-// ) => {
-//   logger.debug(`Translating response from ${clientId} to others in room`);
-//   const otherClientIds = room.clientIds.filter((id) => id !== clientId);
-//   const message = JSON.stringify(response);
-//   const promises = [];
-//   for (const clientId of otherClientIds) {
-//     const sendResponse = () => {
-//       getSocket(clientId).send(message);
-//     };
-//     promises.push(retry(sendResponse));
-//   }
-//   return Promise.all(promises);
-// };

@@ -14,5 +14,4 @@ export type SocketResponse =
   | SocketMessage<'play'>
   | SocketMessage<'pause'>
   | SocketMessage<'rewind', { time: number }>
-  | SocketMessage<'play-speed', { speed: number }>
-  | SocketMessage<'room', Room>;
+  | SocketMessage<'play-speed', { speed: number }>;
