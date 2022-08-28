@@ -5,7 +5,7 @@ import { startSyncing, stopSyncing } from './sync';
 
 const syncButtonId = 'sync-button';
 
-const createContextMenuButton = () => {
+export const createContextMenuButton = () => {
   chrome.contextMenus.create({
     id: syncButtonId,
     title: 'Sync',
@@ -36,8 +36,6 @@ const contextMenu$ = fromEventPattern<
   ),
   map(([info, tab]) => tab as chrome.tabs.Tab)
 );
-
-createContextMenuButton();
 
 state$.subscribe((state) => {
   if (state.isSynced) {

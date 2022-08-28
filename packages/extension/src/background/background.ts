@@ -5,6 +5,7 @@ import { sendIsSynced } from '../messageStreams/isSynced';
 import { ping$ } from '../messageStreams/ping';
 import { sendRoomId } from '../messageStreams/roomId';
 import './contextMenu';
+import './install';
 import { getTabId } from './lib/getTabId';
 import { handleError } from './lib/handleError';
 import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
