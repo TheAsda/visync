@@ -3,9 +3,11 @@ import { sendClientId } from '../messageStreams/clientId';
 import { command$ } from '../messageStreams/command';
 import { sendIsSynced } from '../messageStreams/isSynced';
 import { ping$ } from '../messageStreams/ping';
+import { sendRoomClients } from '../messageStreams/roomClients';
 import { sendRoomId } from '../messageStreams/roomId';
 import './contextMenu';
 import './install';
+import { getRoom } from './lib/fetch/getRoom';
 import { getTabId } from './lib/getTabId';
 import { handleError } from './lib/handleError';
 import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
@@ -59,8 +61,12 @@ statusTrigger$.subscribe(async () => {
 });
 
 // Send roomId to runtime when roomId changes
-roomId$.pipe(withStatusTrigger).subscribe((roomId) => {
+roomId$.pipe(withStatusTrigger).subscribe(async (roomId) => {
   sendRoomId(roomId);
+  if (roomId) {
+    const room = await getRoom(roomId);
+    sendRoomClients(room.clientIds);
+  }
 });
 
 // Update sync status when state changes

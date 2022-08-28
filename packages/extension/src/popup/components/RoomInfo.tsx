@@ -10,6 +10,7 @@ import { Button } from './Button';
 import { CopyButton } from './CopyButton';
 import './RoomInfo.css';
 import { ErrorMessage } from './ErrorMessage';
+import { roomClients$ } from '../../messageStreams/roomClients';
 
 const [useRoomId] = bind(
   roomId$.pipe(
@@ -23,6 +24,10 @@ const [useIsSynced] = bind(
     map(({ message }) => message)
   )
 );
+const [useRoomClientsCount] = bind(
+  roomClients$.pipe(map(({ message }) => message.length)),
+  1
+);
 
 const [useErrorMessage, setMessageId] = getMessageError();
 
@@ -30,6 +35,7 @@ export const RoomInfo = () => {
   const roomId = useRoomId();
   const isSynced = useIsSynced();
   const errorMessage = useErrorMessage();
+  const clientsCount = useRoomClientsCount();
 
   const copyRoomId = () => {
     roomId && navigator.clipboard.writeText(roomId);
@@ -46,7 +52,7 @@ export const RoomInfo = () => {
         <p className="room-info__text">Room: {roomId}</p>
         <div className="room-info__count-box">
           <RoomIcon />
-          <p className="room-info__count">{1}</p>
+          <p className="room-info__count">{clientsCount}</p>
         </div>
         <CopyButton
           className="room-info__copy-button"
