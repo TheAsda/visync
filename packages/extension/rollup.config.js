@@ -45,7 +45,7 @@ export default [
       html({
         title: 'ViSync',
       }),
-      // terser(),
+      isProduction && terser(),
       postcss({
         plugins: [postcssJitProps(OpenProps)],
       }),
@@ -72,7 +72,7 @@ export default [
       typescript(),
       commonjs(),
       nodeResolve({ browser: true }),
-      // terser(),
+      isProduction && terser(),
       copy({
         targets: [
           {
@@ -107,7 +107,7 @@ export default [
       commonjs(),
       nodeResolve({ browser: true }),
       json(),
-      // terser(),
+      isProduction && terser(),
     ],
     output: {
       file: 'dist/sync.js',
@@ -134,7 +134,7 @@ export default [
       commonjs(),
       nodeResolve({ browser: true }),
       json(),
-      // terser(),
+      isProduction && terser(),
       postcss({
         plugins: [postcssJitProps(OpenProps)],
       }),
