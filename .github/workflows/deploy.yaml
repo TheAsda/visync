@@ -9,6 +9,7 @@ on:
 
 jobs:
   deploy:
+    if: false
     name: Deploy server
     runs-on: ubuntu-latest
     steps:
