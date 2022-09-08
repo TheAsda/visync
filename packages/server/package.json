@@ -3,23 +3,31 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "private": true,
   "scripts": {
-    "build": "node build.js",
-    "start": "node dist/app.js"
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/app.js",
+    "test": "ava",
+    "test:watch": "ava --watch"
   },
   "author": "Andrey Kiselev",
   "license": "ISC",
   "dependencies": {
-    "@fastify/websocket": "^5.0.0",
-    "dotenv": "^16.0.0",
-    "fastify": "^3.28.0",
-    "fastify-plugin": "^3.0.1",
-    "nanoid": "^3.3.2",
-    "pino-pretty": "^7.6.1"
+    "@fastify/websocket": "^6.0.1",
+    "dotenv": "^16.0.1",
+    "fastify": "^4.3.0",
+    "fastify-plugin": "^4.0.0",
+    "knex": "^2.2.0",
+    "nanoid": "^4.0.0",
+    "pino-pretty": "^8.1.0",
+    "sqlite3": "^5.0.11",
+    "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@logdna/logger": "^2.6.4",
     "@types/ws": "^8.5.3",
+    "ava": "^4.3.1",
+    "ts-node": "^10.9.1",
     "visync-contracts": "^1.0.0"
-  }
+  },
+  "type": "module"
 }

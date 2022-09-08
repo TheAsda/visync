@@ -1,120 +1,70 @@
-import { styled } from 'goober';
-import {
-  ComponentPropsWithoutRef,
-  MouseEventHandler,
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
-import DisabledLogoSvg from '../assets/DisabledLogo.svg';
-import PlayLogoSvg from '../assets/PlayLogo.svg';
-import StopLogoSvg from '../assets/StopLogo.svg';
-import { useSync } from '../hooks/useSync';
-import { useVisibleTimeout } from '../hooks/useVisibleTimeout';
+import { bind } from '@react-rxjs/core';
+import { useEffect } from 'react';
+import { map, startWith } from 'rxjs';
+import { sendCommand } from '../../messageStreams/command';
+import { isSynced$ } from '../../messageStreams/isSynced';
+import { notification$ } from '../../messageStreams/notification';
+import DisabledLogo from '../assets/DisabledLogo.svg';
+import PlayLogo from '../assets/PlayLogo.svg';
+import StopLogo from '../assets/StopLogo.svg';
+import styles from './SyncButton.css';
 
-type Position = {
-  top: number;
-  right: number;
+const [useIsSynced] = bind(
+  isSynced$.pipe(map(({ message }) => message)),
+  false
+);
+const [useIsTabSynced] = bind(
+  notification$.pipe(
+    map(({ message }) => message),
+    map((message) => (message.type === 'sync-started' ? true : false))
+  ),
+  false
+);
+
+const startSync = (videoSelector: string) => {
+  sendCommand({ type: 'start-sync', payload: { videoSelector } });
+};
+const stopSync = () => {
+  sendCommand({ type: 'stop-sync' });
 };
 
-const size = '100px';
-
-const Button = styled('div')({
-  position: 'fixed',
-  width: size,
-  height: size,
-  background: 'transparent',
-  cursor: 'pointer',
-  transform: 'scale(0.9)',
-  transition: 'transform 0.2s ease, opacity 0.7s ease-out',
-  '&:hover': {
-    transform: 'scale(1)',
-  },
-});
-
-export interface SyncButtonProps extends ComponentPropsWithoutRef<'div'> {
-  video: HTMLVideoElement;
-  disabled: boolean;
-  onStartSync: () => void;
-  onStopSync: () => void;
+export interface SyncButtonProps {
+  videoSelector: string | (() => string);
 }
 
 export const SyncButton = (props: SyncButtonProps) => {
-  const { video, disabled, onStartSync, onStopSync, ...buttonProps } = props;
-  const [position, setPosition] = useState<Position | null>(null);
-  const { isSyncing, startSyncing, stopSyncing } = useSync({ disabled, video });
-  const { isVisible, makeVisible, startVisibleTimeout } = useVisibleTimeout();
+  const { videoSelector } = props;
 
   useEffect(() => {
-    const updatePosition = () => {
-      const { top, left, width } = video.getBoundingClientRect();
-
-      if (top < 0) {
-        setPosition(null);
-        return;
-      }
-
-      const right = document.body.scrollWidth - (left + width);
-      setPosition({
-        top,
-        right,
-      });
-    };
-
-    const resizeObserver = new ResizeObserver(updatePosition);
-    resizeObserver.observe(video);
-    window.addEventListener('scroll', updatePosition);
-    window.addEventListener('resize', updatePosition);
-
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('scroll', updatePosition);
-      window.removeEventListener('resize', updatePosition);
-    };
+    sendCommand({ type: 'get-status' });
   }, []);
 
-  const clickHandler: MouseEventHandler = useCallback(
-    (e) => {
-      e.stopPropagation();
-      if (disabled) {
-        return;
-      }
-      if (isSyncing) {
-        stopSyncing();
-        onStopSync();
-      } else {
-        startSyncing();
-        onStartSync();
-      }
-    },
-    [disabled, isSyncing]
-  );
+  const isSynced = useIsSynced();
+  const isTabSynced = useIsTabSynced();
+  const isDisabled = isSynced && !isTabSynced;
 
-  if (position === null) {
-    return null;
-  }
+  const onClick = () => {
+    if (isSynced) {
+      stopSync();
+    } else {
+      startSync(
+        typeof videoSelector === 'function' ? videoSelector() : videoSelector
+      );
+    }
+  };
 
   return (
-    <Button
-      onClick={clickHandler}
-      onMouseEnter={makeVisible}
-      onMouseLeave={startVisibleTimeout}
-      {...buttonProps}
-      style={{
-        top: position.top + 'px',
-        right: position.right + 'px',
-        cursor: disabled ? 'not-allowed' : undefined,
-        opacity: isVisible ? 1 : 0,
-        ...buttonProps.style,
-      }}
-    >
-      {disabled ? (
-        <DisabledLogoSvg />
-      ) : isSyncing ? (
-        <StopLogoSvg />
-      ) : (
-        <PlayLogoSvg />
-      )}
-    </Button>
+    <>
+      <button className="sync-button" disabled={isDisabled} onClick={onClick}>
+        {isDisabled ? (
+          <DisabledLogo className="sync-button__icon" />
+        ) : isSynced ? (
+          <StopLogo className="sync-button__icon" />
+        ) : (
+          <PlayLogo className="sync-button__icon" />
+        )}
+      </button>
+      <style>{styles}</style>
+    </>
   );
 };

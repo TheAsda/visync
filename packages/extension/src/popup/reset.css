@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Mulish&display=swap');
+
+:root {
+  font-size: 18px;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 400px;
+  height: 400px;
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-4);
+  font-family: 'Mulish', var(--font-sans);
+  line-height: var(--font-lineheight-3);
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+* {
+  color: var(--blue-1);
+  margin: 0;
+}

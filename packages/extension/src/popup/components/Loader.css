@@ -1,0 +1,23 @@
+.loader {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.loader__spinner {
+  width: var(--size-8);
+  animation: var(--animation-spin);
+  animation-duration: 1s;
+  animation-direction: reverse;
+}
+
+.loader__container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loader__text {
+  text-align: center;
+}

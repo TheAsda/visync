@@ -1,99 +1,70 @@
-import { styled } from 'goober';
-import { useData } from '../hooks/useData';
-import { Button } from './Button';
-import CopyIcon from '../assets/CopyIcon.svg';
+import { bind } from '@react-rxjs/core';
+import { map } from 'rxjs';
+import { isSynced$ } from '../../messageStreams/isSynced';
+import { roomId$ } from '../../messageStreams/roomId';
 import RoomIcon from '../assets/RoomIcon.svg';
-import CheckIcon from '../assets/CheckIcon.svg';
-import { useEffect, useRef, useState } from 'react';
-import { logger } from '../../runtimeLogger';
+import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
+import { leaveRoom } from '../lib/runtime/leaveRoom';
+import { getMessageError } from '../lib/getErrorMessage';
+import { Button } from './Button';
+import { CopyButton } from './CopyButton';
+import './RoomInfo.css';
+import { ErrorMessage } from './ErrorMessage';
+import { roomClients$ } from '../../messageStreams/roomClients';
 
-const Container = styled('div')({
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-  alignItems: 'stretch',
-  height: '100%',
-  padding: '1rem 0',
-  margin: '0 3rem',
-});
+const [useRoomId] = bind(
+  roomId$.pipe(
+    getStatusOnSubscribe,
+    map(({ message }) => message)
+  )
+);
+const [useIsSynced] = bind(
+  isSynced$.pipe(
+    getStatusOnSubscribe,
+    map(({ message }) => message)
+  )
+);
+const [useRoomClientsCount] = bind(
+  roomClients$.pipe(map(({ message }) => message.length)),
+  1
+);
 
-const Text = styled('p')({
-  fontSize: '1.2rem',
-  textAlign: 'center',
-});
-
-const Row = styled('div')({
-  display: 'flex',
-  justifyContent: 'center',
-  gap: '0.8rem',
-  alignItems: 'center',
-});
-
-const RoomCountBox = styled('div')({
-  aspectRatio: '1 / 1',
-  width: '1.5rem',
-  height: '1.5rem',
-  position: 'relative',
-});
-
-const RoomCount = styled('p')({
-  position: 'absolute',
-  textAlign: 'center',
-  bottom: 0,
-  left: 0,
-  right: 0,
-  fontSize: '0.9rem',
-});
-
-const CopyButton = styled(Button)({
-  width: '2rem',
-  height: '2rem',
-  padding: '0.2rem',
-});
+const [useErrorMessage, setMessageId] = getMessageError();
 
 export const RoomInfo = () => {
-  const { room, leaveRoom, isSynced } = useData();
-  const [showCheck, setShowCheck] = useState(false);
-  const timeoutRef = useRef<number>();
+  const roomId = useRoomId();
+  const isSynced = useIsSynced();
+  const errorMessage = useErrorMessage();
+  const clientsCount = useRoomClientsCount();
 
   const copyRoomId = () => {
-    if (!room) {
-      return;
-    }
-    logger.debug(`Copy ${room.roomId} to clipboard`);
-    navigator.clipboard.writeText(room.roomId);
-    setShowCheck(true);
+    roomId && navigator.clipboard.writeText(roomId);
   };
 
-  useEffect(() => {
-    if (showCheck) {
-      timeoutRef.current = setTimeout(
-        () => setShowCheck(false),
-        2000
-      ) as unknown as number;
-    }
-
-    return () => {
-      clearTimeout(timeoutRef.current);
-    };
-  }, [showCheck]);
+  const leave = () => {
+    const messageId = leaveRoom();
+    setMessageId(messageId);
+  };
 
   return (
-    <Container>
-      <Row>
-        <Text>Room: {room?.roomId}</Text>
-        <RoomCountBox>
+    <div className="room-info">
+      <div className="room-info__info">
+        <p className="room-info__text">Room: {roomId}</p>
+        <div className="room-info__count-box">
           <RoomIcon />
-          <RoomCount>{room?.clientsCount}</RoomCount>
-        </RoomCountBox>
-        <CopyButton aria-label="Copy to clipboard" onClick={copyRoomId}>
-          {showCheck ? <CheckIcon /> : <CopyIcon />}
-        </CopyButton>
-      </Row>
-      <Text>{isSynced ? 'Synced' : 'Not Synced'}</Text>
-      <Button type="button" onClick={leaveRoom}>
+          <p className="room-info__count">{clientsCount}</p>
+        </div>
+        <CopyButton
+          className="room-info__copy-button"
+          aria-label="Copy to clipboard"
+          onClick={copyRoomId}
+        />
+      </div>
+      <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p>
+      <Button type="button" onClick={leave}>
         Leave Room
       </Button>
-    </Container>
+      <ErrorMessage>{errorMessage}</ErrorMessage>
+    </div>
   );
 };

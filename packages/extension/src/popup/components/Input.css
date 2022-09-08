@@ -1,0 +1,16 @@
+@import 'open-props/colors-hsl';
+
+.input {
+  appearance: none;
+  background: transparent;
+  color: var(--blue-1);
+  box-shadow: var(--shadow-1);
+  border-radius: var(--radius-2);
+  border: none;
+  padding: var(--size-2);
+  border: var(--border-size-1) solid hsl(var(--blue-1-hsl) / 50%);
+}
+
+.input::placeholder {
+  color: hsl(var(--blue-1-hsl) / 50%);
+}

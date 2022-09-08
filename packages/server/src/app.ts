@@ -1,22 +1,14 @@
-import 'dotenv/config';
-import Fastify from 'fastify';
-import FastifyWebSocket from '@fastify/websocket';
-import { loggerPlugin } from './loggerPlugin';
-import { clientRoutes } from './routes/client';
-import { roomRoutes } from './routes/room';
-import { socketRoutes } from './routes/socket';
-import { logRoutes } from './routes/log';
+import { logger } from './logger.js';
+import { loggerPlugin } from './loggerPlugin.js';
+import server from './server.js';
 
-const fastify = Fastify({
-  logger: false,
-  requestTimeout: 2000,
-});
+await server.register(loggerPlugin);
 
-fastify.register(loggerPlugin);
-fastify.register(roomRoutes);
-fastify.register(clientRoutes);
-fastify.register(logRoutes);
-fastify.register(FastifyWebSocket);
-fastify.register(socketRoutes);
-
-fastify.listen(7001, '0.0.0.0');
+server
+  .listen({
+    host: process.env.HOST,
+    port: process.env.PORT ? Number(process.env.PORT) : 7001,
+  })
+  .then((address) => {
+    logger.info(`Server listening on ${address}`);
+  });

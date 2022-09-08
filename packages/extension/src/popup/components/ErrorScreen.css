@@ -1,0 +1,17 @@
+.error-screen {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4);
+}
+
+.error-screen__error {
+  font-size: var(--font-size-4);
+  font-weight: var(--font-weight-6);
+}
+
+.error-screen__text {
+}

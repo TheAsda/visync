@@ -1,0 +1,48 @@
+name: Build and release extension
+
+on:
+  workflow_dispatch:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build and release extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
+      - name: Install dependencies
+        run: npm ci
+      - name: Build extension
+        run: npm run build:extension
+        env:
+          SERVER_HOSTNAME: ${{ secrets.SERVER_HOSTNAME }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      - name: Get extension version
+        uses: sergeysova/jq-action@v2
+        id: version
+        with:
+          cmd: 'jq .version packages/extension/package.json -r'
+      - name: Archive extension
+        uses: thedoctor0/zip-release@main
+        with:
+          type: zip
+          filename: visync-extension.zip
+          path: packages/extension/dist/
+      - name: Create draft release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: visync-extension.zip
+          draft: true
+          tag_name: ${{ steps.version.outputs.value }}
+          name: Release ${{ steps.version.outputs.value }}
+          body: |
+            What's new:
+            - 
+            What's changed:
+            - 
+            Bug fixes:
+            -

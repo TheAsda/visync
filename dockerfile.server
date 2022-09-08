@@ -1,10 +1,19 @@
-FROM node:lts-slim as builder
+FROM node:lts as builder
 
 WORKDIR /app
 COPY . .
-RUN npm install
-RUN npm run build:server:prod
-RUN npm prune --production
+RUN npm ci
+ENV NODE_ENV=production
+RUN npm run build:server
+
+FROM node:lts-slim
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/package.json .
+COPY --from=builder /app/package-lock.json .
+COPY --from=builder /app/packages/server/package.json ./packages/server/
+COPY --from=builder /app/packages/server/dist ./packages/server/dist
+RUN npm ci -w visync-server
 RUN npm cache clean --force
 
-CMD npm run start:server
+CMD ["npm", "run", "start:server"]

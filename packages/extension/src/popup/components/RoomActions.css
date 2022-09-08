@@ -1,0 +1,16 @@
+.room-actions {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: var(--size-3) 0;
+  margin: 0 var(--size-6);
+  gap: var(--size-3);
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--size-2);
+}

@@ -2,3 +2,5 @@ node_modules/
 .vscode/
 **/dist/
 **/.env
+.turbo
+.nyc_output/

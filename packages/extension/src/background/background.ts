@@ -1,44 +1,82 @@
-import { logger } from './logger';
-import { RuntimeRequest } from '../types/runtimeMessages';
-import { getClientId } from './clientId';
-import { pingRequestHandler } from './runtime/ping';
-import { roomRequestHandler } from './runtime/room';
-import { settingsRequestHandler } from './runtime/settings';
-import { statusRequestHandler } from './runtime/status';
-import { syncRequestHandler } from './runtime/sync';
-import { logRequestHandler } from './runtime/log';
+import { forEachTab } from '../lib/forEachTab';
+import { sendClientId } from '../messageStreams/clientId';
+import { command$ } from '../messageStreams/command';
+import { sendIsSynced } from '../messageStreams/isSynced';
+import { ping$ } from '../messageStreams/ping';
+import { sendRoomClients } from '../messageStreams/roomClients';
+import { sendRoomId } from '../messageStreams/roomId';
+import './contextMenu';
+import './install';
+import { getRoom } from './lib/fetch/getRoom';
+import { getTabId } from './lib/getTabId';
+import { handleError } from './lib/handleError';
+import { statusTrigger$, trigger, withStatusTrigger } from './statusTrigger';
+import { clientId, roomActions, roomId$ } from './store/client';
+import { state$ } from './store/state';
+import { startSyncing, stopSyncing } from './sync';
 
-const handlers = [
-  roomRequestHandler,
-  syncRequestHandler,
-  pingRequestHandler,
-  statusRequestHandler,
-  settingsRequestHandler,
-  logRequestHandler,
-];
-
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const request = JSON.parse(message) as RuntimeRequest;
-  logger.info(`Runtime request starting ${request.type}`);
-
-  getClientId()
-    .then(async (clientId) => {
+command$.subscribe(async ({ message: command, sender, messageId }) => {
+  switch (command.type) {
+    case 'start-sync': {
+      startSyncing(getTabId(sender), command.payload.videoSelector);
+      break;
+    }
+    case 'stop-sync': {
+      stopSyncing();
+      break;
+    }
+    case 'create-room': {
       try {
-        for (const handler of handlers) {
-          await handler(clientId, request, sender, sendResponse);
-        }
+        await roomActions.create();
       } catch (err) {
-        if (err instanceof Error) {
-          logger.error(`Runtime request handler error: ${err.message}`);
-        } else {
-          logger.error(`Unknown error occurred: ${err}`);
-        }
+        handleError(err, sender, messageId);
       }
-      logger.info(`Runtime request finished ${request.type}`);
-    })
-    .catch((err) => {
-      logger.error(err);
-    });
+      break;
+    }
+    case 'join-room': {
+      try {
+        await roomActions.join(command.payload.roomId);
+      } catch (err) {
+        handleError(err, sender, messageId);
+      }
+      break;
+    }
+    case 'leave-room': {
+      try {
+        await roomActions.leave();
+      } catch (err) {
+        handleError(err, sender, messageId);
+      }
+      break;
+    }
+    case 'get-status': {
+      trigger();
+      break;
+    }
+  }
+});
 
-  return true;
+statusTrigger$.subscribe(async () => {
+  sendClientId(await clientId);
+});
+
+// Send roomId to runtime when roomId changes
+roomId$.pipe(withStatusTrigger).subscribe(async (roomId) => {
+  sendRoomId(roomId);
+  if (roomId) {
+    const room = await getRoom(roomId);
+    sendRoomClients(room.clientIds);
+  }
+});
+
+// Update sync status when state changes
+state$.pipe(withStatusTrigger).subscribe((state) => {
+  sendIsSynced(state.isSynced);
+  forEachTab((tabId) => {
+    sendIsSynced(state.isSynced, tabId);
+  });
+});
+
+ping$.subscribe(async () => {
+  console.debug('Got ping');
 });

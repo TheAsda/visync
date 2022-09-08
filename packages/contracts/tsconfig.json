@@ -3,7 +3,9 @@
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "preserveWatchOutput": true,
+    "declarationMap": true
   },
   "include": ["src"]
 }

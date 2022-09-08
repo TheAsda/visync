@@ -1,22 +1,20 @@
-import { useState } from 'react';
-import { logger } from '../runtimeLogger';
-import { Container } from './components/Container';
+import { Subscribe } from '@react-rxjs/core';
+import { useEffect } from 'react';
+import { sendCommand } from '../messageStreams/command';
+import './App.css';
 import { Content } from './components/Content';
 import { Header } from './components/Header';
-import { Settings } from './components/Settings';
+import { Loader } from './components/Loader';
 
 export const App = () => {
-  const [showSettings, setShowSettings] = useState(false);
-
-  const toggleSettings = () => {
-    logger.debug('Toggling settings');
-    setShowSettings((s) => !s);
-  };
-
   return (
-    <Container>
-      <Header onSettingsClick={toggleSettings} />
-      {showSettings ? <Settings /> : <Content />}
-    </Container>
+    <div className="app">
+      <Subscribe fallback={<Loader />}>
+        <Header />
+        <main>
+          <Content />
+        </main>
+      </Subscribe>
+    </div>
   );
 };

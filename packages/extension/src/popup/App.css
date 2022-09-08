@@ -1,0 +1,7 @@
+.app {
+  width: 100%;
+  height: 100%;
+  background-color: var(--violet-9);
+  display: grid;
+  grid-template-rows: auto 1fr;
+}
