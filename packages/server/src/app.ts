@@ -6,7 +6,7 @@ await server.register(loggerPlugin);
 
 server
   .listen({
-    host: process.env.HOST,
+    host: process.env.HOST ?? 'localhost',
     port: process.env.PORT ? Number(process.env.PORT) : 7001,
   })
   .then((address) => {

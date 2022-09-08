@@ -155,13 +155,12 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .where('clientId', body.clientId)
         .update({ roomId: null });
 
-      const count = (
-        await fastify.knex
-          .table<Client>('client')
-          .where('roomId', roomId)
-          .count('clientId')
-          .first()
-      )?.count;
+      const count = await fastify.knex
+        .table<Client>('client')
+        .where('roomId', roomId)
+        .count<{ count: number }>('clientId', { as: 'count' })
+        .first()
+        .then((r) => r?.count ?? 0);
 
       if (count === 0) {
         logger.info(`Room ${roomId} is empty, deleting`);

@@ -26,7 +26,7 @@ test('Create room', async (t) => {
   t.is(response.json().roomId, roomId);
 });
 
-test('Client does not exists on create', async (t) => {
+test('Room does not exist on create', async (t) => {
   const roomId = nanoid(6);
   const response = await server
     .inject()
@@ -75,7 +75,7 @@ test('Join room', async (t) => {
   t.is(response.statusCode, 200);
 });
 
-test('Client does not exists on join', async (t) => {
+test('Client does not exist on join', async (t) => {
   const roomId = nanoid(6);
   const clientId = await registerClient();
   await server
@@ -93,7 +93,7 @@ test('Client does not exists on join', async (t) => {
   t.is(response.statusCode, 400);
 });
 
-test('Room does not exists on join', async (t) => {
+test('Room does not exist on join', async (t) => {
   const roomId = nanoid(6);
   const clientId = await registerClient();
   const response = await server
@@ -179,9 +179,13 @@ test('Leave room', async (t) => {
       clientId,
     } as LeaveRoomRequest);
   t.is(response.statusCode, 204);
+  const response2 = await server.inject().post(`/rooms/${roomId}`).body({
+    clientId,
+  });
+  t.is(response2.statusCode, 404);
 });
 
-test('Client does not exists on leave', async (t) => {
+test('Client does not exist on leave', async (t) => {
   const roomId = nanoid(6);
   const clientId = await registerClient();
   await server
@@ -200,7 +204,7 @@ test('Client does not exists on leave', async (t) => {
   t.is(response.statusCode, 400);
 });
 
-test('Room does not exists on leave', async (t) => {
+test('Room does not exist on leave', async (t) => {
   const roomId = nanoid(6);
   const clientId = await registerClient();
   const response = await server
