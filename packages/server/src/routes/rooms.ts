@@ -4,6 +4,7 @@ import type {
   JoinRoomRequest,
   LeaveRoomRequest,
 } from 'visync-contracts';
+import { logger } from '../logger.js';
 import { Client, Room } from '../store/knex.js';
 import { roomExists } from '../store/utils/room.js';
 import {
@@ -154,14 +155,18 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .where('clientId', body.clientId)
         .update({ roomId: null });
 
-      const room = await fastify.knex
-        .table<Room>('room')
-        .where('room.roomId', roomId)
-        .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
+      const count = (
+        await fastify.knex
+          .table<Client>('client')
+          .where('roomId', roomId)
+          .count('clientId')
+          .first()
+      )?.count;
+
+      if (count === 0) {
+        logger.info(`Room ${roomId} is empty, deleting`);
+        await fastify.knex.table<Room>('room').where('roomId', roomId).del();
+      }
 
       reply.status(204).send();
     }
