@@ -1,15 +1,21 @@
 import {
   BehaviorSubject,
+  bufferToggle,
+  delay,
   filter,
   fromEvent,
   map,
   merge,
+  mergeMap,
+  of,
+  OperatorFunction,
+  pipe,
   Subject,
   takeUntil,
   tap,
 } from 'rxjs';
 import { startPinging } from '../messageStreams/ping';
-import { sync$, sendSync } from '../messageStreams/sync';
+import { sendSync, sync$ } from '../messageStreams/sync';
 
 let syncedVideo$: BehaviorSubject<HTMLVideoElement> | undefined;
 
@@ -24,6 +30,7 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
   const lastPlaySpeed$ = new BehaviorSubject<number | undefined>(undefined);
 
   const onCompleted$ = new Subject<void>();
+
   merge(
     fromEvent(video, 'play'),
     fromEvent(video, 'pause'),
@@ -36,7 +43,31 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
       tap(() => lastPlaySpeed$.next(undefined))
     )
   )
-    .pipe(takeUntil(onCompleted$))
+    .pipe(
+      takeUntil(onCompleted$),
+      buffer(200),
+      map((events) => {
+        const eventTypes = events.map((e) => e.type);
+        if (eventTypes.includes('play') && eventTypes.includes('pause')) {
+          console.log('Ignoring play/pause events');
+          const plays = events.filter((e) => e.type === 'play').length;
+          const pauses = events.filter((e) => e.type === 'pause').length;
+          const otherEvents = events.filter(
+            (e) => e.type !== 'play' && e.type !== 'pause'
+          );
+          if (plays === pauses) {
+            return otherEvents;
+          }
+          if (plays > pauses) {
+            return [...otherEvents, events.find((e) => e.type === 'play')!];
+          } else {
+            return [...otherEvents, events.find((e) => e.type === 'pause')!];
+          }
+        }
+        return events;
+      }),
+      mergeMap((events) => of(...events))
+    )
     .subscribe((event) => {
       switch (event.type) {
         case 'play':
@@ -94,4 +125,25 @@ export const startVideoSyncing = (video: HTMLVideoElement) => {
 
 export const stopVideoSyncing = () => {
   syncedVideo$?.complete();
+};
+
+const buffer = <T>(bufferTime: number): OperatorFunction<T, T[]> => {
+  const start$ = new Subject<void>();
+  let isBuffering = false;
+  return pipe(
+    tap<T>(() => {
+      if (!isBuffering) {
+        start$.next();
+        isBuffering = true;
+      }
+    }),
+    bufferToggle(start$, () => {
+      return of(true).pipe(
+        delay(bufferTime),
+        tap(() => {
+          isBuffering = false;
+        })
+      );
+    })
+  );
 };
