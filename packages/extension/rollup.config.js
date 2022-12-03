@@ -68,6 +68,9 @@ export default [
           process.env.SERVER_HOSTNAME
         ),
         'process.env.SERVER_PORT': JSON.stringify(process.env.SERVER_PORT),
+        'process.env.SERVER_PROTOCOL': JSON.stringify(
+          process.env.SERVER_PROTOCOL
+        ),
       }),
       typescript(),
       commonjs(),
