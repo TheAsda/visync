@@ -1,5 +1,5 @@
-import { bind } from '@react-rxjs/core';
 import { useEffect } from 'react';
+import { bind } from '@react-rxjs/core';
 import { map, startWith } from 'rxjs';
 import { sendCommand } from '../../messageStreams/command';
 import { isSynced$ } from '../../messageStreams/isSynced';

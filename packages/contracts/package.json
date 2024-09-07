@@ -2,12 +2,12 @@
   "name": "visync-contracts",
   "version": "1.0.0",
   "description": "",
+  "license": "ISC",
+  "author": "Andrey Kiselev",
   "typings": "dist/index.d.ts",
-  "devDependencies": {},
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch"
   },
-  "author": "Andrey Kiselev",
-  "license": "ISC"
+  "devDependencies": {}
 }

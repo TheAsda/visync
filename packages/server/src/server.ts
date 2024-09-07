@@ -1,5 +1,5 @@
-import 'dotenv/config';
 import FastifyWebSocket from '@fastify/websocket';
+import 'dotenv/config';
 import Fastify from 'fastify';
 import { clientsRoutes } from './routes/clients.js';
 import { roomsRoutes } from './routes/rooms.js';

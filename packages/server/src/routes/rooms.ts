@@ -24,10 +24,9 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .table<Room>('room')
         .where('room.roomId', roomId)
         .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
+        .select<
+          (Room & Pick<Client, 'clientId'>)[]
+        >('room.*', 'client.clientId');
 
       reply.send(mapRoom(room));
     }
@@ -71,10 +70,9 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .table<Room>('room')
         .where('room.roomId', roomId)
         .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
+        .select<
+          (Room & Pick<Client, 'clientId'>)[]
+        >('room.*', 'client.clientId');
 
       reply.status(201).send(mapRoom(room));
     }
@@ -121,10 +119,9 @@ export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
         .table<Room>('room')
         .where('room.roomId', roomId)
         .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
+        .select<
+          (Room & Pick<Client, 'clientId'>)[]
+        >('room.*', 'client.clientId');
 
       reply.send(mapRoom(room));
     }

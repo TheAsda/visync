@@ -1,5 +1,5 @@
-import { Subscribe } from '@react-rxjs/core';
 import { useEffect } from 'react';
+import { Subscribe } from '@react-rxjs/core';
 import { sendCommand } from '../messageStreams/command';
 import './App.css';
 import { Content } from './components/Content';

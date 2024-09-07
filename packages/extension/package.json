@@ -1,14 +1,14 @@
 {
   "name": "visync-extension",
   "version": "1.0.1",
+  "private": true,
   "description": "",
+  "license": "ISC",
+  "author": "Andrey Kiselev",
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "dev": "rollup --config rollup.config.js --watch"
   },
-  "author": "Andrey Kiselev",
-  "license": "ISC",
-  "private": true,
   "dependencies": {
     "@extend-chrome/menus": "^0.0.3",
     "@extend-chrome/messages": "^1.2.2",

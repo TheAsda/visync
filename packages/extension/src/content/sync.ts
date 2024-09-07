@@ -5,7 +5,7 @@ import {
   SyncStartedNotification,
   SyncStoppedNotification,
 } from '../messageStreams/notification';
-import {} from '../messageStreams/sync';
+import '../messageStreams/sync';
 import { startVideoSyncing, stopVideoSyncing } from './syncVideo';
 
 const contextMenuTarget$ = new BehaviorSubject<HTMLElement | undefined>(

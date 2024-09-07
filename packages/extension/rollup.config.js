@@ -1,15 +1,16 @@
 import { babel } from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import html from '@rollup/plugin-html';
+import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import svgr from '@svgr/rollup';
-import { terser } from 'rollup-plugin-terser';
-import copy from 'rollup-plugin-copy';
-import json from '@rollup/plugin-json';
 import { readFileSync } from 'fs';
+import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
+import { terser } from 'rollup-plugin-terser';
+
 const postcssJitProps = require('postcss-jit-props');
 const OpenProps = require('open-props');
 

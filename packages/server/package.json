@@ -1,19 +1,21 @@
 {
   "name": "visync-server",
   "version": "1.1.0",
-  "description": "",
   "private": true,
+  "description": "",
+  "license": "ISC",
+  "author": "Andrey Kiselev",
+  "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/app.js",
     "test": "ava",
     "test:watch": "ava --watch"
   },
-  "author": "Andrey Kiselev",
-  "license": "ISC",
   "dependencies": {
     "@fastify/websocket": "^6.0.1",
     "dotenv": "^16.0.1",
+    "elysia": "^1.1.12",
     "fastify": "^4.3.0",
     "fastify-plugin": "^4.0.0",
     "knex": "^2.2.0",
@@ -27,6 +29,5 @@
     "ava": "^4.3.1",
     "ts-node": "^10.9.1",
     "visync-contracts": "^1.0.0"
-  },
-  "type": "module"
+  }
 }

@@ -1,5 +1,5 @@
-import clsx from 'clsx';
 import { ComponentPropsWithoutRef } from 'react';
+import clsx from 'clsx';
 import './Input.css';
 
 export const Input = (props: ComponentPropsWithoutRef<'input'>) => {

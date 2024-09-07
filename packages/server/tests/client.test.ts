@@ -1,6 +1,6 @@
-import server from '../src/server.js';
 import test from 'ava';
 import { nanoid } from 'nanoid';
+import server from '../src/server.js';
 
 test('Register client', async (t) => {
   const clientId = nanoid(6);

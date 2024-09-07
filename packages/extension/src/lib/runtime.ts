@@ -11,7 +11,7 @@ const runtime$ = fromEventPattern<
   [
     message: RuntimeMessage,
     sender: chrome.runtime.MessageSender,
-    sendResponse: (response?: any) => void
+    sendResponse: (response?: any) => void,
   ]
 >(
   (handler) => chrome.runtime.onMessage.addListener(handler),

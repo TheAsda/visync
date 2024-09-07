@@ -1,16 +1,16 @@
 import { bind } from '@react-rxjs/core';
 import { map } from 'rxjs';
 import { isSynced$ } from '../../messageStreams/isSynced';
+import { roomClients$ } from '../../messageStreams/roomClients';
 import { roomId$ } from '../../messageStreams/roomId';
 import RoomIcon from '../assets/RoomIcon.svg';
+import { getMessageError } from '../lib/getErrorMessage';
 import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
 import { leaveRoom } from '../lib/runtime/leaveRoom';
-import { getMessageError } from '../lib/getErrorMessage';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';
-import './RoomInfo.css';
 import { ErrorMessage } from './ErrorMessage';
-import { roomClients$ } from '../../messageStreams/roomClients';
+import './RoomInfo.css';
 
 const [useRoomId] = bind(
   roomId$.pipe(

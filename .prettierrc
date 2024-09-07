@@ -1,0 +1,30 @@
+{
+  "semi": true,
+  "singleQuote": true,
+  "printWidth": 80,
+  "endOfLine": "lf",
+  "tabWidth": 2,
+  "useTabs": false,
+  "quoteProps": "as-needed",
+  "trailingComma": "es5",
+  "bracketSpacing": true,
+  "arrowParens": "always",
+  "plugins": [
+    "@trivago/prettier-plugin-sort-imports",
+    "prettier-plugin-packagejson"
+  ],
+  "importOrder": [
+    "telemetry",
+    "^react$",
+    "^react-dom$",
+    "<THIRD_PARTY_MODULES>",
+    "^[./]"
+  ],
+  "importOrderGroupNamespaceSpecifiers": true,
+  "importOrderParserPlugins": [
+    "importAssertions",
+    "jsx",
+    "typescript",
+    "decorators-legacy"
+  ]
+}
