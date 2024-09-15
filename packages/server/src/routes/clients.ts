@@ -1,48 +1,53 @@
-import type { FastifyPluginAsync } from 'fastify';
-import { Client } from '../store/knex.js';
-import { mapClient } from './utils/map.js';
+import { eq } from 'drizzle-orm';
+import { Elysia, error, t } from 'elysia';
+import db from '../store/db.js';
+import { clients } from '../store/schema.js';
 
-export const clientsRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.put('/clients/:clientId', async (request, reply) => {
-    const { clientId } = request.params as { clientId: string };
-
-    const client = await fastify.knex
-      .table<Client>('client')
-      .where('clientId', clientId)
-      .first();
-
-    if (client) {
-      reply.code(400).send({
-        error: `Client ${clientId} already registered`,
-      });
-      return;
-    }
-
-    await fastify.knex.table<Client>('client').insert({ clientId });
-    // TODO: change to returning when knex will be updated
-    const createdClient = await fastify.knex
-      .table<Client>('client')
-      .where('clientId', clientId)
-      .first();
-
-    reply.code(201).send(mapClient(createdClient!));
-  });
-
-  fastify.get('/clients/:clientId', async (request, reply) => {
-    const { clientId } = request.params as { clientId: string };
-
-    const client = await fastify.knex
-      .table<Client>('client')
-      .where('clientId', clientId)
-      .first();
-
-    if (!client) {
-      reply.code(404).send({
-        error: `Client ${clientId} not found`,
-      });
-      return;
-    }
-
-    reply.send(mapClient(client!));
-  });
-};
+export const clientRoutes = new Elysia().group(
+  '/clients/:clientId',
+  {
+    params: t.Object({
+      clientId: t.String(),
+    }),
+  },
+  (app) =>
+    app
+      .put(
+        '/',
+        async ({ params: { clientId } }) => {
+          const client = await db.query.clients.findFirst({
+            where: eq(clients.clientId, clientId),
+          });
+          if (client) {
+            return error(400, 'Client already registered');
+          }
+          const createdClient = await db
+            .insert(clients)
+            .values({ clientId })
+            .returning();
+          return createdClient[0];
+        },
+        {
+          params: t.Object({
+            clientId: t.String(),
+          }),
+        }
+      )
+      .get(
+        '/',
+        async ({ params: { clientId } }) => {
+          const client = await db.query.clients.findFirst({
+            where: eq(clients.clientId, clientId),
+          });
+          if (!client) {
+            return error(404, 'Client not found');
+          }
+          return client;
+        },
+        {
+          params: t.Object({
+            clientId: t.String(),
+          }),
+        }
+      )
+);
