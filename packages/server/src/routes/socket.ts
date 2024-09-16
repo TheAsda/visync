@@ -1,8 +1,23 @@
 import { ServerWebSocket } from 'bun';
 import { eq } from 'drizzle-orm';
-import { Elysia, error, t } from 'elysia';
+import { Elysia, error, Static, t } from 'elysia';
 import db from '../store/db.js';
 import { clients } from '../store/schema.js';
+
+const event = t.Union([
+  t.Object({
+    type: t.Union([t.Literal('pause'), t.Literal('play')]),
+  }),
+  t.Object({
+    type: t.Literal('rewind'),
+    time: t.Number(),
+  }),
+  t.Object({
+    type: t.Literal('play-speed'),
+    speed: t.Number(),
+  }),
+]);
+export type WebSocketEvent = Static<typeof event>;
 
 export const socketRoutes = new Elysia()
   .state('clientSockets', new Map<string, ServerWebSocket<unknown>>())
@@ -55,22 +70,9 @@ export const socketRoutes = new Elysia()
     }
   )
   .ws('/rooms/:roomId/socket', {
-    body: t.Union([
-      t.Object({
-        type: t.Union([t.Literal('pause'), t.Literal('play')]),
-      }),
-      t.Object({
-        type: t.Literal('rewind'),
-        time: t.Number(),
-      }),
-      t.Object({
-        type: t.Literal('play-speed'),
-        speed: t.Number(),
-      }),
-    ]),
+    body: event,
+    response: event,
     message: async (ws, message) => {
-      const { client } = ws.data;
-
       let response;
       switch (message.type) {
         case 'pause':
@@ -106,99 +108,3 @@ export const socketRoutes = new Elysia()
       ws.data.store.clientSockets.delete(clientId);
     },
   });
-
-// export const socketRoutes: FastifyPluginAsync = async (fastify) => {
-//   fastify.get(
-//     '/rooms/:roomId/socket',
-//     { websocket: true },
-//     async (connection, req) => {
-//       connection.socket.on('open', () => {
-//         logger.info(`Socket for ${clientId} is opened`);
-//       });
-
-//       const { roomId } = req.params as { roomId: string };
-//       const { clientId } = req.query as { clientId: string };
-//       if (!clientId) {
-//         throw new Error('Client ID not found in request headers');
-//       }
-//       if (Array.isArray(clientId)) {
-//         throw new Error('Client ID is an array');
-//       }
-//       if (!(await clientExists(fastify.knex, clientId))) {
-//         throw new Error('Client does not exist');
-//       }
-//       if (!(await roomExists(fastify.knex, roomId))) {
-//         throw new Error('Room does not exist');
-//       }
-//       fastify.clientSockets[clientId] = connection.socket;
-//       const client = await fastify.knex
-//         .table<Client>('client')
-//         .where({ clientId })
-//         .first();
-//       if (client?.roomId !== roomId) {
-//         throw new Error('Client is not in the room');
-//       }
-
-//       const translateToOthers = async (response: SocketResponse) => {
-//         const clients = await fastify.knex
-//           .table<Client>('client')
-//           .where({ roomId })
-//           .and.whereNot({ clientId })
-//           .select('clientId');
-
-//         await Promise.all(
-//           clients.map((client) => {
-//             const socket = fastify.clientSockets[client.clientId];
-//             if (!socket) {
-//               logger.warn(`Socket for ${client.clientId} not found`);
-//               return;
-//             }
-//             socket.send(JSON.stringify(response));
-//           })
-//         );
-//       };
-
-//       connection.socket.on('message', async (data) => {
-//         const { type, payload } = JSON.parse(
-//           data.toString('utf8')
-//         ) as SocketRequest;
-
-//         logger.info(`Received ${type} from ${clientId}`);
-
-//         switch (type) {
-//           case 'pause':
-//           case 'play': {
-//             const response: SocketResponse = {
-//               type: type,
-//             };
-//             await translateToOthers(response);
-//             break;
-//           }
-//           case 'rewind': {
-//             const response: SocketResponse = {
-//               type: 'rewind',
-//               payload: { time: payload.time },
-//             };
-//             await translateToOthers(response);
-//             break;
-//           }
-//           case 'play-speed': {
-//             const response: SocketResponse = {
-//               type: 'play-speed',
-//               payload: { speed: payload.speed },
-//             };
-//             await translateToOthers(response);
-//             break;
-//           }
-//           default:
-//             throw new Error(`Unknown request type ${type}`);
-//         }
-//       });
-
-//       connection.socket.on('close', () => {
-//         logger.info(`Socket for ${clientId} is closed`);
-//         delete fastify.clientSockets[clientId];
-//       });
-//     }
-//   );
-// };
