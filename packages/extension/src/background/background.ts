@@ -5,8 +5,8 @@
 // import { ping$ } from '../messageStreams/ping';
 // import { sendRoomClients } from '../messageStreams/roomClients';
 // import { sendRoomId } from '../messageStreams/roomId';
-// import './contextMenu';
-import './install';
+import './commands';
+
 // import { getRoom } from './lib/fetch/getRoom';
 // import { getTabId } from './lib/getTabId';
 // import { handleError } from './lib/handleError';

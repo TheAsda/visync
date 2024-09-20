@@ -7,12 +7,12 @@ import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import svgr from '@svgr/rollup';
 import { readFileSync } from 'fs';
+import OpenProps from 'open-props';
+import postcssJitProps from 'postcss-jit-props';
 import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
 import { terser } from 'rollup-plugin-terser';
-
-const postcssJitProps = require('postcss-jit-props');
-const OpenProps = require('open-props');
+import { hotReloadPlugin } from './hot-reload/hot-reload-plugin.js';
 
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
@@ -22,7 +22,6 @@ if (isProduction) {
   console.log('Building for production');
 }
 
-/** @type { import('rollup').RollupOptions[] } */
 export default [
   {
     input: 'src/popup/main.tsx',
@@ -57,8 +56,32 @@ export default [
       format: 'esm',
     },
   },
+  // {
+  //   input: 'src/content/sync.ts',
+  //   plugins: [
+  //     replace({
+  //       preventAssignment: true,
+  //       'process.env.NODE_ENV': JSON.stringify(
+  //         process.env.NODE_ENV || 'development'
+  //       ),
+  //     }),
+  //     typescript(),
+  //     commonjs(),
+  //     nodeResolve({ browser: true }),
+  //     json(),
+  //     isProduction && terser(),
+  //   ],
+  //   output: {
+  //     file: 'dist/sync.js',
+  //     sourcemap: !isProduction && 'inline',
+  //     format: 'esm',
+  //   },
+  // },
   {
     input: 'src/background/background.ts',
+    watch: {
+      clearScreen: false,
+    },
     plugins: [
       replace({
         preventAssignment: true,
@@ -73,9 +96,10 @@ export default [
           process.env.SERVER_PROTOCOL
         ),
       }),
-      typescript(),
-      commonjs(),
       nodeResolve({ browser: true }),
+      commonjs(),
+      typescript(),
+      hotReloadPlugin(),
       isProduction && terser(),
       copy({
         targets: [
@@ -96,57 +120,6 @@ export default [
       file: 'dist/background.js',
       sourcemap: !isProduction && 'inline',
       format: 'esm',
-    },
-  },
-  {
-    input: 'src/content/sync.ts',
-    plugins: [
-      replace({
-        preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify(
-          process.env.NODE_ENV || 'development'
-        ),
-      }),
-      typescript(),
-      commonjs(),
-      nodeResolve({ browser: true }),
-      json(),
-      isProduction && terser(),
-    ],
-    output: {
-      file: 'dist/sync.js',
-      sourcemap: !isProduction && 'inline',
-      format: 'esm',
-    },
-  },
-  {
-    input: 'src/content/kinopoisk.tsx',
-    plugins: [
-      replace({
-        preventAssignment: true,
-        'process.env.NODE_ENV': JSON.stringify(
-          process.env.NODE_ENV || 'development'
-        ),
-      }),
-      typescript(),
-      babel({
-        presets: ['@babel/preset-react'],
-        babelHelpers: 'bundled',
-        compact: true,
-      }),
-      svgr({ dimensions: false }),
-      commonjs(),
-      nodeResolve({ browser: true }),
-      json(),
-      isProduction && terser(),
-      postcss({
-        plugins: [postcssJitProps(OpenProps)],
-      }),
-    ],
-    output: {
-      file: 'dist/kinopoisk.js',
-      sourcemap: !isProduction && 'inline',
-      format: 'iife',
     },
   },
 ];

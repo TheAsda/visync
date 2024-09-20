@@ -11,6 +11,7 @@ export const Button = (props: ButtonProps) => {
     isLoading = false,
     className,
     disabled = false,
+    type = 'button',
     children,
     ...buttonProps
   } = props;
@@ -20,6 +21,7 @@ export const Button = (props: ButtonProps) => {
       aria-busy={isLoading}
       disabled={isLoading || disabled}
       className={clsx(className, 'button', 'focusable')}
+      type={type}
     >
       {isLoading ? 'Loading...' : children}
     </button>

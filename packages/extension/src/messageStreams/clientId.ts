@@ -1,4 +1,5 @@
-import { createMessageStream } from '../lib/runtime';
+import { createAsyncCommand } from '../lib/async-message';
 
-export const [clientId$, sendClientId] =
-  createMessageStream<string>('clientId');
+export const [getClientId, handleClientId] = createAsyncCommand<void, string>(
+  'client-id'
+);

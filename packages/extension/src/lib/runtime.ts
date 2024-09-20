@@ -1,7 +1,7 @@
 import { nanoid } from 'nanoid';
 import { filter, fromEventPattern, map, shareReplay } from 'rxjs';
 
-type RuntimeMessage<T = any> = {
+export type RuntimeMessage<T = any> = {
   stream: string;
   message: T;
   messageId: string;
@@ -39,7 +39,7 @@ export const createMessageStream = <Message = any>(
     shareReplay(1)
   );
 
-  /** Used to send message to stream */
+  /** Used to send message to stream from background */
   const sendToStream = (message: Message, tabId?: number) => {
     const messageId = nanoid(10);
     const runtimeMessage: RuntimeMessage = {

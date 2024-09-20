@@ -1,19 +1,16 @@
 import { bind } from '@react-rxjs/core';
 import { map } from 'rxjs';
-import { clientId$ } from '../../messageStreams/clientId';
+import useSwr from 'swr';
+import { getClientId } from '../../messageStreams/clientId';
+import { sendCommand } from '../../messageStreams/command';
 import LogoSvg from '../assets/Logo.svg';
-import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
+import { callOnSubscribe } from '../lib/callOnSubscribe';
 import './Header.css';
 
-const [useClientId] = bind(
-  clientId$.pipe(
-    getStatusOnSubscribe,
-    map(({ message }) => message)
-  )
-);
-
 export const Header = () => {
-  const clientId = useClientId();
+  const { data: clientId } = useSwr('client-id', () => getClientId(), {
+    suspense: true,
+  });
 
   return (
     <header className="header">

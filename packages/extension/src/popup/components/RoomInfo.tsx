@@ -5,7 +5,7 @@ import { roomClients$ } from '../../messageStreams/roomClients';
 import { roomId$ } from '../../messageStreams/roomId';
 import RoomIcon from '../assets/RoomIcon.svg';
 import { getMessageError } from '../lib/getErrorMessage';
-import { getStatusOnSubscribe } from '../lib/getOnSubscribe';
+import { getStatusOnSubscribe } from '../lib/callOnSubscribe';
 import { leaveRoom } from '../lib/runtime/leaveRoom';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';

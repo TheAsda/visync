@@ -19,13 +19,6 @@
     "type": "module"
   },
   "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["sync.js"]
-    },
-    {
-      "matches": ["https://hd.kinopoisk.ru/film/*"],
-      "js": ["kinopoisk.js"]
-    }
+    
   ]
 }

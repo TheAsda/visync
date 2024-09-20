@@ -1,24 +1,18 @@
-import { map, share, Subject, switchMap } from 'rxjs';
-import makeWebSocketObservable from 'rxjs-websockets';
-import { SocketRequest } from 'visync-contracts';
-import { serverUrl } from './url';
-
-const address = serverUrl.replace('http', 'ws');
+import { Treaty } from '@elysiajs/eden';
+import { fromEventPattern, map } from 'rxjs';
+import type { WebSocketEvent } from 'server/routes/socket';
+import { apiClient } from './apiClient';
 
 export const createClientSocket = (roomId: string, clientId: string) => {
-  const socketAddress = `${address}/rooms/${roomId}/socket?clientId=${clientId}`;
-  const socket$ = makeWebSocketObservable<string>(socketAddress);
-  const socketInput$ = new Subject<SocketRequest>();
-  const messages$ = socket$.pipe(
-    switchMap((getResponses) => {
-      return getResponses(
-        socketInput$.pipe(map((request) => JSON.stringify(request)))
-      );
-    }),
-    share()
-  );
-  return {
-    socketInput$,
-    messages$,
+  const socket = apiClient
+    .rooms({ roomId })
+    .socket.subscribe({ headers: { 'X-ClientId': clientId } });
+  const messages$ = fromEventPattern<Treaty.WSEvent<'message', WebSocketEvent>>(
+    (handler) => socket.addEventListener('message', handler),
+    (handler) => socket.removeEventListener('message', handler)
+  ).pipe(map(({ data }) => data));
+  const send = (event: WebSocketEvent) => {
+    socket.send(event);
   };
+  return { messages$, send };
 };

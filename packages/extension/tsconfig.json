@@ -5,6 +5,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "jsx": "react-jsx",
-    "lib": ["DOM"]
+    "lib": ["DOM"],
+    "paths": {
+      "server/*": ["../server/src/*"]
+    }
   }
 }

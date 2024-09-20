@@ -1,5 +1,6 @@
-import { createMessageStream } from '../lib/runtime';
+import { createAsyncCommand } from '../lib/async-message';
 
-export const [roomId$, sendRoomId] = createMessageStream<string | undefined>(
-  'room-id'
-);
+export const [getRoomId, handleRoomId] = createAsyncCommand<
+  void,
+  string | undefined
+>('room-id');
