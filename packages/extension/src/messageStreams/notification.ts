@@ -1,4 +1,4 @@
-import { createMessageStream } from '../lib/runtime';
+import { createMessageStream } from '../lib/message-stream';
 import { RuntimeMessage } from '../types/runtimeMessages';
 
 export type SyncStartedNotification = RuntimeMessage<

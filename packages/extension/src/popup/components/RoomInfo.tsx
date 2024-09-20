@@ -7,6 +7,7 @@ import { Button } from './Button';
 import { CopyButton } from './CopyButton';
 import { ErrorMessage } from './ErrorMessage';
 import './RoomInfo.css';
+import { VideoSelector } from './VideoSelector';
 
 export interface RoomInfoProps {
   roomId: string;
@@ -52,6 +53,7 @@ export const RoomInfo = (props: RoomInfoProps) => {
         Leave Room
       </Button>
       {error && <ErrorMessage>{error}</ErrorMessage>}
+      <VideoSelector />
     </div>
   );
 };

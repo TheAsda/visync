@@ -1,4 +1,4 @@
-import { createAsyncCommand } from '../lib/async-message';
+import { createAsyncCommand } from '../lib/async-command';
 
 export const [getRoomId, handleRoomId] = createAsyncCommand<
   void,

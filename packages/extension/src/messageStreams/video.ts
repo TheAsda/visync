@@ -1,5 +1,7 @@
-import { createMessageStream } from '../lib/runtime';
+import { createAsyncCommand } from '../lib/async-command';
+import { createMessageStream } from '../lib/message-stream';
 
 export interface Video {}
 
-export const [videos$, sendVideos] = createMessageStream<Video[]>('videos');
+export const [subscribeToPageVideos, sendPageVideos, onVideoSubscription] =
+  createMessageStream<Video[]>('page-videos');

@@ -1,4 +1,5 @@
 import { nanoid } from 'nanoid';
+import { interval } from 'rxjs';
 import { handleClientId } from '../messageStreams/clientId';
 import { handleRoomId } from '../messageStreams/roomId';
 import { handleRoomInfo } from '../messageStreams/roomInfo';
@@ -6,6 +7,7 @@ import {
   handleCreateRoom,
   handleLeaveRoom,
 } from '../messageStreams/roomOperations';
+import { onVideoSubscription, sendPageVideos } from '../messageStreams/video';
 import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
 
@@ -75,4 +77,8 @@ handleLeaveRoom(async (roomId) => {
   if (res.error !== null) {
     throw res.error.value;
   }
+});
+
+onVideoSubscription(() => {
+  sendPageVideos(Array.from(Array(5), () => Math.random()));
 });

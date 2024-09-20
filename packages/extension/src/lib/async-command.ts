@@ -1,4 +1,5 @@
 import { filter, Observable, tap } from 'rxjs';
+import { runtime$, RuntimeEvent } from './runtime-stream';
 
 type AsyncCommandResponse<Response> =
   | {
@@ -9,26 +10,14 @@ type AsyncCommandResponse<Response> =
 type AsyncCommandRequest<Request = unknown> = {
   name: string;
   payload: Request;
+  __type: 'async-command-request';
 };
 
-const runtime$ = new Observable<{
-  message: AsyncCommandRequest;
-  sender: chrome.runtime.MessageSender;
-  sendResponse: (response?: any) => void;
-}>((subscriber) => {
-  const handler = (
-    message: any,
-    sender: chrome.runtime.MessageSender,
-    sendResponse: (response?: any) => void
-  ) => {
-    subscriber.next({ message, sender, sendResponse });
-    return true;
-  };
-  chrome.runtime.onMessage.addListener(handler);
-  return () => {
-    chrome.runtime.onMessage.removeListener(handler);
-  };
-});
+const asyncCommand$ = runtime$.pipe(
+  filter((event): event is RuntimeEvent<AsyncCommandRequest> =>
+    isAsyncCommandRequest(event.message)
+  )
+);
 
 type AsyncCommandHandler<Request, Response> = (
   request: Request
@@ -44,8 +33,13 @@ export function createAsyncCommand<Request, Response>(name: string) {
 
   const sendCommand = (request: Request) => {
     return new Promise<Response>((resolve, reject) => {
+      const commandRequest: AsyncCommandRequest<Request> = {
+        name,
+        payload: request,
+        __type: 'async-command-request',
+      };
       chrome.runtime.sendMessage(
-        { name, payload: request } satisfies AsyncCommandRequest<Request>,
+        commandRequest,
         (response: AsyncCommandResponse<Response>) => {
           if (isErrorResponse(response)) {
             reject(response.error);
@@ -58,7 +52,7 @@ export function createAsyncCommand<Request, Response>(name: string) {
   };
 
   const handleCommand = (handler: AsyncCommandHandler<Request, Response>) => {
-    return runtime$
+    return asyncCommand$
       .pipe(filter(({ message }) => message.name === name))
       .subscribe(({ message, sendResponse }) => {
         handler(message.payload as Request)
@@ -73,5 +67,16 @@ export function createAsyncCommand<Request, Response>(name: string) {
 function isErrorResponse(response: unknown): response is { error: string } {
   return (
     typeof response === 'object' && response !== null && 'error' in response
+  );
+}
+
+function isAsyncCommandRequest(
+  message: unknown
+): message is AsyncCommandRequest {
+  return (
+    typeof message === 'object' &&
+    message !== null &&
+    '__type' in message &&
+    message.__type === 'async-command-request'
   );
 }
