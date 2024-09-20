@@ -1,49 +1,36 @@
-import { bind } from '@react-rxjs/core';
-import { map } from 'rxjs';
-import { isSynced$ } from '../../messageStreams/isSynced';
-import { roomClients$ } from '../../messageStreams/roomClients';
-import { roomId$ } from '../../messageStreams/roomId';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+import { getRoomInfo } from '../../messageStreams/roomInfo';
+import { leaveRoom } from '../../messageStreams/roomOperations';
 import RoomIcon from '../assets/RoomIcon.svg';
-import { getMessageError } from '../lib/getErrorMessage';
-import { getStatusOnSubscribe } from '../lib/callOnSubscribe';
-import { leaveRoom } from '../lib/runtime/leaveRoom';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';
 import { ErrorMessage } from './ErrorMessage';
 import './RoomInfo.css';
 
-const [useRoomId] = bind(
-  roomId$.pipe(
-    getStatusOnSubscribe,
-    map(({ message }) => message)
-  )
-);
-const [useIsSynced] = bind(
-  isSynced$.pipe(
-    getStatusOnSubscribe,
-    map(({ message }) => message)
-  )
-);
-const [useRoomClientsCount] = bind(
-  roomClients$.pipe(map(({ message }) => message.length)),
-  1
-);
+export interface RoomInfoProps {
+  roomId: string;
+}
 
-const [useErrorMessage, setMessageId] = getMessageError();
+export const RoomInfo = (props: RoomInfoProps) => {
+  const { roomId } = props;
 
-export const RoomInfo = () => {
-  const roomId = useRoomId();
-  const isSynced = useIsSynced();
-  const errorMessage = useErrorMessage();
-  const clientsCount = useRoomClientsCount();
+  const {
+    data: roomInfo,
+    isLoading,
+    error,
+  } = useSWR(['room', roomId], ([_, roomId]) => getRoomInfo(roomId));
+
+  const { isMutating, trigger } = useSWRMutation(
+    'room-id',
+    () => leaveRoom(roomId),
+    {
+      populateCache: () => undefined,
+    }
+  );
 
   const copyRoomId = () => {
-    roomId && navigator.clipboard.writeText(roomId);
-  };
-
-  const leave = () => {
-    const messageId = leaveRoom();
-    setMessageId(messageId);
+    navigator.clipboard.writeText(roomId);
   };
 
   return (
@@ -52,7 +39,7 @@ export const RoomInfo = () => {
         <p className="room-info__text">Room: {roomId}</p>
         <div className="room-info__count-box">
           <RoomIcon />
-          <p className="room-info__count">{clientsCount}</p>
+          <p className="room-info__count">{roomInfo?.clients.length}</p>
         </div>
         <CopyButton
           className="room-info__copy-button"
@@ -60,11 +47,11 @@ export const RoomInfo = () => {
           onClick={copyRoomId}
         />
       </div>
-      <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p>
-      <Button type="button" onClick={leave}>
+      {/* <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p> */}
+      <Button type="button" onClick={() => trigger()} isLoading={isMutating}>
         Leave Room
       </Button>
-      <ErrorMessage>{errorMessage}</ErrorMessage>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
     </div>
   );
 };

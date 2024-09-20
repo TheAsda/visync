@@ -11,7 +11,7 @@ export const Content = () => {
   return (
     <div className="content">
       <Subscribe fallback={<Loader loadingText="Loading room" />}>
-        {roomId ? null : <RoomActions />}
+        {roomId ? <RoomInfo roomId={roomId} /> : <RoomActions />}
       </Subscribe>
     </div>
   );

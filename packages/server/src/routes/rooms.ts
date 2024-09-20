@@ -10,10 +10,7 @@ export const roomsRoutes = new Elysia().group(
       roomId: t.String(),
     }),
     headers: t.Object({
-      'X-ClientId': t.String(),
-    }),
-    body: t.Object({
-      link: t.Optional(t.String()),
+      'x-clientid': t.String(),
     }),
   },
   (app) =>
@@ -23,7 +20,7 @@ export const roomsRoutes = new Elysia().group(
         async ({
           params: { roomId },
           body: { link },
-          headers: { 'X-ClientId': clientId },
+          headers: { 'x-clientid': clientId },
         }) => {
           const room = await db.query.rooms.findFirst({
             where: eq(rooms.roomId, roomId),
@@ -60,11 +57,16 @@ export const roomsRoutes = new Elysia().group(
             return error(500, 'Failed to create room');
           }
           return createdRoom;
+        },
+        {
+          body: t.Object({
+            link: t.Optional(t.String()),
+          }),
         }
       )
       .get(
         '/',
-        async ({ params: { roomId }, headers: { 'X-ClientId': clientId } }) => {
+        async ({ params: { roomId }, headers: { 'x-clientid': clientId } }) => {
           const room = await db.query.rooms.findFirst({
             where: eq(rooms.roomId, roomId),
             with: {
@@ -82,7 +84,7 @@ export const roomsRoutes = new Elysia().group(
       )
       .post(
         '/join',
-        async ({ params: { roomId }, headers: { 'X-ClientId': clientId } }) => {
+        async ({ params: { roomId }, headers: { 'x-clientid': clientId } }) => {
           const room = await db.query.rooms.findFirst({
             where: eq(rooms.roomId, roomId),
           });
@@ -111,7 +113,7 @@ export const roomsRoutes = new Elysia().group(
         '/leave',
         async ({
           params: { roomId },
-          headers: { 'X-ClientId': clientId },
+          headers: { 'x-clientid': clientId },
           set,
         }) => {
           const room = await db.query.rooms.findFirst({

@@ -11,6 +11,7 @@ import OpenProps from 'open-props';
 import postcssJitProps from 'postcss-jit-props';
 import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
+import { swc } from 'rollup-plugin-swc3';
 import { terser } from 'rollup-plugin-terser';
 import { hotReloadPlugin } from './hot-reload/hot-reload-plugin.js';
 
@@ -32,12 +33,13 @@ export default [
           process.env.NODE_ENV || 'development'
         ),
       }),
-      typescript(),
-      babel({
-        presets: ['@babel/preset-react'],
-        babelHelpers: 'bundled',
-        compact: true,
-      }),
+      // typescript(),
+      // babel({
+      //   presets: ['@babel/preset-react'],
+      //   babelHelpers: 'bundled',
+      //   compact: true,
+      // }),
+      swc({}),
       svgr({ dimensions: false }),
       commonjs(),
       nodeResolve({ browser: true }),
@@ -96,9 +98,9 @@ export default [
           process.env.SERVER_PROTOCOL
         ),
       }),
+      swc({}),
       nodeResolve({ browser: true }),
       commonjs(),
-      typescript(),
       hotReloadPlugin(),
       isProduction && terser(),
       copy({
