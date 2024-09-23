@@ -1,4 +1,4 @@
-function run() {
+async function run() {
   const reloadMessage = 'RELOAD';
 
   let isBackground;
@@ -33,7 +33,6 @@ function run() {
       typeof chrome !== 'undefined' &&
       typeof window !== 'undefined' &&
       !window.location.href.startsWith('chrome-extension://');
-    console.log(isContent)
     const contentReadyMessage = 'CONTENT_READY';
     if (isContent) {
       chrome.runtime.onMessage.addListener((message) => {
@@ -43,18 +42,19 @@ function run() {
         }
       });
     } else {
-    }
-    chrome.runtime.onMessage.addListener((message) => {
-      if (message === contentReadyMessage) {
-        setTimeout(() => {
-          chrome.runtime.reload();
-          localStorage.setItem('need-reload', 'true');
-        }, 750);
+      chrome.runtime.onMessage.addListener((message) => {
+        console.log('Message', message);
+        if (message === contentReadyMessage) {
+          setTimeout(async () => {
+            await chrome.storage.local.set({ 'need-reload': 'true' });
+            chrome.runtime.reload();
+          }, 750);
+        }
+      });
+      if (await chrome.storage.local.get('need-reload') === 'true') {
+        await chrome.storage.local.remove('need-reload');
+        location.reload();
       }
-    });
-    if (localStorage.getItem('need-reload') === 'true') {
-      localStorage.removeItem('need-reload');
-      location.reload();
     }
   }
 }
