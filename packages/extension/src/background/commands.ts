@@ -1,13 +1,12 @@
 import { nanoid } from 'nanoid';
-import { interval } from 'rxjs';
-import { handleClientId } from '../messageStreams/clientId';
-import { handleRoomId } from '../messageStreams/roomId';
-import { handleRoomInfo } from '../messageStreams/roomInfo';
+import { handleClientId } from '../popup/commands/clientId';
+import { handlePageVideos } from '../popup/commands/pageVideos';
+import { handleRoomId } from '../popup/commands/roomId';
+import { handleRoomInfo } from '../popup/commands/roomInfo';
 import {
   handleCreateRoom,
   handleLeaveRoom,
-} from '../messageStreams/roomOperations';
-import { onVideoSubscription, sendPageVideos } from '../messageStreams/video';
+} from '../popup/commands/roomOperations';
 import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
 
@@ -79,6 +78,6 @@ handleLeaveRoom(async (roomId) => {
   }
 });
 
-onVideoSubscription(() => {
-  sendPageVideos(Array.from(Array(5), () => Math.random()));
+handlePageVideos(async () => {
+  return [];
 });

@@ -1,6 +1,6 @@
-import { createMessageStream } from '../lib/message-stream';
+import { createEventStream } from '../lib/event-stream';
 
-const [ping$, sendPing] = createMessageStream<void>('ping');
+const [ping$, sendPing] = createEventStream<void>('ping');
 
 const startPinging = () => {
   const interval = setInterval(() => {

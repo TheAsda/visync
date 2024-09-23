@@ -1,5 +1,5 @@
-import { createMessageStream } from '../lib/message-stream';
+import { createEventStream } from '../lib/event-stream';
 import { ClientSettings } from '../types/settings';
 
 export const [settings$, sendSettings] =
-  createMessageStream<ClientSettings>('settings');
+  createEventStream<ClientSettings>('settings');

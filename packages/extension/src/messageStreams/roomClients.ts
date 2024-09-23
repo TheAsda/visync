@@ -1,4 +1,4 @@
-import { createMessageStream } from '../lib/message-stream';
+import { createEventStream } from '../lib/event-stream';
 
 export const [roomClients$, sendRoomClients] =
-  createMessageStream<string[]>('room-clients');
+  createEventStream<string[]>('room-clients');

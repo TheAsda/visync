@@ -25,30 +25,31 @@ type AsyncCommandHandler<Request, Response> = (
 
 const registeredNames = new Set<string>();
 
-export function createAsyncCommand<Request, Response>(name: string) {
+export interface CreateAsyncCommandOptions {
+  /** If true then command will call the content script in active tab */
+  activeTab?: boolean;
+}
+
+export function createAsyncCommand<Request = void, Response = void>(
+  name: string,
+  options: CreateAsyncCommandOptions = {}
+) {
+  const { activeTab = false } = options;
   if (registeredNames.has(name)) {
     throw new Error(`Command ${name} already registered`);
   }
   registeredNames.add(name);
 
-  const sendCommand = (request: Request) => {
-    return new Promise<Response>((resolve, reject) => {
-      const commandRequest: AsyncCommandRequest<Request> = {
-        name,
-        payload: request,
-        __type: 'async-command-request',
-      };
-      chrome.runtime.sendMessage(
-        commandRequest,
-        (response: AsyncCommandResponse<Response>) => {
-          if (isErrorResponse(response)) {
-            reject(response.error);
-          } else {
-            resolve(response);
-          }
-        }
-      );
-    });
+  const sendCommand = (request: Request): Promise<Response> => {
+    const commandRequest: AsyncCommandRequest<Request> = {
+      name,
+      payload: request,
+      __type: 'async-command-request',
+    };
+    if (activeTab) {
+      return sendMessageToActiveTab(commandRequest);
+    }
+    return sendMessage(commandRequest);
   };
 
   const handleCommand = (handler: AsyncCommandHandler<Request, Response>) => {
@@ -62,6 +63,45 @@ export function createAsyncCommand<Request, Response>(name: string) {
   };
 
   return [sendCommand, handleCommand] as const;
+}
+
+function sendMessage<Request, Response>(request: AsyncCommandRequest<Request>) {
+  return new Promise<Response>((resolve, reject) => {
+    chrome.runtime.sendMessage(
+      request,
+      (response: AsyncCommandResponse<Response>) => {
+        if (isErrorResponse(response)) {
+          reject(response.error);
+        } else {
+          resolve(response);
+        }
+      }
+    );
+  });
+}
+
+function sendMessageToActiveTab<Request, Response>(
+  request: AsyncCommandRequest<Request>
+) {
+  return new Promise<Response>((resolve, reject) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length === 0) {
+        reject('No active tab found');
+        return;
+      }
+      chrome.tabs.sendMessage(
+        tabs[0].id!,
+        request,
+        (response: AsyncCommandResponse<Response>) => {
+          if (isErrorResponse(response)) {
+            reject(response.error);
+          } else {
+            resolve(response);
+          }
+        }
+      );
+    });
+  });
 }
 
 function isErrorResponse(response: unknown): response is { error: string } {

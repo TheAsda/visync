@@ -1,4 +1,4 @@
-import { createAsyncCommand } from '../lib/async-command';
+import { createAsyncCommand } from '../../lib/async-command';
 
 export interface RoomInfo {
   roomId: string;

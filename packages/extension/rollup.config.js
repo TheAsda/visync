@@ -58,27 +58,27 @@ export default [
       format: 'esm',
     },
   },
-  // {
-  //   input: 'src/content/sync.ts',
-  //   plugins: [
-  //     replace({
-  //       preventAssignment: true,
-  //       'process.env.NODE_ENV': JSON.stringify(
-  //         process.env.NODE_ENV || 'development'
-  //       ),
-  //     }),
-  //     typescript(),
-  //     commonjs(),
-  //     nodeResolve({ browser: true }),
-  //     json(),
-  //     isProduction && terser(),
-  //   ],
-  //   output: {
-  //     file: 'dist/sync.js',
-  //     sourcemap: !isProduction && 'inline',
-  //     format: 'esm',
-  //   },
-  // },
+  {
+    input: 'src/content/content.ts',
+    plugins: [
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(
+          process.env.NODE_ENV || 'development'
+        ),
+      }),
+      swc({}),
+      commonjs(),
+      nodeResolve({ browser: true }),
+      json(),
+      isProduction && terser(),
+    ],
+    output: {
+      file: 'dist/content.js',
+      sourcemap: !isProduction && 'inline',
+      format: 'esm',
+    },
+  },
   {
     input: 'src/background/background.ts',
     watch: {

@@ -1,6 +1,6 @@
 import { Subscribe } from '@react-rxjs/core';
 import useSWR from 'swr';
-import { getRoomId } from '../../messageStreams/roomId';
+import { getRoomId } from '../commands/roomId';
 import { Loader } from './Loader';
 import { RoomActions } from './RoomActions';
 import { RoomInfo } from './RoomInfo';

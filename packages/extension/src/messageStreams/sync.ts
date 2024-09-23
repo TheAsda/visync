@@ -1,4 +1,4 @@
-import { createMessageStream } from '../lib/message-stream';
+import { createEventStream } from '../lib/event-stream';
 import { RuntimeMessage } from '../types/runtimeMessages';
 
 export type PlayMessage = RuntimeMessage<'play'>;
@@ -12,4 +12,4 @@ export type SyncMessage =
   | RewindMessage
   | PlaySpeedMessage;
 
-export const [sync$, sendSync] = createMessageStream<SyncMessage>('sync');
+export const [sync$, sendSync] = createEventStream<SyncMessage>('sync');

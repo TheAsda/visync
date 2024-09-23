@@ -1,10 +1,6 @@
-import { bind } from '@react-rxjs/core';
-import { map } from 'rxjs';
 import useSwr from 'swr';
-import { getClientId } from '../../messageStreams/clientId';
-import { sendCommand } from '../../messageStreams/command';
 import LogoSvg from '../assets/Logo.svg';
-import { callOnSubscribe } from '../lib/callOnSubscribe';
+import { getClientId } from '../commands/clientId';
 import './Header.css';
 
 export const Header = () => {

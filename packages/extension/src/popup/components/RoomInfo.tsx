@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
-import { getRoomInfo } from '../../messageStreams/roomInfo';
-import { leaveRoom } from '../../messageStreams/roomOperations';
+import { getRoomInfo } from '../commands/roomInfo';
+import { leaveRoom } from '../commands/roomOperations';
 import RoomIcon from '../assets/RoomIcon.svg';
 import { Button } from './Button';
 import { CopyButton } from './CopyButton';

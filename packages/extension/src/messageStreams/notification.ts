@@ -1,4 +1,4 @@
-import { createMessageStream } from '../lib/message-stream';
+import { createEventStream } from '../lib/event-stream';
 import { RuntimeMessage } from '../types/runtimeMessages';
 
 export type SyncStartedNotification = RuntimeMessage<
@@ -10,4 +10,4 @@ export type SyncStoppedNotification = RuntimeMessage<'sync-stopped'>;
 export type Notification = SyncStartedNotification | SyncStoppedNotification;
 
 export const [notification$, sendNotification] =
-  createMessageStream<Notification>('notification');
+  createEventStream<Notification>('notification');

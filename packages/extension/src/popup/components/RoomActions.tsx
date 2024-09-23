@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import useSWRMutation from 'swr/mutation';
-import { createRoom } from '../../messageStreams/roomOperations';
+import { createRoom } from '../commands/roomOperations';
 import { Button } from './Button';
 import { ErrorMessage } from './ErrorMessage';
 import './RoomActions.css';
