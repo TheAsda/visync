@@ -29,17 +29,33 @@ function run() {
       }
     });
   } else {
+    const isContent =
+      typeof chrome !== 'undefined' &&
+      typeof window !== 'undefined' &&
+      !window.location.href.startsWith('chrome-extension://');
+    console.log(isContent)
+    const contentReadyMessage = 'CONTENT_READY';
+    if (isContent) {
+      chrome.runtime.onMessage.addListener((message) => {
+        if (message === reloadMessage) {
+          chrome.runtime.sendMessage(contentReadyMessage);
+          chrome.runtime.reload();
+        }
+      });
+    } else {
+    }
     chrome.runtime.onMessage.addListener((message) => {
-      if (message === reloadMessage) {
+      if (message === contentReadyMessage) {
         setTimeout(() => {
-          if (location) {
-            location.reload();
-          } else {
-            chrome.runtime.reload();
-          }
+          chrome.runtime.reload();
+          localStorage.setItem('need-reload', 'true');
         }, 750);
       }
     });
+    if (localStorage.getItem('need-reload') === 'true') {
+      localStorage.removeItem('need-reload');
+      location.reload();
+    }
   }
 }
 run();
