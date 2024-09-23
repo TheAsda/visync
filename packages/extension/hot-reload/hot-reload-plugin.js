@@ -7,11 +7,9 @@ const hotReloadScript = readFileSync('./hot-reload/hot-reload.js', 'utf8');
 export function hotReloadPlugin() {
   let indexPath;
 
-  let ws;
-
   if (isDev) {
     startWebSocket((_ws) => {
-      ws = _ws;
+      globalThis.ws = _ws;
     });
   }
 
@@ -38,9 +36,9 @@ export function hotReloadPlugin() {
         return;
       }
       setTimeout(async () => {
-        if (ws) {
+        if (globalThis.ws) {
           console.log('Reloading extension');
-          ws.send('file-change');
+          globalThis.ws.send('file-change');
         }
       }, 500);
     },
@@ -48,7 +46,10 @@ export function hotReloadPlugin() {
 }
 
 function startWebSocket(callback) {
-  Bun.serve({
+  if (globalThis.server) {
+    return;
+  }
+  globalThis.server = Bun.serve({
     fetch(req, server) {
       if (server.upgrade(req)) {
         return;

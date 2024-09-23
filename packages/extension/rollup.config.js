@@ -33,6 +33,7 @@ export default [
           process.env.NODE_ENV || 'development'
         ),
       }),
+      hotReloadPlugin(),
       // typescript(),
       // babel({
       //   presets: ['@babel/preset-react'],

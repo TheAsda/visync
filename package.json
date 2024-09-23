@@ -12,6 +12,7 @@
     "packages/extension"
   ],
   "scripts": {
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "build:extension": "turbo run build --filter=visync-extension",
     "build:server": "turbo run build --filter=visync-server",
@@ -25,5 +26,6 @@
     "rollup": "^4.21.3",
     "turbo": "^2.1.2",
     "typescript": "^5.6.2"
-  }
+  },
+  "packageManager": "bun@1.1.27"
 }

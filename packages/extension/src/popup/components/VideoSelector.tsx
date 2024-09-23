@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import useSWR from 'swr';
-import { dispatchVideoEvent, getPageVideos } from '../commands/pageVideos';
+import { getPageVideos } from '../commands/pageVideos';
 import { Video } from '../lib/video';
+import { Button } from './Button';
+import './VideoSelector.css';
 
 export const VideoSelector = () => {
   const { data, isLoading } = useSWR('page-videos', () => getPageVideos());
@@ -27,6 +29,7 @@ export const VideoSelector = () => {
             }}
           >
             {video.index}
+            <Button>Sync</Button>
           </li>
         ))}
       </ol>
