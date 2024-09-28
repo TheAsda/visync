@@ -49,5 +49,6 @@ h6 {
 
 * {
   color: var(--blue-1);
+  padding: 0;
   margin: 0;
 }

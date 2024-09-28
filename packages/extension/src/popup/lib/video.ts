@@ -1,17 +1,30 @@
-import { dispatchVideoEvent } from '../commands/pageVideos';
+import {
+  dispatchVideoEvent,
+  durationStream,
+  VideoInfo,
+} from '../commands/pageVideos';
 
 export class Video {
-  constructor(readonly index: number) {}
+  constructor(readonly info: VideoInfo) {}
 
   highlight() {
-    dispatchVideoEvent({ type: 'highlight', index: this.index });
+    dispatchVideoEvent({ type: 'highlight', id: this.info.id });
   }
 
   unhighlight() {
-    dispatchVideoEvent({ type: 'unhighlight', index: this.index });
+    dispatchVideoEvent({ type: 'unhighlight', id: this.info.id });
   }
 
   sync() {
     throw new Error('Not implemented');
+  }
+
+  subscribeToDurationChange(callback: (currentTime: number) => void) {
+    return durationStream(
+      (data) => {
+        callback(data.currentTime);
+      },
+      { videoId: this.info.id }
+    );
   }
 }

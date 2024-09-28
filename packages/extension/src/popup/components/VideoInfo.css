@@ -1,0 +1,21 @@
+.video-info {
+  all: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--size-2);
+  border: var(--border-size-1) solid var(--blue-1);
+  border-radius: var(--radius-2);
+  padding: 0 var(--size-2);
+}
+
+.video-info__sync-button {
+  appearance: none;
+  background: var(--violet-5);
+  margin: var(--size-1) 0;
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-1);
+  padding: 0 var(--size-1);
+  cursor: pointer;
+  border: none;
+}

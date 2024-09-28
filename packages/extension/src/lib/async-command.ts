@@ -84,7 +84,7 @@ function sendMessageToActiveTab<Request, Response>(
   request: AsyncCommandRequest<Request>
 ) {
   return new Promise<Response>((resolve, reject) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
       if (tabs.length === 0) {
         reject('No active tab found');
         return;

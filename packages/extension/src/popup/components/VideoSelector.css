@@ -5,7 +5,6 @@
   gap: var(--size-2);
 }
 
-.video-selector__item {
-  display: flex;
-  justify-content: space-between;
+.video-selector__list {
+  list-style: none;
 }

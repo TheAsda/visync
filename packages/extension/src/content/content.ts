@@ -1,45 +1,46 @@
+import { retrieveRootParamters } from 'elysia/dist/sucrose';
+import { interval, tap } from 'rxjs';
 import {
   handleDispatchVideoEvent,
   handlePageVideos,
+  onDurationSubscribe,
 } from '../popup/commands/pageVideos';
-import { VideoDetector } from './videoDetector';
+import { detectVideos, Video } from './videoUtils';
 
-const videoDetector = new VideoDetector();
-
-const observer = new MutationObserver(() => {
-  videoDetector.updateVideos();
-});
-
-observer.observe(document.body, { subtree: true, childList: true });
+let pageVideos: Video[] = [];
 
 handlePageVideos(async () => {
-  return videoDetector.videos;
+  pageVideos = detectVideos();
+  return pageVideos.map((video) => video.getInfo());
 });
 
-const higlighters = new Map<number, HTMLDivElement>();
-
 handleDispatchVideoEvent(async (event) => {
-  const video = videoDetector.videos[event.index];
+  const video = pageVideos.find((video) => video.id === event.id);
   if (!video) {
-    console.warn(`Video ${event.index} not found`);
+    console.warn(`Video ${event.id} not found`);
     return;
   }
 
   switch (event.type) {
     case 'highlight':
-      const { left, right, top, bottom } = video.getBoundingClientRect();
-      const highligter = document.createElement('div');
-      highligter.style.border = '2px solid red';
-      highligter.style.position = 'absolute';
-      highligter.style.left = `${left}px`;
-      highligter.style.top = `${top}px`;
-      highligter.style.width = `${right - left}px`;
-      highligter.style.height = `${bottom - top}px`;
-      higlighters.set(event.index, highligter);
-      document.body.appendChild(highligter);
+      video.highlight();
       break;
     case 'unhighlight':
-      higlighters.get(event.index)?.remove();
+      video.unhighlight();
       break;
   }
+});
+
+onDurationSubscribe(({ videoId }, sendDuration) => {
+  const video = pageVideos.find((video) => video.id === videoId);
+  if (!video) {
+    console.warn(`Video ${videoId} not found`);
+    return;
+  }
+  const subscription = interval(1000).subscribe(() => {
+    sendDuration({ currentTime: video.element.currentTime });
+  });
+  return () => {
+    subscription.unsubscribe();
+  };
 });
