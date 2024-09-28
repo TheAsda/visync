@@ -58,7 +58,7 @@ export function createAsyncCommand<Request = void, Response = void>(
       .subscribe(({ message, sendResponse }) => {
         handler(message.payload as Request)
           .then((res) => sendResponse(res))
-          .catch((err) => sendResponse({ error: err.message }));
+          .catch((err) => sendResponse({ error: extractError(err) }));
       }).unsubscribe;
   };
 
@@ -119,4 +119,11 @@ function isAsyncCommandRequest(
     '__type' in message &&
     message.__type === 'async-command-request'
   );
+}
+
+function extractError(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
 }

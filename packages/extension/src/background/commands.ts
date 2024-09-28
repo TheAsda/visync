@@ -1,4 +1,10 @@
+import { EdenWS } from '@elysiajs/eden/dist/treaty';
 import { nanoid } from 'nanoid';
+import { WebSocketEvent } from 'server/routes/socket';
+import {
+  handleVideoEvent,
+  onVideoEventSubscribe,
+} from '../content/commands/videoEvents';
 import { handleClientId } from '../popup/commands/clientId';
 import { handlePageVideos } from '../popup/commands/pageVideos';
 import { handleRoomId } from '../popup/commands/roomId';
@@ -80,4 +86,47 @@ handleLeaveRoom(async (roomId) => {
 
 handlePageVideos(async () => {
   return [];
+});
+
+let socket:
+  | EdenWS<{
+      body: WebSocketEvent;
+    }>
+  | undefined;
+
+handleVideoEvent(async (event) => {
+  switch (event.type) {
+    case 'start-sync':
+      if (socket) {
+        throw new Error('Already syncing');
+      }
+      const clientId = await getClientId();
+      const s = apiClient.clients({ clientId }).socket.subscribe();
+      onVideoEventSubscribe((_, sendEvent) => {
+        s.subscribe((message) => {
+          switch (message.type) {
+            case 'play':
+            case 'pause':
+              sendEvent({ type: message.type });
+              break;
+          }
+        });
+      });
+      socket = s;
+      break;
+    case 'stop-sync':
+      if (!socket) {
+        throw new Error('Not syncing');
+      }
+      socket.close();
+      socket = undefined;
+      break;
+    case 'play':
+    case 'pause':
+      if (!socket) {
+        throw new Error('Not syncing');
+      }
+      socket.send({ type: event.type });
+      break;
+  }
 });

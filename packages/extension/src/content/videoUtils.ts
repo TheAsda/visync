@@ -1,15 +1,24 @@
-import { fromEvent, merge, Observable, Subscription } from 'rxjs';
+import { fromEvent, merge, Subscription, tap } from 'rxjs';
 import type { VideoInfo } from '../popup/commands/pageVideos';
+import {
+  eventsStream,
+  sendVideoEvent,
+  VideoEvent,
+} from './commands/videoEvents';
 
 let id = 0;
+
+type VideoState = 'playing' | 'paused';
 
 export class Video {
   id: number;
   highlighter: HTMLDivElement | undefined;
   sync$: Subscription | undefined;
+  state: VideoState;
 
   constructor(readonly element: HTMLVideoElement) {
     this.id = id++;
+    this.state = getVideoState(element);
   }
 
   highlight() {
@@ -46,21 +55,59 @@ export class Video {
     };
   }
 
-  startSyncing() {
+  async startSyncing() {
     if (this.sync$) {
       this.stopSyncing();
     }
+    await sendVideoEvent({ type: 'start-sync' });
 
     const play$ = fromEvent(this.element, 'play');
     const pause$ = fromEvent(this.element, 'pause');
+    this.state = getVideoState(this.element);
 
-    this.sync$ = merge(play$, pause$).subscribe((event) => {
-      console.log('Video event: ', event.type);
+    const stopServerEvents = eventsStream((serverEvent) => {
+      console.log('Got server event', serverEvent);
+      switch (serverEvent.type) {
+        case 'play':
+          this.state = 'playing';
+          this.element.play();
+          break;
+        case 'pause':
+          this.state = 'paused';
+          this.element.pause();
+          break;
+      }
     });
+    this.sync$ = merge(play$, pause$)
+      .pipe(
+        tap({
+          unsubscribe: () => stopServerEvents(),
+        })
+      )
+      .subscribe((event) => {
+        if (this.state === getVideoState(this.element)) {
+          console.log(`Video is already ${this.state}`);
+          return;
+        }
+        let videoEvent: VideoEvent;
+        switch (event.type) {
+          case 'play':
+          case 'pause':
+            videoEvent = {
+              type: event.type,
+            };
+            break;
+          default:
+            throw new Error(`Unsupported event type: ${event.type}`);
+        }
+        sendVideoEvent(videoEvent);
+        this.state = getVideoState(this.element);
+      });
   }
 
   stopSyncing() {
     if (this.sync$) {
+      sendVideoEvent({ type: 'stop-sync' });
       this.sync$.unsubscribe();
       this.sync$ = undefined;
     }
@@ -77,4 +124,11 @@ export function detectVideos(oldVideos: Video[]): Video[] {
     }
     return new Video(element);
   });
+}
+
+function getVideoState(element: HTMLVideoElement): VideoState {
+  if (element.paused) {
+    return 'paused';
+  }
+  return 'playing';
 }

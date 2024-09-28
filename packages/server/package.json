@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "build": "bun build src/app.ts --target bun --outdir ./dist",
-    "dev": "bun --watch src/app.ts",
+    "dev": "bun --watch --inspect src/app.ts",
     "generate": "drizzle-kit generate",
     "start": "NODE_ENV=production bun dist/app.js",
     "test": "ava",
@@ -17,7 +17,8 @@
   "dependencies": {
     "drizzle-orm": "^0.33.0",
     "drizzle-typebox": "^0.1.1",
-    "elysia": "^1.1.12",
+    "elysia": "^1.1.16",
+    "logixlysia": "^3.7.0",
     "winston": "^3.8.1"
   },
   "devDependencies": {

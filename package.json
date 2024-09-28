@@ -17,14 +17,14 @@
     "build:extension": "turbo run build --filter=visync-extension",
     "build:server": "turbo run build --filter=visync-server",
     "start:server": "npm run start -w visync-server",
-    "start:sample":"serve ./sample"
+    "start:sample": "serve ./sample"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
-    "@types/bun": "^1.1.9",
+    "@types/bun": "^1.1.10",
     "prettier": "^3.3.3",
     "prettier-plugin-packagejson": "^2.5.2",
-    "rollup": "^4.21.3",
+    "rollup": "^4.22.5",
     "serve": "^14.2.3",
     "turbo": "^2.1.2",
     "typescript": "^5.6.2"

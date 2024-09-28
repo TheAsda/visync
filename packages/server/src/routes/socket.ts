@@ -19,92 +19,91 @@ const event = t.Union([
 ]);
 export type WebSocketEvent = Static<typeof event>;
 
-export const socketRoutes = new Elysia()
-  .state('clientSockets', new Map<string, ServerWebSocket<unknown>>())
-  .guard({
-    params: t.Object({
-      roomId: t.String(),
-    }),
-    headers: t.Object({
-      'X-ClientId': t.String(),
-    }),
-  })
-  .derive(
-    async ({
-      headers: { 'X-ClientId': clientId },
-      store: { clientSockets },
-    }) => {
-      const client = await db.query.clients.findFirst({
-        where: eq(clients.clientId, clientId!),
-        with: {
-          room: {
-            with: {
-              clients: true,
-            },
+const clientSockets = new Map<string, ServerWebSocket<unknown>>();
+
+export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
+  body: event,
+  response: event,
+  params: t.Object({
+    clientId: t.String(),
+  }),
+  message: async (ws, message) => {
+    console.log('ws message:', message);
+    const clientId = ws.data.params.clientId;
+
+    const client = await db.query.clients.findFirst({
+      where: eq(clients.clientId, clientId),
+      with: {
+        room: {
+          with: {
+            clients: true,
           },
         },
-      });
-      if (!client) {
-        return error(400, 'Client does not exist');
-      }
-      if (!client.roomId) {
-        return error(400, 'Client is not in a room');
-      }
-      if (!client.room) {
-        return error(400, 'Room does not exist');
-      }
-      const notifyOthersInRoom = (message: object) => {
-        for (const c of client.room!.clients) {
-          if (c.clientId === client.clientId) {
-            continue;
-          }
-          const socket = clientSockets.get(c.clientId);
-          if (!socket) {
-            console.warn(`Socket for ${c.clientId} not found`);
-            return;
-          }
-          socket.send(JSON.stringify(message));
-        }
-      };
-      return { client, notifyOthersInRoom };
+      },
+    });
+    if (!client) {
+      return error(400, 'Client does not exist');
     }
-  )
-  .ws('/rooms/:roomId/socket', {
-    body: event,
-    response: event,
-    message: async (ws, message) => {
-      let response;
-      switch (message.type) {
-        case 'pause':
-        case 'play': {
-          response = { type: message.type };
-          break;
+    if (!client.roomId) {
+      return error(400, 'Client is not in a room');
+    }
+    if (!client.room) {
+      return error(400, 'Room does not exist');
+    }
+    const notifyOthersInRoom = (message: object) => {
+      for (const c of client.room!.clients) {
+        if (c.clientId === client.clientId) {
+          continue;
         }
-        case 'rewind': {
-          response = {
-            type: 'rewind',
-            time: message.time,
-          };
-          break;
+        const socket = clientSockets.get(c.clientId);
+        if (!socket) {
+          console.warn(`Socket for ${c.clientId} not found`);
+          return;
         }
-        case 'play-speed': {
-          response = {
-            type: 'play-speed',
-            speed: message.speed,
-          };
-          break;
-        }
-        default:
-          throw new Error(`Unknown request message ${message}`);
+        socket.send(JSON.stringify(message));
       }
-      ws.data.notifyOthersInRoom(response);
-    },
-    open: async (ws) => {
-      const clientId = ws.data.headers['X-ClientId']!;
-      ws.data.store.clientSockets.set(clientId, ws.raw);
-    },
-    close: (ws) => {
-      const clientId = ws.data.headers['X-ClientId']!;
-      ws.data.store.clientSockets.delete(clientId);
-    },
-  });
+    };
+    let response;
+    switch (message.type) {
+      case 'pause':
+      case 'play': {
+        response = { type: message.type };
+        break;
+      }
+      case 'rewind': {
+        response = {
+          type: 'rewind',
+          time: message.time,
+        };
+        break;
+      }
+      case 'play-speed': {
+        response = {
+          type: 'play-speed',
+          speed: message.speed,
+        };
+        break;
+      }
+      default:
+        throw new Error(`Unknown request message ${message}`);
+    }
+    notifyOthersInRoom(response);
+
+    if (message.type === 'pause' || message.type === 'play') {
+      const otherMessage = {
+        type: message.type === 'pause' ? 'play' : 'pause',
+      };
+      setTimeout(() => {
+        ws.raw.send(JSON.stringify(otherMessage));
+      }, 2000);
+    }
+  },
+  open: async (ws) => {
+    const clientId = ws.data.params.clientId;
+    clientSockets.set(clientId, ws.raw);
+  },
+  close: (ws) => {
+    const clientId = ws.data.params.clientId;
+    clientSockets.delete(clientId);
+  },
+});
