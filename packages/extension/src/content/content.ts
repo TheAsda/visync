@@ -1,25 +1,30 @@
-import { retrieveRootParamters } from 'elysia/dist/sucrose';
-import { interval, tap } from 'rxjs';
+import { interval } from 'rxjs';
 import {
   handleDispatchVideoEvent,
   handlePageVideos,
+  handleStartSyncVideo,
+  handleStopSyncVideo,
   onDurationSubscribe,
 } from '../popup/commands/pageVideos';
 import { detectVideos, Video } from './videoUtils';
 
 let pageVideos: Video[] = [];
 
+function getVideo(videoId: number): Video {
+  const video = pageVideos.find((video) => video.id === videoId);
+  if (!video) {
+    throw new Error(`Video ${videoId} not found`);
+  }
+  return video;
+}
+
 handlePageVideos(async () => {
-  pageVideos = detectVideos();
+  pageVideos = detectVideos(pageVideos);
   return pageVideos.map((video) => video.getInfo());
 });
 
 handleDispatchVideoEvent(async (event) => {
-  const video = pageVideos.find((video) => video.id === event.id);
-  if (!video) {
-    console.warn(`Video ${event.id} not found`);
-    return;
-  }
+  const video = getVideo(event.id);
 
   switch (event.type) {
     case 'highlight':
@@ -31,16 +36,22 @@ handleDispatchVideoEvent(async (event) => {
   }
 });
 
-onDurationSubscribe(({ videoId }, sendDuration) => {
-  const video = pageVideos.find((video) => video.id === videoId);
-  if (!video) {
-    console.warn(`Video ${videoId} not found`);
-    return;
-  }
+onDurationSubscribe(({ videoId }, sendInfo) => {
+  const video = getVideo(videoId);
   const subscription = interval(1000).subscribe(() => {
-    sendDuration({ currentTime: video.element.currentTime });
+    sendInfo(video.getInfo());
   });
   return () => {
     subscription.unsubscribe();
   };
+});
+
+handleStartSyncVideo(async (videoId) => {
+  const video = getVideo(videoId);
+  video.startSyncing();
+});
+
+handleStopSyncVideo(async (videoId) => {
+  const video = getVideo(videoId);
+  video.stopSyncing();
 });

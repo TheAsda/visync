@@ -36,10 +36,12 @@ export const createEventStream = <SubscribeData = void, Event = void>(
   ) => {
     if (activeTab) {
       const port = createPortToActiveTab(name).then((port) => {
-        const messages$ = fromEventPattern<Event>(
-          port.onMessage.addListener,
-          port.onMessage.removeListener
-        ).subscribe(callback);
+        const messages$ = fromEventPattern<[Event, chrome.runtime.Port]>(
+          (handler) => port.onMessage.addListener(handler),
+          (handler) => port.onMessage.removeListener(handler)
+        ).subscribe(([message]) => {
+          callback(message);
+        });
         const subEvent: SubEvent<SubscribeData> = {
           name,
           event: { type: 'SUB', data },

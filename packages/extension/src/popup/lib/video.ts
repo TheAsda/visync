@@ -1,6 +1,8 @@
 import {
   dispatchVideoEvent,
   durationStream,
+  startSyncVideo,
+  stopSyncVideo,
   VideoInfo,
 } from '../commands/pageVideos';
 
@@ -15,14 +17,18 @@ export class Video {
     dispatchVideoEvent({ type: 'unhighlight', id: this.info.id });
   }
 
-  sync() {
-    throw new Error('Not implemented');
+  startSync() {
+    return startSyncVideo(this.info.id);
   }
 
-  subscribeToDurationChange(callback: (currentTime: number) => void) {
+  stopSync() {
+    return stopSyncVideo(this.info.id);
+  }
+
+  subscribeToVideoChange(callback: (info: VideoInfo) => void) {
     return durationStream(
       (data) => {
-        callback(data.currentTime);
+        callback(data);
       },
       { videoId: this.info.id }
     );

@@ -1,5 +1,5 @@
 import { filter, Observable, tap } from 'rxjs';
-import { runtime$, RuntimeEvent } from './runtime-stream';
+import { runtime$, RuntimeMessage } from './runtime-stream';
 
 type AsyncCommandResponse<Response> =
   | {
@@ -14,7 +14,7 @@ type AsyncCommandRequest<Request = unknown> = {
 };
 
 const asyncCommand$ = runtime$.pipe(
-  filter((event): event is RuntimeEvent<AsyncCommandRequest> =>
+  filter((event): event is RuntimeMessage<AsyncCommandRequest> =>
     isAsyncCommandRequest(event.message)
   )
 );

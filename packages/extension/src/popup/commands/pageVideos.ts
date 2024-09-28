@@ -7,6 +7,7 @@ export interface VideoInfo {
   currentTime: number;
   duration: number;
   playSpeed: number;
+  isSynced: boolean;
 }
 
 export const [getPageVideos, handlePageVideos] = createAsyncCommand<
@@ -24,5 +25,15 @@ export const [dispatchVideoEvent, handleDispatchVideoEvent] =
 
 export const [durationStream, onDurationSubscribe] = createEventStream<
   { videoId: number },
-  { currentTime: number }
->('duration-update', { activeTab: true });
+  VideoInfo
+>('video-update', { activeTab: true });
+
+export const [startSyncVideo, handleStartSyncVideo] = createAsyncCommand<number>(
+  'start-sync-video',
+  { activeTab: true }
+);
+
+export const [stopSyncVideo, handleStopSyncVideo] = createAsyncCommand<number>(
+  'stop-sync-video',
+  { activeTab: true }
+);

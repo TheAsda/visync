@@ -19,3 +19,16 @@
   cursor: pointer;
   border: none;
 }
+
+.video-info__sync-button:hover {
+  background: var(--violet-6);
+}
+
+.video-info__sync-button:active {
+  background: var(--violet-7);
+}
+
+.video-info__sync-button[aria-busy='true'] {
+  cursor: progress;
+  background-color: var(--violet-4);
+}

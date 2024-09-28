@@ -1,25 +1,43 @@
+import useSWRMutation from 'swr/mutation';
 import useSWRSubscription from 'swr/subscription';
+import { VideoInfo as VInfo } from '../commands/pageVideos';
 import { formatDuration } from '../lib/duration';
 import { Video } from '../lib/video';
-import { Button } from './Button';
 import './VideoInfo.css';
 
-export interface VideoInfo {
+export interface VideoInfoProps {
   video: Video;
 }
 
-export const VideoInfo = (props: VideoInfo) => {
+export const VideoInfo = (props: VideoInfoProps) => {
   const { video } = props;
 
-  const { data: currentTime } = useSWRSubscription<number>(
-    ['currentTime', video.info.id],
-    (key: string, { next }: { next: (err: null, time: number) => void }) => {
-      return video.subscribeToDurationChange((time) => {
-        next(null, time);
+  const { data: currentVideo } = useSWRSubscription<VInfo>(
+    ['video', video.info.id],
+    (key: string, { next }: { next: (err: null, info: VInfo) => void }) => {
+      return video.subscribeToVideoChange((info) => {
+        next(null, info);
       });
     },
-    { fallbackData: video.info.currentTime }
+    { fallbackData: video.info }
   );
+
+  const { trigger: startSync, isMutating: isStarting } = useSWRMutation(
+    ['video', video.info.id],
+    () => video.startSync()
+  );
+  const { trigger: stopSync, isMutating: isStopping } = useSWRMutation(
+    ['video', video.info.id],
+    () => video.stopSync()
+  );
+
+  const toggleSync = () => {
+    if (currentVideo?.isSynced) {
+      stopSync();
+    } else {
+      startSync();
+    }
+  };
 
   return (
     <li
@@ -28,9 +46,16 @@ export const VideoInfo = (props: VideoInfo) => {
       onMouseLeave={() => video.unhighlight()}
     >
       <div className="video-info__id">{video.info.title ?? video.info.id}</div>
-      <div className="video-info__duration">{`${formatDuration(currentTime)}/${formatDuration(video.info.duration)}`}</div>
-      <div className="video-info__play-speed">({video.info.playSpeed}x)</div>
-      <button className="video-info__sync-button focusable">Sync</button>
+      <div className="video-info__duration">{`${formatDuration(currentVideo?.currentTime)}/${formatDuration(currentVideo?.duration)}`}</div>
+      <div className="video-info__play-speed">({currentVideo?.playSpeed}x)</div>
+      <button
+        className="video-info__sync-button focusable"
+        onClick={toggleSync}
+        disabled={isStarting || isStopping}
+        aria-busy={isStarting || isStopping}
+      >
+        {!currentVideo?.isSynced ? 'Sync' : 'Unsync'}
+      </button>
     </li>
   );
 };

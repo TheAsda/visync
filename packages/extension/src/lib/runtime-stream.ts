@@ -1,12 +1,12 @@
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
-export type RuntimeEvent<T = unknown> = {
+export type RuntimeMessage<T = unknown> = {
   message: T;
   sender: chrome.runtime.MessageSender;
   sendResponse: (response?: any) => void;
 };
 
-export const runtime$ = new Observable<RuntimeEvent>((subscriber) => {
+export const runtime$ = new Observable<RuntimeMessage>((subscriber) => {
   const handler = (
     message: any,
     sender: chrome.runtime.MessageSender,
@@ -19,4 +19,10 @@ export const runtime$ = new Observable<RuntimeEvent>((subscriber) => {
   return () => {
     chrome.runtime.onMessage.removeListener(handler);
   };
-});
+}).pipe(
+  tap({
+    next: (event) => {
+      console.debug(`[Runtime] Message:`, event.message);
+    },
+  })
+);
