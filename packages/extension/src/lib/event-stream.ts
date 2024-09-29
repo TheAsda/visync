@@ -34,31 +34,30 @@ export const createEventStream = <SubscribeData = void, Event = void>(
     callback: (message: Event) => void,
     data: SubscribeData
   ) => {
-    if (activeTab) {
-      const port = createPortToActiveTab(name).then((port) => {
-        const messages$ = fromEventPattern<[Event, chrome.runtime.Port]>(
-          (handler) => port.onMessage.addListener(handler),
-          (handler) => port.onMessage.removeListener(handler)
-        ).subscribe(([message]) => {
-          callback(message);
-        });
-        const subEvent: SubEvent<SubscribeData> = {
-          name,
-          event: { type: 'SUB', data },
-          __type: 'stream-event',
-        };
-        port.postMessage(subEvent);
-        port.onDisconnect.addListener(() => messages$.unsubscribe());
-        return port;
+    let port = activeTab
+      ? createPortToActiveTab(name)
+      : createPortToBackground(name);
+    port = port.then((port) => {
+      const messages$ = fromEventPattern<[Event, chrome.runtime.Port]>(
+        (handler) => port.onMessage.addListener(handler),
+        (handler) => port.onMessage.removeListener(handler)
+      ).subscribe(([message]) => {
+        callback(message);
       });
-      return () => {
-        port.then((port) => {
-          port.disconnect();
-        });
+      const subEvent: SubEvent<SubscribeData> = {
+        name,
+        event: { type: 'SUB', data },
+        __type: 'stream-event',
       };
-    } else {
-      throw new Error('Not implemented');
-    }
+      port.postMessage(subEvent);
+      port.onDisconnect.addListener(() => messages$.unsubscribe());
+      return port;
+    });
+    return () => {
+      port.then((port) => {
+        port.disconnect();
+      });
+    };
   };
 
   const onStreamSubscribe = (
@@ -108,4 +107,8 @@ async function createPortToActiveTab(name: string) {
     throw new Error('No active tab found');
   }
   return chrome.tabs.connect(tabs[0].id!, { name });
+}
+
+async function createPortToBackground(name: string) {
+  return chrome.runtime.connect({ name });
 }

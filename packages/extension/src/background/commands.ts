@@ -103,11 +103,15 @@ handleVideoEvent(async (event) => {
       const clientId = await getClientId();
       const s = apiClient.clients({ clientId }).socket.subscribe();
       onVideoEventSubscribe((_, sendEvent) => {
+        console.log(
+          'Got subscription to socket events, translating socket messages to content'
+        );
         s.subscribe((message) => {
-          switch (message.type) {
+          console.log('Got message from socket', message.data);
+          switch (message.data.type) {
             case 'play':
             case 'pause':
-              sendEvent({ type: message.type });
+              sendEvent({ type: message.data.type });
               break;
           }
         });
