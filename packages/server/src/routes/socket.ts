@@ -88,15 +88,6 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
         throw new Error(`Unknown request message ${message}`);
     }
     notifyOthersInRoom(response);
-
-    if (message.type === 'pause' || message.type === 'play') {
-      const otherMessage = {
-        type: message.type === 'pause' ? 'play' : 'pause',
-      };
-      setTimeout(() => {
-        ws.raw.send(JSON.stringify(otherMessage));
-      }, 2000);
-    }
   },
   open: async (ws) => {
     const clientId = ws.data.params.clientId;

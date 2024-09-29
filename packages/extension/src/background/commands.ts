@@ -11,6 +11,7 @@ import { handleRoomId } from '../popup/commands/roomId';
 import { handleRoomInfo } from '../popup/commands/roomInfo';
 import {
   handleCreateRoom,
+  handleJoinRoom,
   handleLeaveRoom,
 } from '../popup/commands/roomOperations';
 import { apiClient } from './apiClient';
@@ -40,6 +41,22 @@ handleCreateRoom(async () => {
   const clientId = await getClientId();
   const roomId = nanoid(6);
   const res = await apiClient.rooms({ roomId }).index.put(
+    {},
+    {
+      headers: {
+        'x-clientid': clientId,
+      },
+    }
+  );
+  if (res.error !== null) {
+    throw res.error.value;
+  }
+  return roomId;
+});
+
+handleJoinRoom(async (roomId) => {
+  const clientId = await getClientId();
+  const res = await apiClient.rooms({ roomId }).join.post(
     {},
     {
       headers: {

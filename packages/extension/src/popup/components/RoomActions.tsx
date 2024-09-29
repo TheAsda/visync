@@ -1,42 +1,16 @@
 import { useState } from 'react';
 import useSWRMutation from 'swr/mutation';
-import { createRoom } from '../commands/roomOperations';
+import { createRoom, joinRoom } from '../commands/roomOperations';
 import { Button } from './Button';
 import { ErrorMessage } from './ErrorMessage';
+import { Input } from './Input';
 import './RoomActions.css';
 
 export const RoomActions = () => {
-  const [roomId, setRoomId] = useState('');
-
-  // const handleJoinForm: FormEventHandler<HTMLFormElement> = (e) => {
-  //   e.preventDefault();
-  //   const messageId = joinRoom(roomId);
-  //   setMessageId(messageId);
-  //   latestActionRef.current = 'join';
-  // };
-
-  // const create = () => {
-  //   const messageId = createRoom();
-  //   setMessageId(messageId);
-  //   latestActionRef.current = 'create';
-  // };
-
   return (
     <div className="room-actions">
       <CreateRoomButton />
-      {/* <form className="join-form" onSubmit={handleJoinForm}>
-        <Input
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          placeholder="Room"
-        />
-        <Button type="submit" disabled={roomId.length === 0}>
-          Join Room
-        </Button>
-        {latestActionRef.current === 'join' && (
-          <ErrorMessage>{errorMessage}</ErrorMessage>
-        )}
-      </form> */}
+      <JoinRoomForm />
     </div>
   );
 };
@@ -55,5 +29,38 @@ const CreateRoomButton = () => {
       </Button>
       {error && <ErrorMessage>{error}</ErrorMessage>}
     </>
+  );
+};
+
+const JoinRoomForm = () => {
+  const [roomId, setRoomId] = useState('');
+  const { trigger, isMutating, error } = useSWRMutation(
+    'room-id',
+    (_, { arg }: { arg: string }) => joinRoom(arg),
+    { populateCache: (roomId) => roomId, revalidate: false }
+  );
+
+  return (
+    <form
+      className="join-form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        trigger(roomId);
+      }}
+    >
+      <Input
+        value={roomId}
+        onChange={(e) => setRoomId(e.target.value)}
+        placeholder="Room"
+      />
+      <Button
+        type="submit"
+        disabled={roomId.length === 0}
+        isLoading={isMutating}
+      >
+        Join Room
+      </Button>
+      {error && <ErrorMessage>{error}</ErrorMessage>}
+    </form>
   );
 };

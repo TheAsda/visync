@@ -48,7 +48,6 @@ export const RoomInfo = (props: RoomInfoProps) => {
           onClick={copyRoomId}
         />
       </div>
-      {/* <p className="room-info__text">{isSynced ? 'Synced' : 'Not Synced'}</p> */}
       <Button type="button" onClick={() => trigger()} isLoading={isMutating}>
         Leave Room
       </Button>
