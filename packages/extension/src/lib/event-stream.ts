@@ -1,4 +1,4 @@
-import { filter, fromEventPattern } from 'rxjs';
+import { filter, firstValueFrom, fromEventPattern, tap } from 'rxjs';
 
 type StreamEvent<Event = unknown> = {
   name: string;
@@ -10,7 +10,6 @@ type SubEvent<SubscribeData = void> = StreamEvent<{
   type: 'SUB';
   data: SubscribeData;
 }>;
-type UnsubEvent = StreamEvent<'UNSUB'>;
 
 export type CreateEventStreamOptions = {
   /** If true then command will call the content script in active tab */
@@ -22,7 +21,7 @@ const ports$ = fromEventPattern<chrome.runtime.Port>(
   (handler) => chrome.runtime.onConnect.removeListener(handler)
 );
 
-export const createEventStream = <SubscribeData = void, Event = void>(
+export const createEventStream = <Event = void>(
   name: string,
   options: CreateEventStreamOptions = {}
 ) => {
@@ -30,61 +29,40 @@ export const createEventStream = <SubscribeData = void, Event = void>(
 
   const port$ = ports$.pipe(filter((port) => port.name === name));
 
-  const subscribeToStream = (
-    callback: (message: Event) => void,
-    data: SubscribeData
-  ) => {
-    let port = activeTab
-      ? createPortToActiveTab(name)
-      : createPortToBackground(name);
-    port = port.then((port) => {
+  const subscribeToStream = (callback: (message: Event) => void) => {
+    const port = firstValueFrom(port$).then((port) => {
       const messages$ = fromEventPattern<[Event, chrome.runtime.Port]>(
         (handler) => port.onMessage.addListener(handler),
         (handler) => port.onMessage.removeListener(handler)
-      ).subscribe(([message]) => {
-        callback(message);
+      )
+        .pipe(
+          tap(([message]) => console.debug(`[EventStream] Message:`, message))
+        )
+        .subscribe(([message]) => {
+          callback(message);
+        });
+      port.onDisconnect.addListener(() => {
+        messages$.unsubscribe();
       });
-      const subEvent: SubEvent<SubscribeData> = {
-        name,
-        event: { type: 'SUB', data },
-        __type: 'stream-event',
-      };
-      port.postMessage(subEvent);
-      port.onDisconnect.addListener(() => messages$.unsubscribe());
       return port;
     });
     return () => {
-      port.then((port) => {
-        port.disconnect();
-      });
+      port.then((p) => p.disconnect());
     };
   };
 
-  const onStreamSubscribe = (
-    callback: (
-      data: SubscribeData,
-      sendToStream: (event: Event) => void
-    ) => (() => void) | void
-  ) => {
-    port$.subscribe((port) => {
-      const sendToStream = (event: Event) => {
-        port.postMessage(event);
-      };
-      let unsub: (() => void) | void;
-      port.onMessage.addListener((message) => {
-        if (isSubEvent<SubscribeData>(message)) {
-          unsub = callback(message.event.data, sendToStream);
-          port.onDisconnect.addListener(() => {
-            unsub?.();
-          });
-          return;
-        }
-        throw new Error('Unknown message', message);
-      });
-    });
+  let port: chrome.runtime.Port;
+
+  const sendToStream = async (event: Event) => {
+    if (!port) {
+      port = activeTab
+        ? await createPortToActiveTab(name)
+        : await createPortToBackground(name);
+    }
+    port.postMessage(event);
   };
 
-  return [subscribeToStream, onStreamSubscribe] as const;
+  return [subscribeToStream, sendToStream] as const;
 };
 
 function isSubEvent<SubscribeData = void>(

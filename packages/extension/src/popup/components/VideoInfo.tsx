@@ -1,6 +1,7 @@
+import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import useSWRSubscription from 'swr/subscription';
-import { VideoInfo as VInfo } from '../commands/pageVideos';
+import { getVideoInfo, VideoInfo as VInfo } from '../commands/pageVideos';
 import { formatDuration } from '../lib/duration';
 import { Video } from '../lib/video';
 import './VideoInfo.css';
@@ -12,14 +13,10 @@ export interface VideoInfoProps {
 export const VideoInfo = (props: VideoInfoProps) => {
   const { video } = props;
 
-  const { data: currentVideo } = useSWRSubscription<VInfo>(
+  const { data: currentVideo } = useSWR(
     ['video', video.info.id],
-    (key: string, { next }: { next: (err: null, info: VInfo) => void }) => {
-      return video.subscribeToVideoChange((info) => {
-        next(null, info);
-      });
-    },
-    { fallbackData: video.info }
+    () => getVideoInfo({ videoId: video.info.id }),
+    { fallbackData: video.info, refreshInterval: 1000 }
   );
 
   const { trigger: startSync, isMutating: isStarting } = useSWRMutation(

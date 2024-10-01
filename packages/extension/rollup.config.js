@@ -48,7 +48,7 @@ export default [
       html({
         title: 'ViSync',
       }),
-      isProduction && terser(),
+      // isProduction && terser(),
       postcss({
         plugins: [postcssJitProps(OpenProps)],
       }),
@@ -73,7 +73,7 @@ export default [
       commonjs(),
       nodeResolve({ browser: true }),
       json(),
-      isProduction && terser(),
+      // isProduction && terser(),
     ],
     output: {
       file: 'dist/content.js',
@@ -104,7 +104,7 @@ export default [
       nodeResolve({ browser: true }),
       commonjs(),
       hotReloadPlugin(),
-      isProduction && terser(),
+      // isProduction && terser(),
       copy({
         targets: [
           {

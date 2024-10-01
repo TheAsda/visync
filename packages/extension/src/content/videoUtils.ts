@@ -1,20 +1,20 @@
-import { fromEvent, merge, Subscription, tap } from 'rxjs';
+import { fromEvent, interval } from 'rxjs';
 import type { VideoInfo } from '../popup/commands/pageVideos';
 import {
-  eventsStream,
-  sendVideoEvent,
-  VideoEvent,
-} from './commands/videoEvents';
+  sendFromContent,
+  startSync,
+  stopSync,
+  subscribeToBackground,
+  VideoState,
+} from './commands/videoState';
 
 let id = 0;
-
-type VideoState = 'playing' | 'paused';
 
 export class Video {
   id: number;
   highlighter: HTMLDivElement | undefined;
-  sync$: Subscription | undefined;
   state: VideoState;
+  destroyQueue: (() => void)[] = [];
 
   constructor(readonly element: HTMLVideoElement) {
     this.id = id++;
@@ -51,66 +51,100 @@ export class Video {
       currentTime: this.element.currentTime,
       duration: this.element.duration,
       playSpeed: this.element.playbackRate,
-      isSynced: this.sync$ !== undefined,
+      isPlaying: !this.element.paused,
+      isSynced: this.destroyQueue.length > 0,
     };
   }
 
   async startSyncing() {
-    if (this.sync$) {
+    if (this.destroyQueue.length > 0) {
       this.stopSyncing();
     }
-    await sendVideoEvent({ type: 'start-sync' });
+    await startSync();
+    this.destroyQueue.push(() => {
+      stopSync();
+    });
 
-    const play$ = fromEvent(this.element, 'play');
-    const pause$ = fromEvent(this.element, 'pause');
     this.state = getVideoState(this.element);
 
-    const stopServerEvents = eventsStream((serverEvent) => {
-      console.log('Got server event', serverEvent);
-      switch (serverEvent.type) {
-        case 'play':
-          this.state = 'playing';
-          this.element.play();
-          break;
-        case 'pause':
-          this.state = 'paused';
-          this.element.pause();
-          break;
-      }
-    });
-    this.sync$ = merge(play$, pause$)
-      .pipe(
-        tap({
-          unsubscribe: () => stopServerEvents(),
-        })
-      )
-      .subscribe((event) => {
-        if (this.state === getVideoState(this.element)) {
-          console.log(`Video is already ${this.state}`);
-          return;
-        }
-        let videoEvent: VideoEvent;
-        switch (event.type) {
-          case 'play':
-          case 'pause':
-            videoEvent = {
-              type: event.type,
-            };
-            break;
-          default:
-            throw new Error(`Unsupported event type: ${event.type}`);
-        }
-        sendVideoEvent(videoEvent);
-        this.state = getVideoState(this.element);
-      });
+    this.attachVideoListeners();
+    await this.listenForBackground();
   }
 
   stopSyncing() {
-    if (this.sync$) {
-      sendVideoEvent({ type: 'stop-sync' });
-      this.sync$.unsubscribe();
-      this.sync$ = undefined;
-    }
+    this.destroyQueue.forEach((cb) => cb);
+    this.destroyQueue.length = 0;
+  }
+
+  attachVideoListeners() {
+    const play$ = fromEvent(this.element, 'play').subscribe(() => {
+      if (this.state.state === 'playing') {
+        return;
+      }
+      this.state.state = 'playing';
+      this.notifyState();
+    });
+
+    const pause$ = fromEvent(this.element, 'pause').subscribe(() => {
+      if (this.state.state === 'paused') {
+        return;
+      }
+      this.state.state = 'paused';
+      this.notifyState();
+    });
+
+    const timeUpdate$ = fromEvent(this.element, 'timeupdate').subscribe(() => {
+      this.state.currentTime = this.element.currentTime;
+    });
+
+    const playbackRateChange$ = fromEvent(
+      this.element,
+      'playbackRateChange'
+    ).subscribe(() => {
+      if (this.state.playSpeed === this.element.playbackRate) {
+        return;
+      }
+      this.state.playSpeed = this.element.playbackRate;
+      this.notifyState();
+    });
+
+    this.destroyQueue.push(() => {
+      play$.unsubscribe();
+      pause$.unsubscribe();
+      timeUpdate$.unsubscribe();
+      playbackRateChange$.unsubscribe();
+    });
+
+    const stateUpdate = interval(3000).subscribe(this.notifyState.bind(this));
+    this.destroyQueue.push(() => stateUpdate.unsubscribe());
+  }
+
+  notifyState() {
+    sendFromContent(this.state);
+  }
+
+  async listenForBackground() {
+    this.destroyQueue.push(
+      await subscribeToBackground((videoState) => {
+        if (videoState.state !== this.state.state) {
+          if (videoState.state === 'playing') {
+            this.state.state = 'playing';
+            this.element.play();
+          } else if (videoState.state === 'paused') {
+            this.state.state = 'paused';
+            this.element.pause();
+          }
+        }
+        if (Math.abs(videoState.currentTime - this.state.currentTime) > 1) {
+          this.state.currentTime = videoState.currentTime;
+          this.element.currentTime = videoState.currentTime;
+        }
+        if (videoState.playSpeed !== this.state.playSpeed) {
+          this.state.playSpeed = videoState.playSpeed;
+          this.element.playbackRate = videoState.playSpeed;
+        }
+      })
+    );
   }
 }
 
@@ -127,8 +161,9 @@ export function detectVideos(oldVideos: Video[]): Video[] {
 }
 
 function getVideoState(element: HTMLVideoElement): VideoState {
-  if (element.paused) {
-    return 'paused';
-  }
-  return 'playing';
+  return {
+    currentTime: element.currentTime,
+    playSpeed: element.playbackRate,
+    state: element.paused ? 'paused' : 'playing',
+  };
 }

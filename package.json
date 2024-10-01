@@ -17,7 +17,7 @@
     "build:extension": "turbo run build --filter=visync-extension",
     "build:server": "turbo run build --filter=visync-server",
     "start:server": "npm run start -w visync-server",
-    "start:sample": "serve ./sample"
+    "start:sample": "serve ./sample -p 7000"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",

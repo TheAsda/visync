@@ -1,12 +1,9 @@
-import { EdenWS } from '@elysiajs/eden/dist/treaty';
 import { nanoid } from 'nanoid';
-import { WebSocketEvent } from 'server/routes/socket';
 import {
-  handleVideoEvent,
-  onVideoEventSubscribe,
-} from '../content/commands/videoEvents';
+  handleStartSync,
+  handleStopSync,
+} from '../content/commands/videoState';
 import { handleClientId } from '../popup/commands/clientId';
-import { handlePageVideos } from '../popup/commands/pageVideos';
 import { handleRoomId } from '../popup/commands/roomId';
 import { handleRoomInfo } from '../popup/commands/roomInfo';
 import {
@@ -16,6 +13,7 @@ import {
 } from '../popup/commands/roomOperations';
 import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
+import { startSyncing } from './syncher';
 
 handleClientId(async () => {
   const clientId = await getClientId();
@@ -101,53 +99,20 @@ handleLeaveRoom(async (roomId) => {
   }
 });
 
-handlePageVideos(async () => {
-  return [];
+let destroy: (() => void) | undefined;
+
+handleStartSync(async (_, sender) => {
+  const tabId = sender.tab?.id;
+  if (!tabId) {
+    throw new Error('No tab id found');
+  }
+  destroy = await startSyncing(tabId);
 });
 
-let socket:
-  | EdenWS<{
-      body: WebSocketEvent;
-    }>
-  | undefined;
-
-handleVideoEvent(async (event) => {
-  switch (event.type) {
-    case 'start-sync':
-      if (socket) {
-        throw new Error('Already syncing');
-      }
-      const clientId = await getClientId();
-      const s = apiClient.clients({ clientId }).socket.subscribe();
-      onVideoEventSubscribe((_, sendEvent) => {
-        console.log(
-          'Got subscription to socket events, translating socket messages to content'
-        );
-        s.subscribe((message) => {
-          console.log('Got message from socket', message.data);
-          switch (message.data.type) {
-            case 'play':
-            case 'pause':
-              sendEvent({ type: message.data.type });
-              break;
-          }
-        });
-      });
-      socket = s;
-      break;
-    case 'stop-sync':
-      if (!socket) {
-        throw new Error('Not syncing');
-      }
-      socket.close();
-      socket = undefined;
-      break;
-    case 'play':
-    case 'pause':
-      if (!socket) {
-        throw new Error('Not syncing');
-      }
-      socket.send({ type: event.type });
-      break;
+handleStopSync(async (_, sender) => {
+  if (!destroy) {
+    throw new Error('Not synced');
   }
+  destroy();
+  destroy = undefined;
 });

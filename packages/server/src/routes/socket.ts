@@ -4,26 +4,18 @@ import { Elysia, error, Static, t } from 'elysia';
 import db from '../store/db.js';
 import { clients } from '../store/schema.js';
 
-const event = t.Union([
-  t.Object({
-    type: t.Union([t.Literal('pause'), t.Literal('play')]),
-  }),
-  t.Object({
-    type: t.Literal('rewind'),
-    time: t.Number(),
-  }),
-  t.Object({
-    type: t.Literal('play-speed'),
-    speed: t.Number(),
-  }),
-]);
-export type WebSocketEvent = Static<typeof event>;
+const videoState = t.Object({
+  state: t.Union([t.Literal('playing'), t.Literal('paused')]),
+  currentTime: t.Number(),
+  playSpeed: t.Number(),
+});
+export type VideoState = Static<typeof videoState>;
 
 const clientSockets = new Map<string, ServerWebSocket<unknown>>();
 
 export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
-  body: event,
-  response: event,
+  body: videoState,
+  response: videoState,
   params: t.Object({
     clientId: t.String(),
   }),
@@ -63,30 +55,7 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
         socket.send(JSON.stringify(message));
       }
     };
-    let response;
-    switch (message.type) {
-      case 'pause':
-      case 'play': {
-        response = { type: message.type };
-        break;
-      }
-      case 'rewind': {
-        response = {
-          type: 'rewind',
-          time: message.time,
-        };
-        break;
-      }
-      case 'play-speed': {
-        response = {
-          type: 'play-speed',
-          speed: message.speed,
-        };
-        break;
-      }
-      default:
-        throw new Error(`Unknown request message ${message}`);
-    }
+    const response: VideoState = message;
     notifyOthersInRoom(response);
   },
   open: async (ws) => {

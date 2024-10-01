@@ -20,9 +20,7 @@ export const runtime$ = new Observable<RuntimeMessage>((subscriber) => {
     chrome.runtime.onMessage.removeListener(handler);
   };
 }).pipe(
-  tap({
-    next: (event) => {
-      console.debug(`[Runtime] Message:`, event.message);
-    },
+  tap((event) => {
+    console.debug(`[Runtime] Message:`, event.message);
   })
 );

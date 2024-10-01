@@ -20,7 +20,8 @@ const asyncCommand$ = runtime$.pipe(
 );
 
 type AsyncCommandHandler<Request, Response> = (
-  request: Request
+  request: Request,
+  sender: chrome.runtime.MessageSender
 ) => Promise<Response>;
 
 const registeredNames = new Set<string>();
@@ -55,10 +56,11 @@ export function createAsyncCommand<Request = void, Response = void>(
   const handleCommand = (handler: AsyncCommandHandler<Request, Response>) => {
     return asyncCommand$
       .pipe(filter(({ message }) => message.name === name))
-      .subscribe(({ message, sendResponse }) => {
-        handler(message.payload as Request)
+      .subscribe(({ message, sendResponse, sender }) => {
+        handler(message.payload as Request, sender)
           .then((res) => sendResponse(res))
           .catch((err) => sendResponse({ error: extractError(err) }));
+        return true;
       }).unsubscribe;
   };
 

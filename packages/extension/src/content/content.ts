@@ -1,10 +1,9 @@
-import { interval } from 'rxjs';
 import {
   handleDispatchVideoEvent,
   handlePageVideos,
   handleStartSyncVideo,
   handleStopSyncVideo,
-  onDurationSubscribe,
+  onGetVideoInfo,
 } from '../popup/commands/pageVideos';
 import { detectVideos, Video } from './videoUtils';
 
@@ -36,19 +35,14 @@ handleDispatchVideoEvent(async (event) => {
   }
 });
 
-onDurationSubscribe(({ videoId }, sendInfo) => {
+onGetVideoInfo(async ({ videoId }) => {
   const video = getVideo(videoId);
-  const subscription = interval(1000).subscribe(() => {
-    sendInfo(video.getInfo());
-  });
-  return () => {
-    subscription.unsubscribe();
-  };
+  return video.getInfo();
 });
 
 handleStartSyncVideo(async (videoId) => {
   const video = getVideo(videoId);
-  video.startSyncing();
+  await video.startSyncing();
 });
 
 handleStopSyncVideo(async (videoId) => {

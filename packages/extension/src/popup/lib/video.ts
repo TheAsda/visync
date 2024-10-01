@@ -1,6 +1,6 @@
 import {
   dispatchVideoEvent,
-  durationStream,
+  getVideoInfo,
   startSyncVideo,
   stopSyncVideo,
   VideoInfo,
@@ -26,7 +26,7 @@ export class Video {
   }
 
   subscribeToVideoChange(callback: (info: VideoInfo) => void) {
-    return durationStream(
+    return getVideoInfo(
       (data) => {
         callback(data);
       },
