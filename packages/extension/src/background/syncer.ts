@@ -1,7 +1,7 @@
 import { filter, fromEventPattern } from 'rxjs';
 import {
-  sendFromBackground,
-  subscribeToContent,
+  sendVideoState,
+  subscribeToVideoState,
 } from '../content/commands/videoState';
 import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
@@ -32,11 +32,11 @@ export async function startSyncing(tabId: number) {
   destroyQueue.push(() => socket.close());
 
   socket.subscribe((message) => {
-    sendFromBackground(message.data);
+    sendVideoState(message.data);
   });
 
   destroyQueue.push(
-    subscribeToContent((videoState) => {
+    subscribeToVideoState((videoState) => {
       socket.send(videoState);
     })
   );

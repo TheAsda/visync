@@ -1,10 +1,10 @@
 import { fromEvent, interval } from 'rxjs';
 import type { VideoInfo } from '../popup/commands/pageVideos';
 import {
-  sendFromContent,
+  sendVideoState,
   startSync,
   stopSync,
-  subscribeToBackground,
+  subscribeToVideoState,
   VideoState,
 } from './commands/videoState';
 
@@ -57,6 +57,7 @@ export class Video {
   }
 
   async startSyncing() {
+    console.log('Starting syncing');
     if (this.destroyQueue.length > 0) {
       this.stopSyncing();
     }
@@ -68,11 +69,12 @@ export class Video {
     this.state = getVideoState(this.element);
 
     this.attachVideoListeners();
-    await this.listenForBackground();
+    this.listenForBackground();
   }
 
   stopSyncing() {
-    this.destroyQueue.forEach((cb) => cb);
+    console.log('Stopping syncing');
+    this.destroyQueue.forEach((cb) => cb());
     this.destroyQueue.length = 0;
   }
 
@@ -99,7 +101,7 @@ export class Video {
 
     const playbackRateChange$ = fromEvent(
       this.element,
-      'playbackRateChange'
+      'ratechange'
     ).subscribe(() => {
       if (this.state.playSpeed === this.element.playbackRate) {
         return;
@@ -120,12 +122,12 @@ export class Video {
   }
 
   notifyState() {
-    sendFromContent(this.state);
+    sendVideoState(this.state);
   }
 
-  async listenForBackground() {
+  listenForBackground() {
     this.destroyQueue.push(
-      await subscribeToBackground((videoState) => {
+      subscribeToVideoState((videoState) => {
         if (videoState.state !== this.state.state) {
           if (videoState.state === 'playing') {
             this.state.state = 'playing';

@@ -1,59 +1,99 @@
-export type CreateEventStreamOptions = {
-  /** If true then command will call the content script in active tab */
-  // activeTab?: boolean;
-};
+type SubscribeToStream<Event> = (
+  callback: (message: Event) => void
+) => () => void;
+type SendToStream<Event> = (event: Event) => Promise<void>;
 
-export const createEventStream = <Event = void>(
-  name: string,
-  options: CreateEventStreamOptions = {}
-) => {
-  const subscribeToStream = (callback: (message: Event) => void) => {
-    const disconnect = listenPort(name, callback);
-    return async () => {
-      console.log('Disconnecting port');
-      disconnect();
-    };
-  };
+type CreateEventStream = <Event = void>(
+  name: string
+) => [SubscribeToStream<Event>, SendToStream<Event>];
 
-  const sendToStream = async (event: Event) => {
-    const port = getPort(name);
-    port.postMessage(event);
-  };
+const isContent =
+  typeof chrome !== 'undefined' &&
+  typeof window !== 'undefined' &&
+  !window.location.href.startsWith('chrome-extension://');
 
-  return [subscribeToStream, sendToStream] as const;
+export const createEventStream = <Event = void>(name: string) => {
+  if (isContent) {
+    return contentImpl<Event>(name);
+  }
+  return backgroundImpl<Event>(name);
 };
 
 const portMap = new Map<string, chrome.runtime.Port>();
 
-function getPort(name: string) {
-  const port = portMap.get(name);
-  if (port) {
-    return port;
+const contentLog = (message: string, ...args: unknown[]) =>
+  console.log(`[Content] ${message}`, ...args);
+
+const contentImpl: CreateEventStream = <Event = void>(name: string) => {
+  let port = portMap.get(name);
+  if (!port) {
+    contentLog(`Creating port ${name}`);
+    port = chrome.runtime.connect({ name });
+    portMap.set(name, port);
+  } else {
+    contentLog(`Reusing port ${name}`);
   }
-  const newPort = chrome.runtime.connect({ name });
-  portMap.set(name, newPort);
-  return newPort;
-}
 
-function removePort(name: string) {
-  portMap.delete(name);
-}
-
-function listenPort<Event>(name: string, callback: (event: Event) => void) {
-  const port = getPort(name);
-
-  const reconnectHandler = () => {
-    removePort(name);
-    listenPort(name, callback);
+  const subscribe: SubscribeToStream<Event> = (callback) => {
+    contentLog(`Subscribing to port ${name}`);
+    port.onMessage.addListener((event) => {
+      contentLog(`Port ${name} received message`, event);
+      callback(event);
+    });
+    return () => {
+      contentLog(`Unsubscribing from port ${name}`);
+      port.onMessage.removeListener(callback);
+    };
   };
 
-  port.onMessage.addListener(callback);
-  port.onDisconnect.addListener(reconnectHandler);
-
-  const disconnect = () => {
-    port.onMessage.removeListener(callback);
-    port.onDisconnect.removeListener(reconnectHandler);
+  const send: SendToStream<Event> = async (event) => {
+    contentLog(`Sending message to port ${name}`, event);
+    port.postMessage(event);
   };
 
-  return disconnect;
-}
+  return [subscribe, send];
+};
+
+const callbacksMap = new Map<string, (event: any) => void>();
+
+const backgroundLog = (message: string, ...args: unknown[]) =>
+  console.log(`[Background] ${message}`, ...args);
+
+chrome.runtime.onConnect.addListener((port) => {
+  backgroundLog(`Port ${port.name} connected`);
+  portMap.set(port.name, port);
+  port.onMessage.addListener((event) => {
+    const callback = callbacksMap.get(port.name);
+    if (callback) {
+      backgroundLog(`Port ${port.name} received message`, event);
+      callback(event);
+    }
+  });
+  port.onDisconnect.addListener(() => {
+    backgroundLog(`Port ${port.name} disconnected`);
+    portMap.delete(port.name);
+  });
+});
+
+const backgroundImpl: CreateEventStream = <Event = void>(name: string) => {
+  const subscribe: SubscribeToStream<Event> = (callback) => {
+    backgroundLog(`Subscribing to port ${name}`);
+    callbacksMap.set(name, callback);
+    return () => {
+      backgroundLog(`Unsubscribing from port ${name}`);
+      callbacksMap.delete(name);
+    };
+  };
+
+  const send: SendToStream<Event> = async (event) => {
+    const port = portMap.get(name);
+    if (!port) {
+      backgroundLog(`Port ${name} not found`);
+      return;
+    }
+    backgroundLog(`Sending message to port ${name}`, event);
+    port.postMessage(event);
+  };
+
+  return [subscribe, send];
+};

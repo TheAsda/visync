@@ -9,6 +9,7 @@ import svgr from '@svgr/rollup';
 import { readFileSync } from 'fs';
 import OpenProps from 'open-props';
 import postcssJitProps from 'postcss-jit-props';
+import { defineConfig } from 'rollup';
 import copy from 'rollup-plugin-copy';
 import postcss from 'rollup-plugin-postcss';
 import { swc } from 'rollup-plugin-swc3';
@@ -23,7 +24,7 @@ if (isProduction) {
   console.log('Building for production');
 }
 
-export default [
+export default defineConfig([
   {
     input: 'src/popup/main.tsx',
     plugins: [
@@ -126,4 +127,4 @@ export default [
       format: 'esm',
     },
   },
-];
+]);
