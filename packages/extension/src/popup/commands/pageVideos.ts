@@ -1,5 +1,4 @@
 import { createAsyncCommand } from '../../lib/async-command';
-import { createEventStream } from '../../lib/event-stream';
 
 export interface VideoInfo {
   id: number;
@@ -29,10 +28,8 @@ export const [getVideoInfo, onGetVideoInfo] = createAsyncCommand<
   VideoInfo
 >('video-update', { activeTab: true });
 
-export const [startSyncVideo, handleStartSyncVideo] = createAsyncCommand<number>(
-  'start-sync-video',
-  { activeTab: true }
-);
+export const [startSyncVideo, handleStartSyncVideo] =
+  createAsyncCommand<number>('start-sync-video', { activeTab: true });
 
 export const [stopSyncVideo, handleStopSyncVideo] = createAsyncCommand<number>(
   'stop-sync-video',

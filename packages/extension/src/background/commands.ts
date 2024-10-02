@@ -13,7 +13,7 @@ import {
 } from '../popup/commands/roomOperations';
 import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
-import { startSyncing } from './syncher';
+import { startSyncing } from './syncer';
 
 handleClientId(async () => {
   const clientId = await getClientId();

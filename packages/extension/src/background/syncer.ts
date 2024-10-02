@@ -7,7 +7,14 @@ import { apiClient } from './apiClient';
 import { getClientId } from './clientId';
 import { startKeepAlive, stopKeepAlive } from './keepAlive';
 
-const tabUpdate$ = fromEventPattern<
+const tabRemove$ = fromEventPattern<
+  [tabId: number, removeInfo: chrome.tabs.TabRemoveInfo]
+>(
+  (handler) => chrome.tabs.onRemoved.addListener(handler),
+  (handler) => chrome.tabs.onRemoved.removeListener(handler)
+);
+
+const tabUpdated$ = fromEventPattern<
   [tabId: number, changeInfo: chrome.tabs.TabChangeInfo, tab: chrome.tabs.Tab]
 >(
   (handler) => chrome.tabs.onUpdated.addListener(handler),
@@ -34,12 +41,23 @@ export async function startSyncing(tabId: number) {
     })
   );
 
-  const tabChangeSub = tabUpdate$
-    .pipe(filter(([changedTabId]) => changedTabId === tabId))
+  const tabRemovedSub = tabRemove$
+    .pipe(filter(([removedTabId]) => removedTabId === tabId))
     .subscribe(() => {
+      console.log('Tab closed, destroying syncer');
       destroy();
     });
-  destroyQueue.push(() => tabChangeSub.unsubscribe());
+  destroyQueue.push(() => tabRemovedSub.unsubscribe());
+
+  const tabUpdatedSub = tabUpdated$
+    .pipe(filter(([tabId]) => tabId === tabId))
+    .subscribe(([_, info]) => {
+      if (info.status === 'loading') {
+        console.log('Tab updated, destroying syncer');
+        destroy();
+      }
+    });
+  destroyQueue.push(() => tabUpdatedSub.unsubscribe());
 
   startKeepAlive();
   destroyQueue.push(stopKeepAlive);

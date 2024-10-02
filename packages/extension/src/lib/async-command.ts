@@ -1,5 +1,25 @@
 import { filter, Observable, tap } from 'rxjs';
-import { runtime$, RuntimeMessage } from './runtime-stream';
+
+type RuntimeMessage<T = unknown> = {
+  message: T;
+  sender: chrome.runtime.MessageSender;
+  sendResponse: (response?: any) => void;
+};
+
+const runtime$ = new Observable<RuntimeMessage>((subscriber) => {
+  const handler = (
+    message: any,
+    sender: chrome.runtime.MessageSender,
+    sendResponse: (response?: any) => void
+  ) => {
+    subscriber.next({ message, sender, sendResponse });
+    return true;
+  };
+  chrome.runtime.onMessage.addListener(handler);
+  return () => {
+    chrome.runtime.onMessage.removeListener(handler);
+  };
+});
 
 type AsyncCommandResponse<Response> =
   | {
@@ -55,7 +75,10 @@ export function createAsyncCommand<Request = void, Response = void>(
 
   const handleCommand = (handler: AsyncCommandHandler<Request, Response>) => {
     return asyncCommand$
-      .pipe(filter(({ message }) => message.name === name))
+      .pipe(
+        filter(({ message }) => message.name === name),
+        tap((event) => console.debug(`[Runtime] Message:`, event.message))
+      )
       .subscribe(({ message, sendResponse, sender }) => {
         handler(message.payload as Request, sender)
           .then((res) => sendResponse(res))
