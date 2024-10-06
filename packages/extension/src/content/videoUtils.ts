@@ -98,7 +98,7 @@ export class Video {
     });
 
     const timeUpdate$ = fromEvent(this.element, 'seeked').subscribe(() => {
-      if (this.state.currentTime === this.element.currentTime) {
+      if (Math.abs(this.element.currentTime - this.state.currentTime) < 1) {
         return;
       }
       this.state.currentTime = this.element.currentTime;
