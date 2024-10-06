@@ -1,4 +1,5 @@
 import { filter, fromEventPattern } from 'rxjs';
+import { subscribeToPing } from '../content/commands/ping';
 import {
   sendVideoState,
   subscribeToVideoState,
@@ -61,6 +62,14 @@ export async function startSyncing(tabId: number) {
 
   startKeepAlive();
   destroyQueue.push(stopKeepAlive);
+
+  destroyQueue.push(
+    subscribeToPing(() => {
+      socket.ws.ping(undefined, undefined, (err) => {
+        console.error('Failed to ping socket', err);
+      });
+    })
+  );
 
   return destroy;
 }

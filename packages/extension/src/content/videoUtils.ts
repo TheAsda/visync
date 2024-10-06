@@ -1,5 +1,6 @@
 import { fromEvent, interval } from 'rxjs';
 import type { VideoInfo } from '../popup/commands/pageVideos';
+import { sendPing } from './commands/ping';
 import {
   sendVideoState,
   startSync,
@@ -95,8 +96,12 @@ export class Video {
       this.notifyState();
     });
 
-    const timeUpdate$ = fromEvent(this.element, 'timeupdate').subscribe(() => {
+    const timeUpdate$ = fromEvent(this.element, 'seeked').subscribe(() => {
+      if (this.state.currentTime === this.element.currentTime) {
+        return;
+      }
       this.state.currentTime = this.element.currentTime;
+      this.notifyState();
     });
 
     const playbackRateChange$ = fromEvent(this.element, 'ratechange').subscribe(
@@ -116,7 +121,9 @@ export class Video {
       playbackRateChange$.unsubscribe();
     });
 
-    const stateUpdate = interval(3000).subscribe(this.notifyState.bind(this));
+    const stateUpdate = interval(3000).subscribe(() => {
+      sendPing();
+    });
     this.destroyQueue.push(() => stateUpdate.unsubscribe());
   }
 
