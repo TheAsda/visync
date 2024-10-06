@@ -99,16 +99,15 @@ export class Video {
       this.state.currentTime = this.element.currentTime;
     });
 
-    const playbackRateChange$ = fromEvent(
-      this.element,
-      'ratechange'
-    ).subscribe(() => {
-      if (this.state.playSpeed === this.element.playbackRate) {
-        return;
+    const playbackRateChange$ = fromEvent(this.element, 'ratechange').subscribe(
+      () => {
+        if (this.state.playSpeed === this.element.playbackRate) {
+          return;
+        }
+        this.state.playSpeed = this.element.playbackRate;
+        this.notifyState();
       }
-      this.state.playSpeed = this.element.playbackRate;
-      this.notifyState();
-    });
+    );
 
     this.destroyQueue.push(() => {
       play$.unsubscribe();
@@ -150,7 +149,7 @@ export class Video {
   }
 }
 
-export function detectVideos(oldVideos: Video[]): Video[] {
+function detectDocumentVideos(document: Document, oldVideos: Video[]): Video[] {
   const oldVideosMap = new Map(
     oldVideos.map((video) => [video.element, video])
   );
@@ -160,6 +159,18 @@ export function detectVideos(oldVideos: Video[]): Video[] {
     }
     return new Video(element);
   });
+}
+
+function getDocuments(): Document[] {
+  const iframeDocuments = Array.from(
+    document.querySelectorAll('iframe'),
+    (iframe) => iframe.contentDocument
+  ).filter((document) => document !== null);
+  return [document, ...iframeDocuments];
+}
+
+export function detectVideos(oldVideos: Video[]): Video[] {
+  return getDocuments().flatMap((d) => detectDocumentVideos(d, oldVideos));
 }
 
 function getVideoState(element: HTMLVideoElement): VideoState {
