@@ -71,6 +71,7 @@ export class Video {
 
     this.attachVideoListeners();
     this.listenForBackground();
+    this.startPinging();
   }
 
   stopSyncing() {
@@ -120,11 +121,13 @@ export class Video {
       timeUpdate$.unsubscribe();
       playbackRateChange$.unsubscribe();
     });
+  }
 
-    const stateUpdate = interval(3000).subscribe(() => {
+  startPinging() {
+    const ping = interval(3000).subscribe(() => {
       sendPing();
     });
-    this.destroyQueue.push(() => stateUpdate.unsubscribe());
+    this.destroyQueue.push(() => ping.unsubscribe());
   }
 
   notifyState() {
