@@ -65,9 +65,7 @@ export async function startSyncing(tabId: number) {
 
   destroyQueue.push(
     subscribeToPing(() => {
-      socket.ws.ping(undefined, undefined, (err) => {
-        console.error('Failed to ping socket', err);
-      });
+      socket.send('ping');
     })
   );
 

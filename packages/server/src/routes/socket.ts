@@ -9,19 +9,23 @@ const videoState = t.Object({
   currentTime: t.Number(),
   playSpeed: t.Number(),
 });
+
 export type VideoState = Static<typeof videoState>;
 
 const clientSockets = new Map<string, ServerWebSocket<unknown>>();
 
 export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
-  body: videoState,
+  body: t.Union([videoState, t.Literal('ping')]),
   response: videoState,
   params: t.Object({
     clientId: t.String(),
   }),
   message: async (ws, message) => {
-    console.log('ws message:', message);
     const clientId = ws.data.params.clientId;
+    console.log(`ws message from ${clientId}:`, message);
+    if (message === 'ping') {
+      return;
+    }
 
     const client = await db.query.clients.findFirst({
       where: eq(clients.clientId, clientId),

@@ -30,7 +30,7 @@ const message$ = fromEvent<MessageEvent>(window, 'message').pipe(
   filter((message) => isWindowMessage(message))
 );
 
-const COMMAND_TIMEOUT = 2000;
+const COMMAND_TIMEOUT = 200;
 
 export function createWindowCommand<Request = void, Response = void>(
   name: string
