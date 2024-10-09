@@ -1,5 +1,5 @@
-import { createAsyncCommand } from '../../lib/async-command';
-import { createEventStream } from '../../lib/event-stream';
+import { createAsyncCommand } from '../../lib/asyncCommand';
+import { createEventStream } from '../../lib/eventStream';
 
 export type PlayState = 'playing' | 'paused';
 

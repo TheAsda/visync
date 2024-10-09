@@ -22,6 +22,11 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"]
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["iframe.js"],
+      "all_frames": true
     }
   ]
 }

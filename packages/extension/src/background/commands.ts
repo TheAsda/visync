@@ -1,8 +1,8 @@
-import { nanoid } from 'nanoid';
 import {
   handleStartSync,
   handleStopSync,
 } from '../content/commands/videoState';
+import { generateRandomId } from '../lib/randomId';
 import { handleClientId } from '../popup/commands/clientId';
 import { handleRoomId } from '../popup/commands/roomId';
 import { handleRoomInfo } from '../popup/commands/roomInfo';
@@ -37,7 +37,7 @@ handleRoomId(async () => {
 
 handleCreateRoom(async () => {
   const clientId = await getClientId();
-  const roomId = nanoid(6);
+  const roomId = generateRandomId();
   const res = await apiClient.rooms({ roomId }).index.put(
     {},
     {

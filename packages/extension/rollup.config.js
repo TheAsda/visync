@@ -83,6 +83,28 @@ export default defineConfig([
     },
   },
   {
+    input: 'src/content/iframe.ts',
+    plugins: [
+      replace({
+        preventAssignment: true,
+        'process.env.NODE_ENV': JSON.stringify(
+          process.env.NODE_ENV || 'development'
+        ),
+      }),
+      hotReloadPlugin(),
+      swc({}),
+      commonjs(),
+      nodeResolve({ browser: true }),
+      json(),
+      // isProduction && terser(),
+    ],
+    output: {
+      file: 'dist/iframe.js',
+      sourcemap: !isProduction && 'inline',
+      format: 'iife',
+    },
+  },
+  {
     input: 'src/background/background.ts',
     watch: {
       clearScreen: false,

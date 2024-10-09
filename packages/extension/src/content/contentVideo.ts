@@ -1,4 +1,5 @@
 import { fromEvent, interval } from 'rxjs';
+import { generateRandomId } from '../lib/randomId';
 import type { VideoInfo } from '../popup/commands/pageVideos';
 import { sendPing } from './commands/ping';
 import {
@@ -8,17 +9,16 @@ import {
   subscribeToVideoState,
   VideoState,
 } from './commands/videoState';
+import { VideoManager } from './videoManager';
 
-let id = 0;
-
-export class Video {
-  id: number;
+export class ContentVideo implements VideoManager {
+  id: string;
   highlighter: HTMLDivElement | undefined;
   state: VideoState;
   destroyQueue: (() => void)[] = [];
 
   constructor(readonly element: HTMLVideoElement) {
-    this.id = id++;
+    this.id = generateRandomId();
     this.state = getVideoState(element);
   }
 
@@ -45,7 +45,7 @@ export class Video {
     }
   }
 
-  getInfo(): VideoInfo {
+  async getInfo(): Promise<VideoInfo> {
     return {
       id: this.id,
       title: this.element.title,
@@ -57,10 +57,10 @@ export class Video {
     };
   }
 
-  async startSyncing() {
+  async startSync() {
     console.log('Starting syncing');
     if (this.destroyQueue.length > 0) {
-      this.stopSyncing();
+      await this.stopSync();
     }
     await startSync();
     this.destroyQueue.push(() => {
@@ -74,7 +74,7 @@ export class Video {
     this.startPinging();
   }
 
-  stopSyncing() {
+  async stopSync() {
     console.log('Stopping syncing');
     this.destroyQueue.forEach((cb) => cb());
     this.destroyQueue.length = 0;
@@ -159,7 +159,10 @@ export class Video {
   }
 }
 
-function detectDocumentVideos(document: Document, oldVideos: Video[]): Video[] {
+function detectDocumentVideos(
+  document: Document,
+  oldVideos: ContentVideo[]
+): ContentVideo[] {
   const oldVideosMap = new Map(
     oldVideos.map((video) => [video.element, video])
   );
@@ -167,20 +170,13 @@ function detectDocumentVideos(document: Document, oldVideos: Video[]): Video[] {
     if (oldVideosMap.has(element)) {
       return oldVideosMap.get(element)!;
     }
-    return new Video(element);
+    return new ContentVideo(element);
   });
 }
 
-function getDocuments(): Document[] {
-  const iframeDocuments = Array.from(
-    document.querySelectorAll('iframe'),
-    (iframe) => iframe.contentDocument
-  ).filter((document) => document !== null);
-  return [document, ...iframeDocuments];
-}
-
-export function detectVideos(oldVideos: Video[]): Video[] {
-  return getDocuments().flatMap((d) => detectDocumentVideos(d, oldVideos));
+export function detectVideos(oldVideos: VideoManager[]): VideoManager[] {
+  const videos = oldVideos.filter((v) => v instanceof ContentVideo);
+  return detectDocumentVideos(document, videos);
 }
 
 function getVideoState(element: HTMLVideoElement): VideoState {

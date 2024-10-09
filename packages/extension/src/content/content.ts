@@ -1,15 +1,17 @@
 import {
   handleDispatchVideoEvent,
+  handleGetVideoInfo,
   handlePageVideos,
   handleStartSyncVideo,
   handleStopSyncVideo,
-  onGetVideoInfo,
 } from '../popup/commands/pageVideos';
-import { detectVideos, Video } from './videoUtils';
+import { detectVideos } from './contentVideo';
+import { detectIframesVideos } from './iframeVideo';
+import { VideoManager } from './videoManager';
 
-let pageVideos: Video[] = [];
+let pageVideos: VideoManager[] = [];
 
-function getVideo(videoId: number): Video {
+function getVideo(videoId: string): VideoManager {
   const video = pageVideos.find((video) => video.id === videoId);
   if (!video) {
     throw new Error(`Video ${videoId} not found`);
@@ -18,8 +20,10 @@ function getVideo(videoId: number): Video {
 }
 
 handlePageVideos(async () => {
-  pageVideos = detectVideos(pageVideos);
-  return pageVideos.map((video) => video.getInfo());
+  const contentVideos = detectVideos(pageVideos);
+  const iframeVideos = await detectIframesVideos(pageVideos);
+  pageVideos = contentVideos.concat(iframeVideos);
+  return Promise.all(pageVideos.map((video) => video.getInfo()));
 });
 
 handleDispatchVideoEvent(async (event) => {
@@ -35,17 +39,17 @@ handleDispatchVideoEvent(async (event) => {
   }
 });
 
-onGetVideoInfo(async ({ videoId }) => {
+handleGetVideoInfo(async (videoId) => {
   const video = getVideo(videoId);
   return video.getInfo();
 });
 
 handleStartSyncVideo(async (videoId) => {
   const video = getVideo(videoId);
-  await video.startSyncing();
+  await video.startSync();
 });
 
 handleStopSyncVideo(async (videoId) => {
   const video = getVideo(videoId);
-  video.stopSyncing();
+  await video.stopSync();
 });

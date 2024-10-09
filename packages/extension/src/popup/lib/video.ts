@@ -25,12 +25,7 @@ export class Video {
     return stopSyncVideo(this.info.id);
   }
 
-  subscribeToVideoChange(callback: (info: VideoInfo) => void) {
-    return getVideoInfo(
-      (data) => {
-        callback(data);
-      },
-      { videoId: this.info.id }
-    );
+  getInfo() {
+    return getVideoInfo(this.info.id);
   }
 }

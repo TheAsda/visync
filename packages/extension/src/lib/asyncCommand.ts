@@ -1,4 +1,5 @@
 import { filter, Observable, tap } from 'rxjs';
+import { IS_IFRAME } from './constants';
 
 type RuntimeMessage<T = unknown> = {
   message: T;
@@ -74,9 +75,10 @@ export function createAsyncCommand<Request = void, Response = void>(
   };
 
   const handleCommand = (handler: AsyncCommandHandler<Request, Response>) => {
-    return asyncCommand$
+    const sub = asyncCommand$
       .pipe(
         filter(({ message }) => message.name === name),
+        filter(() => !IS_IFRAME),
         tap((event) => console.debug(`[Runtime] Message:`, event.message))
       )
       .subscribe(({ message, sendResponse, sender }) => {
@@ -84,7 +86,10 @@ export function createAsyncCommand<Request = void, Response = void>(
           .then((res) => sendResponse(res))
           .catch((err) => sendResponse({ error: extractError(err) }));
         return true;
-      }).unsubscribe;
+      });
+    return () => {
+      sub.unsubscribe();
+    };
   };
 
   return [sendCommand, handleCommand] as const;
@@ -114,6 +119,7 @@ function sendMessageToActiveTab<Request, Response>(
         reject('No active tab found');
         return;
       }
+      console.log('tabs', tabs);
       chrome.tabs.sendMessage(
         tabs[0].id!,
         request,

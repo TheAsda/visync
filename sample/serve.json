@@ -1,0 +1,13 @@
+{
+  "headers": [
+    {
+      "source": "iframe.html",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "http://192.168.1.13:7000"
+        }
+      ]
+    }
+  ]
+}

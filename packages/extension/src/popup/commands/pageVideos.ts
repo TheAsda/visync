@@ -1,7 +1,7 @@
-import { createAsyncCommand } from '../../lib/async-command';
+import { createAsyncCommand } from '../../lib/asyncCommand';
 
 export interface VideoInfo {
-  id: number;
+  id: string;
   title: string;
   currentTime: number;
   duration: number;
@@ -17,21 +17,21 @@ export const [getPageVideos, handlePageVideos] = createAsyncCommand<
 
 export type VideoEvent = {
   type: 'highlight' | 'unhighlight';
-  id: number;
+  id: string;
 };
 
 export const [dispatchVideoEvent, handleDispatchVideoEvent] =
   createAsyncCommand<VideoEvent>('video-event', { activeTab: true });
 
-export const [getVideoInfo, onGetVideoInfo] = createAsyncCommand<
-  { videoId: number },
+export const [getVideoInfo, handleGetVideoInfo] = createAsyncCommand<
+  string,
   VideoInfo
 >('video-update', { activeTab: true });
 
 export const [startSyncVideo, handleStartSyncVideo] =
-  createAsyncCommand<number>('start-sync-video', { activeTab: true });
+  createAsyncCommand<string>('start-sync-video', { activeTab: true });
 
-export const [stopSyncVideo, handleStopSyncVideo] = createAsyncCommand<number>(
+export const [stopSyncVideo, handleStopSyncVideo] = createAsyncCommand<string>(
   'stop-sync-video',
   { activeTab: true }
 );

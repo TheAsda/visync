@@ -15,7 +15,7 @@ export const VideoInfo = (props: VideoInfoProps) => {
 
   const { data: currentVideo } = useSWR(
     ['video', video.info.id],
-    () => getVideoInfo({ videoId: video.info.id }),
+    () => video.getInfo(),
     { fallbackData: video.info, refreshInterval: 1000 }
   );
 

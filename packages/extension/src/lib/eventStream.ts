@@ -1,3 +1,5 @@
+import { IS_CONTENT } from './constants';
+
 type SubscribeToStream<Event> = (
   callback: (message: Event) => void
 ) => () => void;
@@ -7,13 +9,8 @@ type CreateEventStream = <Event = void>(
   name: string
 ) => [SubscribeToStream<Event>, SendToStream<Event>];
 
-const isContent =
-  typeof chrome !== 'undefined' &&
-  typeof window !== 'undefined' &&
-  !window.location.href.startsWith('chrome-extension://');
-
 export const createEventStream = <Event = void>(name: string) => {
-  if (isContent) {
+  if (IS_CONTENT) {
     return contentImpl<Event>(name);
   }
   return backgroundImpl<Event>(name);
@@ -59,9 +56,16 @@ const callbacksMap = new Map<string, (event: any) => void>();
 const backgroundLog = (message: string, ...args: unknown[]) =>
   console.log(`[Background] ${message}`, ...args);
 
+const bgPortMap = new Map<string, Set<chrome.runtime.Port>>();
+
 chrome.runtime.onConnect.addListener((port) => {
   backgroundLog(`Port ${port.name} connected`);
-  portMap.set(port.name, port);
+  let set = bgPortMap.get(port.name);
+  if (!set) {
+    set = new Set<chrome.runtime.Port>();
+    bgPortMap.set(port.name, set);
+  }
+  set.add(port);
   port.onMessage.addListener((event) => {
     const callback = callbacksMap.get(port.name);
     if (callback) {
@@ -71,7 +75,7 @@ chrome.runtime.onConnect.addListener((port) => {
   });
   port.onDisconnect.addListener(() => {
     backgroundLog(`Port ${port.name} disconnected`);
-    portMap.delete(port.name);
+    bgPortMap.get(port.name)?.delete(port);
   });
 });
 
@@ -86,13 +90,13 @@ const backgroundImpl: CreateEventStream = <Event = void>(name: string) => {
   };
 
   const send: SendToStream<Event> = async (event) => {
-    const port = portMap.get(name);
-    if (!port) {
+    const portSet = bgPortMap.get(name);
+    if (!portSet) {
       backgroundLog(`Port ${name} not found`);
       return;
     }
-    backgroundLog(`Sending message to port ${name}`, event);
-    port.postMessage(event);
+    backgroundLog(`Sending message to port ${name} (${portSet.size})`, event);
+    portSet.forEach((port) => port.postMessage(event));
   };
 
   return [subscribe, send];

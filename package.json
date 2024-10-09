@@ -12,12 +12,12 @@
     "packages/extension"
   ],
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
     "build:extension": "turbo run build --filter=visync-extension",
     "build:server": "turbo run build --filter=visync-server",
-    "start:server": "npm run start -w visync-server",
-    "start:sample": "serve ./sample -p 7000"
+    "dev": "turbo run dev",
+    "start:sample": "serve ./sample -p 7000 --config ./serve.json",
+    "start:server": "npm run start -w visync-server"
   },
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
