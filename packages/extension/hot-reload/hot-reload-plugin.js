@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
 
-const isDev = process.env.NODE_ENV !== 'production';
+const isDev = process.argv.includes('--watch');
 
 const hotReloadScript = readFileSync('./hot-reload/hot-reload.js', 'utf8');
 

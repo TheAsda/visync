@@ -1,11 +1,12 @@
 import { IS_CONTENT } from './constants';
+import { contentImpl } from './eventStream.content';
 
-type SubscribeToStream<Event> = (
+export type SubscribeToStream<Event> = (
   callback: (message: Event) => void
 ) => () => void;
-type SendToStream<Event> = (event: Event) => Promise<void>;
+export type SendToStream<Event> = (event: Event) => Promise<void>;
 
-type CreateEventStream = <Event = void>(
+export type CreateEventStream = <Event = void>(
   name: string
 ) => [SubscribeToStream<Event>, SendToStream<Event>];
 
@@ -14,41 +15,6 @@ export const createEventStream = <Event = void>(name: string) => {
     return contentImpl<Event>(name);
   }
   return backgroundImpl<Event>(name);
-};
-
-const portMap = new Map<string, chrome.runtime.Port>();
-
-const contentLog = (message: string, ...args: unknown[]) =>
-  console.log(`[Content] ${message}`, ...args);
-
-const contentImpl: CreateEventStream = <Event = void>(name: string) => {
-  let port = portMap.get(name);
-  if (!port) {
-    contentLog(`Creating port ${name}`);
-    port = chrome.runtime.connect({ name });
-    portMap.set(name, port);
-  } else {
-    contentLog(`Reusing port ${name}`);
-  }
-
-  const subscribe: SubscribeToStream<Event> = (callback) => {
-    contentLog(`Subscribing to port ${name}`);
-    port.onMessage.addListener((event) => {
-      contentLog(`Port ${name} received message`, event);
-      callback(event);
-    });
-    return () => {
-      contentLog(`Unsubscribing from port ${name}`);
-      port.onMessage.removeListener(callback);
-    };
-  };
-
-  const send: SendToStream<Event> = async (event) => {
-    contentLog(`Sending message to port ${name}`, event);
-    port.postMessage(event);
-  };
-
-  return [subscribe, send];
 };
 
 const callbacksMap = new Map<string, (event: any) => void>();

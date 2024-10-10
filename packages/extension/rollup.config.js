@@ -18,7 +18,7 @@ import { hotReloadPlugin } from './hot-reload/hot-reload-plugin.js';
 
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
 
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = !process.argv.includes('--watch');
 
 if (isProduction) {
   console.log('Building for production');

@@ -1,4 +1,4 @@
-async function run() {
+(async function () {
   const reloadMessage = 'RELOAD';
 
   let isBackground;
@@ -51,11 +51,10 @@ async function run() {
           }, 750);
         }
       });
-      if (await chrome.storage.local.get('need-reload') === 'true') {
+      if ((await chrome.storage.local.get('need-reload')) === 'true') {
         await chrome.storage.local.remove('need-reload');
         location.reload();
       }
     }
   }
-}
-run();
+})();
