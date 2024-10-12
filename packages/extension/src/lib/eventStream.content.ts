@@ -24,6 +24,7 @@ function createPort(name: string) {
   }
   const port = chrome.runtime.connect({ name });
   port.onDisconnect.addListener(handleDisconnect.bind(undefined, name));
+  portMap.set(name, port);
   return port;
 }
 
@@ -39,6 +40,7 @@ export const contentImpl: CreateEventStream = <Event = void>(name: string) => {
     contentLog(`Subscribing to port ${name}`);
     let port: chrome.runtime.Port;
     const handleDisconnect = () => {
+      contentLog(`Port ${name} disconnected`);
       attachMessageHandler();
     };
     const handleMessage = (event: Event) => {
