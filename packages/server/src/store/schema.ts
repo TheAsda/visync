@@ -4,6 +4,7 @@ import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 export const rooms = sqliteTable('room', {
   roomId: text('roomId').notNull().primaryKey(),
   link: text('link'),
+  hostClientId: text('hostClientId'),
 });
 export type Room = typeof rooms.$inferSelect;
 

@@ -40,7 +40,7 @@ export const roomsRoutes = new Elysia().group(
           const createdRoom = await db.transaction(async (tx) => {
             await tx
               .insert(rooms)
-              .values({ roomId: roomId, link: link })
+              .values({ roomId: roomId, link: link, hostClientId: clientId })
               .returning();
             await tx
               .update(clients)
@@ -68,9 +68,16 @@ export const roomsRoutes = new Elysia().group(
         '/',
         async ({ params: { roomId }, headers: { 'x-clientid': clientId } }) => {
           const room = await db.query.rooms.findFirst({
+            columns: {
+              roomId: true,
+            },
             where: eq(rooms.roomId, roomId),
             with: {
-              clients: true,
+              clients: {
+                columns: {
+                  clientId: true,
+                },
+              },
             },
           });
           if (!room) {
@@ -138,6 +145,14 @@ export const roomsRoutes = new Elysia().group(
             .where(eq(clients.clientId, clientId));
           if (room.clients.length === 1) {
             await db.delete(rooms).where(eq(rooms.roomId, roomId));
+          } else if (room.hostClientId === clientId) {
+            await db
+              .update(rooms)
+              .set({
+                hostClientId: room.clients.find((c) => c.clientId !== clientId)!
+                  .clientId,
+              })
+              .where(eq(rooms.roomId, roomId));
           }
           set.status = 204;
         }

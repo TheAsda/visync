@@ -46,6 +46,7 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
     if (!client.room) {
       return error(400, 'Room does not exist');
     }
+    // TODO: get current state from host
     const notifyOthersInRoom = (message: object) => {
       for (const c of client.room!.clients) {
         if (c.clientId === client.clientId) {
