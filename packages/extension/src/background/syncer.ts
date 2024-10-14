@@ -25,6 +25,7 @@ const tabUpdated$ = fromEventPattern<
 export async function startSyncing(tabId: number) {
   const destroyQueue: (() => void)[] = [];
   const destroy = () => {
+    console.log('Calling destroy queue');
     destroyQueue.forEach((cb) => cb());
   };
 
@@ -51,7 +52,7 @@ export async function startSyncing(tabId: number) {
   destroyQueue.push(() => tabRemovedSub.unsubscribe());
 
   const tabUpdatedSub = tabUpdated$
-    .pipe(filter(([tabId]) => tabId === tabId))
+    .pipe(filter(([updatedTabId]) => updatedTabId === tabId))
     .subscribe(([_, info]) => {
       if (info.status === 'loading') {
         console.log('Tab updated, destroying syncer');
