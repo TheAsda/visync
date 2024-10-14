@@ -6,6 +6,7 @@ import {
   startIframeSync,
   stopIframeSync,
 } from './commands/iframeVideo';
+import { highlighter } from './highlighter';
 import { VideoManager } from './videoManager';
 
 export class IframeVideo implements VideoManager {
@@ -19,10 +20,11 @@ export class IframeVideo implements VideoManager {
   }
 
   highlight(): void {
-    dispatchIframeVideoEvent({ id: this.id, type: 'highlight' }, this.iframe);
+    // We assert that iframe has only one video
+    highlighter.highligh(this.iframe);
   }
   unhighlight(): void {
-    dispatchIframeVideoEvent({ id: this.id, type: 'unhighlight' }, this.iframe);
+    highlighter.unhighlight();
   }
   getInfo(): Promise<VideoInfo> {
     return getIframeVideoInfo(this.id, this.iframe);

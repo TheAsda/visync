@@ -10,6 +10,7 @@ const contentLog = (message: string, ...args: unknown[]) =>
   console.log(`[Content] ${message}`, ...args);
 
 function handleDisconnect(name: string) {
+  contentLog(`Port ${name} disconnected`);
   portMap.delete(name);
   createPort(name);
 }

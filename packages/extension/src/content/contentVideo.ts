@@ -9,6 +9,7 @@ import {
   subscribeToVideoState,
   VideoState,
 } from './commands/videoState';
+import { highlighter } from './highlighter';
 import { VideoManager } from './videoManager';
 
 export class ContentVideo implements VideoManager {
@@ -23,26 +24,11 @@ export class ContentVideo implements VideoManager {
   }
 
   highlight() {
-    if (this.highlighter) {
-      this.highlighter.remove();
-    }
-    const { left, right, top, bottom } = this.element.getBoundingClientRect();
-    const highlighter = document.createElement('div');
-    highlighter.style.border = '2px solid red';
-    highlighter.style.position = 'absolute';
-    highlighter.style.left = `${left}px`;
-    highlighter.style.top = `${top}px`;
-    highlighter.style.width = `${right - left}px`;
-    highlighter.style.height = `${bottom - top}px`;
-    this.highlighter = highlighter;
-    document.body.appendChild(highlighter);
+    highlighter.highligh(this.element);
   }
 
   unhighlight() {
-    if (this.highlighter) {
-      this.highlighter.remove();
-      this.highlighter = undefined;
-    }
+    highlighter.unhighlight();
   }
 
   async getInfo(): Promise<VideoInfo> {
