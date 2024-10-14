@@ -20,7 +20,7 @@ export class ContentVideo implements VideoManager {
 
   constructor(readonly element: HTMLVideoElement) {
     this.id = generateRandomId();
-    this.state = getVideoState(element);
+    this.state = this.calculateState();
   }
 
   highlight() {
@@ -67,45 +67,20 @@ export class ContentVideo implements VideoManager {
   }
 
   attachVideoListeners() {
-    const play$ = fromEvent(this.element, 'play').subscribe(() => {
-      if (this.state.state === 'playing') {
-        return;
-      }
-      this.state.state = 'playing';
-      this.notifyState();
-    });
+    const callback = this.updateState.bind(this);
 
-    const pause$ = fromEvent(this.element, 'pause').subscribe(() => {
-      if (this.state.state === 'paused') {
-        return;
-      }
-      this.state.state = 'paused';
-      this.notifyState();
-    });
-
-    const timeUpdate$ = fromEvent(this.element, 'seeked').subscribe(() => {
-      if (Math.abs(this.element.currentTime - this.state.currentTime) < 1) {
-        return;
-      }
-      this.state.currentTime = this.element.currentTime;
-      this.notifyState();
-    });
-
-    const playbackRateChange$ = fromEvent(this.element, 'ratechange').subscribe(
-      () => {
-        if (this.state.playSpeed === this.element.playbackRate) {
-          return;
-        }
-        this.state.playSpeed = this.element.playbackRate;
-        this.notifyState();
-      }
+    const play$ = fromEvent(this.element, 'play').subscribe(callback);
+    const pause$ = fromEvent(this.element, 'pause').subscribe(callback);
+    const timeUpdate$ = fromEvent(this.element, 'seeked').subscribe(callback);
+    const rateChange$ = fromEvent(this.element, 'ratechange').subscribe(
+      callback
     );
 
     this.destroyQueue.push(() => {
       play$.unsubscribe();
       pause$.unsubscribe();
       timeUpdate$.unsubscribe();
-      playbackRateChange$.unsubscribe();
+      rateChange$.unsubscribe();
     });
   }
 
@@ -116,6 +91,23 @@ export class ContentVideo implements VideoManager {
     this.destroyQueue.push(() => ping.unsubscribe());
   }
 
+  calculateState() {
+    return getVideoState(this.element);
+  }
+
+  updateState() {
+    const newState = this.calculateState();
+    if (
+      newState.state === this.state.state &&
+      newState.playSpeed === this.state.playSpeed &&
+      !isTimeChanged(newState.currentTime, this.state.currentTime)
+    ) {
+      return;
+    }
+    this.state = newState;
+    this.notifyState();
+  }
+
   notifyState() {
     sendVideoState(this.state);
   }
@@ -123,6 +115,15 @@ export class ContentVideo implements VideoManager {
   listenForBackground() {
     this.destroyQueue.push(
       subscribeToVideoState((videoState) => {
+        this.state = this.calculateState();
+        if (isTimeChanged(videoState.currentTime, this.state.currentTime)) {
+          this.state.currentTime = videoState.currentTime;
+          this.element.currentTime = videoState.currentTime;
+        }
+        if (videoState.playSpeed !== this.state.playSpeed) {
+          this.state.playSpeed = videoState.playSpeed;
+          this.element.playbackRate = videoState.playSpeed;
+        }
         if (videoState.state !== this.state.state) {
           if (videoState.state === 'playing') {
             this.state.state = 'playing';
@@ -131,14 +132,6 @@ export class ContentVideo implements VideoManager {
             this.state.state = 'paused';
             this.element.pause();
           }
-        }
-        if (Math.abs(videoState.currentTime - this.state.currentTime) > 1) {
-          this.state.currentTime = videoState.currentTime;
-          this.element.currentTime = videoState.currentTime;
-        }
-        if (videoState.playSpeed !== this.state.playSpeed) {
-          this.state.playSpeed = videoState.playSpeed;
-          this.element.playbackRate = videoState.playSpeed;
         }
       })
     );
@@ -171,4 +164,8 @@ function getVideoState(element: HTMLVideoElement): VideoState {
     playSpeed: element.playbackRate,
     state: element.paused ? 'paused' : 'playing',
   };
+}
+
+function isTimeChanged(time1: number, time2: number) {
+  return Math.abs(time1 - time2) > 1;
 }
