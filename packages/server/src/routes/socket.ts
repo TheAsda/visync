@@ -1,6 +1,8 @@
 import { ServerWebSocket } from 'bun';
 import { eq } from 'drizzle-orm';
-import { Elysia, error, Static, t } from 'elysia';
+import { Elysia, error, Static, t, TSchema } from 'elysia';
+import { TypeCheck } from 'elysia/type-system';
+import { ElysiaWS } from 'elysia/ws';
 import db from '../store/db.js';
 import { clients } from '../store/schema.js';
 
@@ -12,7 +14,15 @@ const videoState = t.Object({
 
 export type VideoState = Static<typeof videoState>;
 
-const clientSockets = new Map<string, ServerWebSocket<unknown>>();
+type WebSocket = ElysiaWS<
+  ServerWebSocket<{
+    validator?: TypeCheck<TSchema>;
+  }>,
+  any,
+  any
+>;
+
+const clientSockets = new Map<string, WebSocket>();
 
 export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
   body: t.Union([videoState, t.Literal('ping')]),
@@ -47,7 +57,7 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
       return error(400, 'Room does not exist');
     }
     // TODO: get current state from host
-    const notifyOthersInRoom = (message: object) => {
+    const notifyOthersInRoom = (message: VideoState) => {
       for (const c of client.room!.clients) {
         if (c.clientId === client.clientId) {
           continue;
@@ -57,7 +67,7 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
           console.warn(`Socket for ${c.clientId} not found`);
           return;
         }
-        socket.send(JSON.stringify(message));
+        socket.send(message);
       }
     };
     const response: VideoState = message;
@@ -65,7 +75,7 @@ export const socketRoutes = new Elysia().ws('/clients/:clientId/socket', {
   },
   open: async (ws) => {
     const clientId = ws.data.params.clientId;
-    clientSockets.set(clientId, ws.raw);
+    clientSockets.set(clientId, ws);
   },
   close: (ws) => {
     const clientId = ws.data.params.clientId;
