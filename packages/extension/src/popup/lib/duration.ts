@@ -8,9 +8,8 @@ export function formatDuration(seconds?: number): string {
   const secs = seconds % 60;
 
   const formattedHours = hours > 0 ? `${hours}:` : '';
-  const formattedMinutes =
-    hours > 0 ? String(minutes).padStart(2, '0') : `${minutes}:`;
+  const formattedMinutes = String(minutes).padStart(2, '0');
   const formattedSeconds = String(secs).padStart(2, '0');
 
-  return `${formattedHours}${formattedMinutes}${formattedSeconds}`;
+  return `${formattedHours}${formattedMinutes}:${formattedSeconds}`;
 }
