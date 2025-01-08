@@ -79,12 +79,17 @@ jobs:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_SHA: ${{ github.sha }}
           VERSION: ${{ steps.version.outputs.value }}
+      - name: Extract branch name
+        shell: bash
+        run: echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        id: extract_branch
       - name: Build and publish docker image
         uses: philips-software/docker-ci-scripts@v5.1.0
         with:
           dockerfile: dockerfile
           image-name: visync-server
           tags: ${{ steps.tags.outputs.tag }}
+          push-branches: ${{ steps.extract_branch.outputs.branch }}
         env:
           REGISTRY_USERNAME: ${{ github.actor }}
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
