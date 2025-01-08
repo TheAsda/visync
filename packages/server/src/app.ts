@@ -7,5 +7,5 @@ new Elysia()
   .use(server)
   .listen({
     hostname: process.env.HOST ?? '0.0.0.0',
-    port: process.env.PORT ? Number(process.env.PORT) : '23778',
+    port: process.env.PORT ? Number(process.env.PORT) : 23778,
   });

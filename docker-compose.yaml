@@ -1,8 +1,0 @@
-services:
-  visync-server:
-    container_name: visync-server
-    image: visync-server
-    environment:
-      - PORT=5679
-    ports:
-      - 5679:5679

@@ -1,8 +1,8 @@
-from oven/bun:1
-workdir /app
-copy . .
-run cd packages/server && bun install --frozen-lockfile --production
-cmd cd packages/server && bun run start
+# from oven/bun:1
+# workdir /app
+# copy . .
+# run cd packages/server && bun install --frozen-lockfile --production
+# cmd cd packages/server && bun run start
 
 FROM oven/bun:1 AS base
 WORKDIR /usr/src/app
@@ -12,16 +12,15 @@ WORKDIR /usr/src/app
 FROM base AS install
 RUN mkdir -p /temp/dev
 COPY package.json bun.lockb /temp/dev/
-COPY packages/server/package.json /temp/dev/packages/server
-COPY packages/extension/package.json /temp/dev/packages/extension
+COPY packages/server/package.json /temp/dev/packages/server/
+COPY packages/extension/package.json /temp/dev/packages/extension/
 RUN cd /temp/dev && bun install --frozen-lockfile
 
 # install with --production (exclude devDependencies)
 RUN mkdir -p /temp/prod
 COPY package.json bun.lockb /temp/prod/
-COPY package.json bun.lockb /temp/dev/
-COPY packages/server/package.json /temp/dev/packages/server
-COPY packages/extension/package.json /temp/dev/packages/extension
+COPY packages/server/package.json /temp/prod/packages/server/
+COPY packages/extension/package.json /temp/prod/packages/extension/
 RUN cd /temp/prod/packages/server && bun install --frozen-lockfile --production
 
 # copy node_modules from temp directory
@@ -41,4 +40,4 @@ COPY --from=prerelease /usr/src/app/packages/server/package.json .
 # run the app
 USER bun
 EXPOSE 23778
-ENTRYPOINT [ "bun", "run", "index.ts" ]
+ENTRYPOINT [ "bun", "run", "start" ]
