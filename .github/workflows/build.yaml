@@ -84,7 +84,7 @@ jobs:
           REGISTRY_USERNAME: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_REGISTRY: ghcr.io/theasda
-          GITHUB_ORGANIZATION: theasda
+          DOCKER_ORGANIZATION: theasda
   update_pr:
     name: Update PR
     runs-on: ubuntu-latest
