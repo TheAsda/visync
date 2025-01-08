@@ -29,16 +29,16 @@ jobs:
         id: version
         with:
           cmd: 'jq .version packages/extension/package.json -r'
+      - name: Upload extension artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: visync-extension
+          path: packages/extension/dist/
       - name: Archive extension
         uses: thedoctor0/zip-release@main
         with:
           type: zip
           filename: visync-extension.zip
-          path: packages/extension/dist/
-      - name: Upload extension artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: visync-extension
           path: packages/extension/dist/
       - name: Create draft release
         uses: softprops/action-gh-release@v2.2.1
