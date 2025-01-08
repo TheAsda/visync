@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build_extension:
