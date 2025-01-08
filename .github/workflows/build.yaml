@@ -81,9 +81,9 @@ jobs:
           image-name: visync-server
           tags: ${{ steps.tags.outputs.tags }}
         env:
-          DOCKER_USERNAME: ${{ github.actor }}
-          DOCKER_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_REGISTRY: ghcr.io/theasda
+          REGISTRY_USERNAME: ${{ github.actor }}
+          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_REGISTRY: ghcr.io/theasda
           GITHUB_ORGANIZATION: theasda
   update_pr:
     name: Update PR
