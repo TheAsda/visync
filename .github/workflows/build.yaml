@@ -84,7 +84,7 @@ jobs:
         with:
           dockerfile: dockerfile
           image-name: visync-server
-          tags: ${{ steps.tags.outputs.tags }}
+          tags: ${{ steps.tags.outputs.tag }}
         env:
           REGISTRY_USERNAME: ${{ github.actor }}
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
