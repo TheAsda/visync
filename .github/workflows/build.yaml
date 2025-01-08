@@ -106,6 +106,6 @@ jobs:
           message: |
             #### You can try out extension of this pull request.
 
-            Server is available by ${{ needs.build_server.tags.outputs.tag }}
+            Server is available by ${{ needs.build_server.outputs.tag }}
 
             Extension is uploaded to pipeline [artifacts](https://github.com/theasda/visync/actions/runs/${{ github.run_id }}#artifacts)
