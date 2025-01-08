@@ -74,6 +74,7 @@ jobs:
           else
             TAG="latest ${{ env.value }}"
           fi
+          echo $TAG
       - name: Build and publish docker image
         uses: philips-software/docker-ci-scripts@v5.1.0
         with:
@@ -84,7 +85,7 @@ jobs:
           REGISTRY_USERNAME: ${{ github.actor }}
           REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
           REGISTRY_REGISTRY: ghcr.io/theasda
-          DOCKER_ORGANIZATION: theasda
+          GITHUB_ORGANIZATION: theasda
   update_pr:
     name: Update PR
     runs-on: ubuntu-latest
