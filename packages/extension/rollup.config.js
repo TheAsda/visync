@@ -115,12 +115,8 @@ export default defineConfig([
         'process.env.NODE_ENV': JSON.stringify(
           process.env.NODE_ENV || 'development'
         ),
-        'process.env.SERVER_HOSTNAME': JSON.stringify(
-          process.env.SERVER_HOSTNAME
-        ),
-        'process.env.SERVER_PORT': JSON.stringify(process.env.SERVER_PORT),
-        'process.env.SERVER_PROTOCOL': JSON.stringify(
-          process.env.SERVER_PROTOCOL
+        'process.env.SERVER_URL': JSON.stringify(
+          isProduction ? process.env.SERVER_URL : 'http://127.0.0.1:23778'
         ),
       }),
       swc({}),

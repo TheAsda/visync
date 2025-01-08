@@ -6,6 +6,6 @@ new Elysia()
   .use(logixlysia())
   .use(server)
   .listen({
-    hostname: process.env.HOST ?? '192.168.1.13',
-    port: process.env.PORT ? Number(process.env.PORT) : 7001,
+    hostname: process.env.HOST ?? '0.0.0.0',
+    port: process.env.PORT ? Number(process.env.PORT) : '23778',
   });

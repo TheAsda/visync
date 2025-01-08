@@ -1,6 +1,9 @@
 import { treaty } from '@elysiajs/eden';
 import type { Server } from '../../../server/src/server';
 
-export const apiClient = treaty<Server>('http://95.165.104.170:7001',{
-  keepDomain: true
-});
+export const apiClient = treaty<Server>(
+  process.env.SERVER_URL ?? 'http://localhost:23778',
+  {
+    keepDomain: true,
+  }
+);
