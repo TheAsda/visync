@@ -83,8 +83,8 @@ jobs:
           tags: ${{ steps.tags.outputs.tags }}
         env:
           REGISTRY_USERNAME: ${{ github.actor }}
-          REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-          REGISTRY_REGISTRY: ghcr.io/theasda
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_URL: ghcr.io/theasda
           GITHUB_ORGANIZATION: theasda
   update_pr:
     name: Update PR
