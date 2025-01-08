@@ -69,12 +69,16 @@ jobs:
       - name: Determine tags
         id: tags
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            TAG="pr-${{ github.sha }}"
+          if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
+            TAG="pr-${GITHUB_SHA}"
           else
-            TAG="latest ${{ env.value }}"
+            TAG="latest ${VALUE}"
           fi
-          echo $TAG
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_SHA: ${{ github.sha }}
+          VERSION: ${{ steps.version.outputs.value }}
       - name: Build and publish docker image
         uses: philips-software/docker-ci-scripts@v5.1.0
         with:
