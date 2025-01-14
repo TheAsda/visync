@@ -58,6 +58,8 @@ jobs:
   build_server:
     name: Build and publish server
     runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tags.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -106,6 +108,6 @@ jobs:
           message: |
             #### You can try out extension of this pull request.
 
-            Server is available by ${{ needs.build_server.outputs.tag }}
+            Server is available by ${{ jobs.build_server.outputs.tag }}
 
             Extension is uploaded to pipeline [artifacts](https://github.com/theasda/visync/actions/runs/${{ github.run_id }}#artifacts)
