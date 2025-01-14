@@ -35,6 +35,8 @@ RUN cd packages/server && bun run build
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
 COPY --from=prerelease /usr/src/app/packages/server/dist ./dist
+COPY --from=prerelease /usr/src/app/packages/server/drizzle ./drizzle
+COPY --from=prerelease /usr/src/app/packages/server/drizzle.config.ts .
 COPY --from=prerelease /usr/src/app/packages/server/package.json .
 
 # run the app
