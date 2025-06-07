@@ -74,7 +74,7 @@ jobs:
           if [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]; then
             TAG="ghcr.io/theasda/visync-server:pr-${GITHUB_SHA}"
           else
-            TAG="ghcr.io/theasda/visync-server:latest ghcr.io/theasda/visync-server:${VALUE}"
+            TAG="ghcr.io/theasda/visync-server:latest,ghcr.io/theasda/visync-server:${VALUE}"
           fi
           echo "tag=$TAG" >> $GITHUB_OUTPUT
         env:
@@ -88,7 +88,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v6
         with:
           file: dockerfile
           push: true
