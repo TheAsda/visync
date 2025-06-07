@@ -1,0 +1,10 @@
+.video-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--size-2);
+}
+
+.video-selector__list {
+  list-style: none;
+}

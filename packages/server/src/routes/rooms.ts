@@ -1,173 +1,160 @@
-import type { FastifyPluginAsync } from 'fastify';
-import type {
-  CreateRoomRequest,
-  JoinRoomRequest,
-  LeaveRoomRequest,
-} from 'visync-contracts';
-import { logger } from '../logger.js';
-import { Client, Room } from '../store/knex.js';
-import { roomExists } from '../store/utils/room.js';
-import {
-  ensureClientIdFromBody,
-  ensureRoomIdFromParams,
-} from './utils/ensure.js';
-import { mapRoom } from './utils/map.js';
+import { eq } from 'drizzle-orm';
+import { Elysia, error, t } from 'elysia';
+import db from '../store/db.js';
+import { clients, rooms } from '../store/schema.js';
 
-export const roomsRoutes: FastifyPluginAsync = async (fastify) => {
-  fastify.get(
-    '/rooms/:roomId',
-    { preHandler: ensureRoomIdFromParams },
-    async (request, reply) => {
-      const { roomId } = request.params as { roomId: string };
-
-      const room = await fastify.knex
-        .table<Room>('room')
-        .where('room.roomId', roomId)
-        .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
-
-      reply.send(mapRoom(room));
-    }
-  );
-
-  fastify.put(
-    '/rooms/:roomId',
-    { preHandler: ensureClientIdFromBody },
-    async (request, reply) => {
-      const { roomId } = request.params as { roomId: string };
-      const body = request.body as CreateRoomRequest;
-
-      if (await roomExists(fastify.knex, roomId)) {
-        reply.code(400).send({
-          error: `Room ${roomId} already exists`,
-        });
-        return;
-      }
-
-      try {
-        await fastify.knex.transaction(async (trx) => {
-          await trx.table<Room>('room').insert({
-            roomId,
-            link: body.link,
+export const roomsRoutes = new Elysia().group(
+  '/rooms/:roomId',
+  {
+    params: t.Object({
+      roomId: t.String(),
+    }),
+    headers: t.Object({
+      'x-clientid': t.String(),
+    }),
+  },
+  (app) =>
+    app
+      .put(
+        '/',
+        async ({
+          params: { roomId },
+          body: { link },
+          headers: { 'x-clientid': clientId },
+        }) => {
+          const room = await db.query.rooms.findFirst({
+            where: eq(rooms.roomId, roomId),
           });
-          await trx
-            .table<Client>('client')
-            .update({
-              roomId,
-            })
-            .where('clientId', body.clientId);
-        });
-      } catch (e) {
-        reply.code(500).send({
-          error: `Failed to create room ${roomId}`,
-        });
-        return;
-      }
-
-      const room = await fastify.knex
-        .table<Room>('room')
-        .where('room.roomId', roomId)
-        .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
-
-      reply.status(201).send(mapRoom(room));
-    }
-  );
-
-  fastify.post(
-    '/rooms/:roomId/join',
-    { preHandler: [ensureRoomIdFromParams, ensureClientIdFromBody] },
-    async (request, reply) => {
-      const { roomId } = request.params as { roomId: string };
-      const body = request.body as JoinRoomRequest;
-
-      const client = await fastify.knex
-        .table<Client>('client')
-        .where('clientId', body.clientId)
-        .first();
-
-      if (client?.roomId === roomId) {
-        reply.code(400).send({
-          error: `Client ${body.clientId} already in room ${roomId}`,
-        });
-        return;
-      }
-      if (client?.roomId !== null) {
-        reply.code(400).send({
-          error: `Client ${body.clientId} already in room ${client?.roomId}`,
-        });
-        return;
-      }
-
-      try {
-        await fastify.knex
-          .table<Client>('client')
-          .update({ roomId })
-          .where('clientId', body.clientId);
-      } catch (e) {
-        reply.code(500).send({
-          error: `Failed to join room ${roomId}`,
-        });
-        return;
-      }
-
-      const room = await fastify.knex
-        .table<Room>('room')
-        .where('room.roomId', roomId)
-        .leftJoin('client', 'room.roomId', 'client.roomId')
-        .select<(Room & Pick<Client, 'clientId'>)[]>(
-          'room.*',
-          'client.clientId'
-        );
-
-      reply.send(mapRoom(room));
-    }
-  );
-
-  fastify.post(
-    '/rooms/:roomId/leave',
-    { preHandler: [ensureRoomIdFromParams, ensureClientIdFromBody] },
-    async (request, reply) => {
-      const { roomId } = request.params as { roomId: string };
-      const body = request.body as LeaveRoomRequest;
-
-      const client = await fastify.knex
-        .table<Client>('client')
-        .where({
-          clientId: body.clientId,
-        })
-        .first();
-      if (client?.roomId !== roomId) {
-        reply.code(400).send({
-          error: `Client ${body.clientId} is not in room ${roomId}`,
-        });
-        return;
-      }
-
-      await fastify.knex
-        .table<Client>('client')
-        .where('clientId', body.clientId)
-        .update({ roomId: null });
-
-      const count = await fastify.knex
-        .table<Client>('client')
-        .where('roomId', roomId)
-        .count<{ count: number }>('clientId', { as: 'count' })
-        .first()
-        .then((r) => r?.count ?? 0);
-
-      if (count === 0) {
-        logger.info(`Room ${roomId} is empty, deleting`);
-        await fastify.knex.table<Room>('room').where('roomId', roomId).del();
-      }
-
-      reply.status(204).send();
-    }
-  );
-};
+          if (room) {
+            return error(400, 'Room already exists');
+          }
+          const client = await db.query.clients.findFirst({
+            where: eq(clients.clientId, clientId),
+          });
+          if (!client) {
+            return error(400, 'Client not found');
+          }
+          if (client.roomId) {
+            return error(400, 'Client already in a room');
+          }
+          const createdRoom = await db.transaction(async (tx) => {
+            await tx
+              .insert(rooms)
+              .values({ roomId: roomId, link: link, hostClientId: clientId })
+              .returning();
+            await tx
+              .update(clients)
+              .set({ roomId: roomId })
+              .where(eq(clients.clientId, clientId));
+            return await tx.query.rooms.findFirst({
+              where: eq(rooms.roomId, roomId),
+              with: {
+                clients: true,
+              },
+            });
+          });
+          if (!createdRoom) {
+            return error(500, 'Failed to create room');
+          }
+          return createdRoom;
+        },
+        {
+          body: t.Object({
+            link: t.Optional(t.String()),
+          }),
+        }
+      )
+      .get(
+        '/',
+        async ({ params: { roomId }, headers: { 'x-clientid': clientId } }) => {
+          const room = await db.query.rooms.findFirst({
+            columns: {
+              roomId: true,
+            },
+            where: eq(rooms.roomId, roomId),
+            with: {
+              clients: {
+                columns: {
+                  clientId: true,
+                },
+              },
+            },
+          });
+          if (!room) {
+            return error(404, 'Room not found');
+          }
+          if (!room.clients.find((c) => c.clientId === clientId)) {
+            return error(400, 'Client not in the room');
+          }
+          return room;
+        }
+      )
+      .post(
+        '/join',
+        async ({ params: { roomId }, headers: { 'x-clientid': clientId } }) => {
+          const room = await db.query.rooms.findFirst({
+            where: eq(rooms.roomId, roomId),
+          });
+          if (!room) {
+            return error(404, 'Room not found');
+          }
+          const client = await db.query.clients.findFirst({
+            where: eq(clients.clientId, clientId),
+          });
+          if (!client) {
+            return error(404, 'Client not found');
+          }
+          if (client.roomId) {
+            return error(400, 'Client already in a room');
+          }
+          await db
+            .update(clients)
+            .set({ roomId: roomId })
+            .where(eq(clients.clientId, clientId));
+          return await db.query.rooms.findFirst({
+            where: eq(rooms.roomId, roomId),
+          });
+        }
+      )
+      .post(
+        '/leave',
+        async ({
+          params: { roomId },
+          headers: { 'x-clientid': clientId },
+          set,
+        }) => {
+          const room = await db.query.rooms.findFirst({
+            where: eq(rooms.roomId, roomId),
+            with: { clients: true },
+          });
+          if (!room) {
+            return error(404, 'Room not found');
+          }
+          const client = await db.query.clients.findFirst({
+            where: eq(clients.clientId, clientId),
+          });
+          if (!client) {
+            return error(404, 'Client not found');
+          }
+          if (!client.roomId) {
+            return error(400, 'Client not in a room');
+          }
+          await db
+            .update(clients)
+            .set({ roomId: null })
+            .where(eq(clients.clientId, clientId));
+          if (room.clients.length === 1) {
+            await db.delete(rooms).where(eq(rooms.roomId, roomId));
+          } else if (room.hostClientId === clientId) {
+            await db
+              .update(rooms)
+              .set({
+                hostClientId: room.clients.find((c) => c.clientId !== clientId)!
+                  .clientId,
+              })
+              .where(eq(rooms.roomId, roomId));
+          }
+          set.status = 204;
+        }
+      )
+);

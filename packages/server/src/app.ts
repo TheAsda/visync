@@ -1,14 +1,11 @@
-import { logger } from './logger.js';
-import { loggerPlugin } from './loggerPlugin.js';
+import { Elysia } from 'elysia';
+import logixlysia from 'logixlysia';
 import server from './server.js';
 
-await server.register(loggerPlugin);
-
-server
+new Elysia()
+  .use(logixlysia())
+  .use(server)
   .listen({
-    host: process.env.HOST ?? 'localhost',
-    port: process.env.PORT ? Number(process.env.PORT) : 7001,
-  })
-  .then((address) => {
-    logger.info(`Server listening on ${address}`);
+    hostname: process.env.HOST ?? '0.0.0.0',
+    port: process.env.PORT ? Number(process.env.PORT) : 23778,
   });

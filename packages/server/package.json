@@ -1,32 +1,28 @@
 {
   "name": "visync-server",
-  "version": "1.1.0",
-  "description": "",
+  "version": "2.0.0",
   "private": true,
+  "description": "",
+  "license": "ISC",
+  "author": "Andrey Kiselev",
+  "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "start": "node dist/app.js",
+    "build": "bun build src/app.ts --target bun --outdir ./dist",
+    "dev": "bun --watch --inspect src/app.ts",
+    "generate": "drizzle-kit generate",
+    "start": "NODE_ENV=production bun dist/app.js",
     "test": "ava",
     "test:watch": "ava --watch"
   },
-  "author": "Andrey Kiselev",
-  "license": "ISC",
   "dependencies": {
-    "@fastify/websocket": "^6.0.1",
-    "dotenv": "^16.0.1",
-    "fastify": "^4.3.0",
-    "fastify-plugin": "^4.0.0",
-    "knex": "^2.2.0",
-    "nanoid": "^4.0.0",
-    "pino-pretty": "^8.1.0",
-    "sqlite3": "^5.0.11",
+    "drizzle-orm": "^0.33.0",
+    "drizzle-typebox": "^0.1.1",
+    "elysia": "^1.1.16",
+    "logixlysia": "^3.7.0",
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@types/ws": "^8.5.3",
-    "ava": "^4.3.1",
-    "ts-node": "^10.9.1",
-    "visync-contracts": "^1.0.0"
-  },
-  "type": "module"
+    "drizzle-kit": "^0.24.2",
+    "nanoid": "^5.0.7"
+  }
 }

@@ -1,8 +1,8 @@
 import { ComponentPropsWithoutRef, useEffect, useRef, useState } from 'react';
-import { Button } from './Button';
-import CopyIcon from '../assets/CopyIcon.svg';
-import CheckIcon from '../assets/CheckIcon.svg';
 import clsx from 'clsx';
+import CheckIcon from '../assets/CheckIcon.svg';
+import CopyIcon from '../assets/CopyIcon.svg';
+import { Button } from './Button';
 
 export const CopyButton = (
   props: Omit<ComponentPropsWithoutRef<'button'>, 'children'>
